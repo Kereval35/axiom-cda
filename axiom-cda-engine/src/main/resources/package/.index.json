@@ -1,0 +1,1593 @@
+{
+  "index-version" : 2,
+  "files" : [
+    {
+      "filename" : "ImplementationGuide-hl7.cda.uv.core.json",
+      "resourceType" : "ImplementationGuide",
+      "id" : "hl7.cda.uv.core",
+      "url" : "http://hl7.org/cda/stds/core/ImplementationGuide/hl7.cda.uv.core",
+      "version" : "2.0.1-sd"
+    },
+    {
+      "filename" : "StructureDefinition-AD.json",
+      "resourceType" : "StructureDefinition",
+      "id" : "AD",
+      "url" : "http://hl7.org/cda/stds/core/StructureDefinition/AD",
+      "version" : "2.0.1-sd",
+      "kind" : "logical",
+      "type" : "http://hl7.org/cda/stds/core/StructureDefinition/AD",
+      "derivation" : "specialization"
+    },
+    {
+      "filename" : "StructureDefinition-ADXP.json",
+      "resourceType" : "StructureDefinition",
+      "id" : "ADXP",
+      "url" : "http://hl7.org/cda/stds/core/StructureDefinition/ADXP",
+      "version" : "2.0.1-sd",
+      "kind" : "logical",
+      "type" : "http://hl7.org/cda/stds/core/StructureDefinition/ADXP",
+      "derivation" : "specialization"
+    },
+    {
+      "filename" : "StructureDefinition-ANY.json",
+      "resourceType" : "StructureDefinition",
+      "id" : "ANY",
+      "url" : "http://hl7.org/cda/stds/core/StructureDefinition/ANY",
+      "version" : "2.0.1-sd",
+      "kind" : "logical",
+      "type" : "http://hl7.org/cda/stds/core/StructureDefinition/ANY",
+      "derivation" : "specialization"
+    },
+    {
+      "filename" : "StructureDefinition-Act.json",
+      "resourceType" : "StructureDefinition",
+      "id" : "Act",
+      "url" : "http://hl7.org/cda/stds/core/StructureDefinition/Act",
+      "version" : "2.0.1-sd",
+      "kind" : "logical",
+      "type" : "http://hl7.org/cda/stds/core/StructureDefinition/Act",
+      "derivation" : "specialization"
+    },
+    {
+      "filename" : "StructureDefinition-AlternateIdentification.json",
+      "resourceType" : "StructureDefinition",
+      "id" : "AlternateIdentification",
+      "url" : "http://hl7.org/cda/stds/core/StructureDefinition/AlternateIdentification",
+      "version" : "2.0.1-sd",
+      "kind" : "logical",
+      "type" : "http://hl7.org/cda/stds/core/StructureDefinition/AlternateIdentification",
+      "derivation" : "specialization"
+    },
+    {
+      "filename" : "StructureDefinition-AssignedAuthor.json",
+      "resourceType" : "StructureDefinition",
+      "id" : "AssignedAuthor",
+      "url" : "http://hl7.org/cda/stds/core/StructureDefinition/AssignedAuthor",
+      "version" : "2.0.1-sd",
+      "kind" : "logical",
+      "type" : "http://hl7.org/cda/stds/core/StructureDefinition/AssignedAuthor",
+      "derivation" : "specialization"
+    },
+    {
+      "filename" : "StructureDefinition-AssignedCustodian.json",
+      "resourceType" : "StructureDefinition",
+      "id" : "AssignedCustodian",
+      "url" : "http://hl7.org/cda/stds/core/StructureDefinition/AssignedCustodian",
+      "version" : "2.0.1-sd",
+      "kind" : "logical",
+      "type" : "http://hl7.org/cda/stds/core/StructureDefinition/AssignedCustodian",
+      "derivation" : "specialization"
+    },
+    {
+      "filename" : "StructureDefinition-AssignedEntity.json",
+      "resourceType" : "StructureDefinition",
+      "id" : "AssignedEntity",
+      "url" : "http://hl7.org/cda/stds/core/StructureDefinition/AssignedEntity",
+      "version" : "2.0.1-sd",
+      "kind" : "logical",
+      "type" : "http://hl7.org/cda/stds/core/StructureDefinition/AssignedEntity",
+      "derivation" : "specialization"
+    },
+    {
+      "filename" : "StructureDefinition-AssociatedEntity.json",
+      "resourceType" : "StructureDefinition",
+      "id" : "AssociatedEntity",
+      "url" : "http://hl7.org/cda/stds/core/StructureDefinition/AssociatedEntity",
+      "version" : "2.0.1-sd",
+      "kind" : "logical",
+      "type" : "http://hl7.org/cda/stds/core/StructureDefinition/AssociatedEntity",
+      "derivation" : "specialization"
+    },
+    {
+      "filename" : "StructureDefinition-Authenticator.json",
+      "resourceType" : "StructureDefinition",
+      "id" : "Authenticator",
+      "url" : "http://hl7.org/cda/stds/core/StructureDefinition/Authenticator",
+      "version" : "2.0.1-sd",
+      "kind" : "logical",
+      "type" : "http://hl7.org/cda/stds/core/StructureDefinition/Authenticator",
+      "derivation" : "specialization"
+    },
+    {
+      "filename" : "StructureDefinition-Author.json",
+      "resourceType" : "StructureDefinition",
+      "id" : "Author",
+      "url" : "http://hl7.org/cda/stds/core/StructureDefinition/Author",
+      "version" : "2.0.1-sd",
+      "kind" : "logical",
+      "type" : "http://hl7.org/cda/stds/core/StructureDefinition/Author",
+      "derivation" : "specialization"
+    },
+    {
+      "filename" : "StructureDefinition-AuthoringDevice.json",
+      "resourceType" : "StructureDefinition",
+      "id" : "AuthoringDevice",
+      "url" : "http://hl7.org/cda/stds/core/StructureDefinition/AuthoringDevice",
+      "version" : "2.0.1-sd",
+      "kind" : "logical",
+      "type" : "http://hl7.org/cda/stds/core/StructureDefinition/AuthoringDevice",
+      "derivation" : "specialization"
+    },
+    {
+      "filename" : "StructureDefinition-Authorization.json",
+      "resourceType" : "StructureDefinition",
+      "id" : "Authorization",
+      "url" : "http://hl7.org/cda/stds/core/StructureDefinition/Authorization",
+      "version" : "2.0.1-sd",
+      "kind" : "logical",
+      "type" : "http://hl7.org/cda/stds/core/StructureDefinition/Authorization",
+      "derivation" : "specialization"
+    },
+    {
+      "filename" : "StructureDefinition-BL.json",
+      "resourceType" : "StructureDefinition",
+      "id" : "BL",
+      "url" : "http://hl7.org/cda/stds/core/StructureDefinition/BL",
+      "version" : "2.0.1-sd",
+      "kind" : "logical",
+      "type" : "http://hl7.org/cda/stds/core/StructureDefinition/BL",
+      "derivation" : "specialization"
+    },
+    {
+      "filename" : "StructureDefinition-Birthplace.json",
+      "resourceType" : "StructureDefinition",
+      "id" : "Birthplace",
+      "url" : "http://hl7.org/cda/stds/core/StructureDefinition/Birthplace",
+      "version" : "2.0.1-sd",
+      "kind" : "logical",
+      "type" : "http://hl7.org/cda/stds/core/StructureDefinition/Birthplace",
+      "derivation" : "specialization"
+    },
+    {
+      "filename" : "StructureDefinition-CD.json",
+      "resourceType" : "StructureDefinition",
+      "id" : "CD",
+      "url" : "http://hl7.org/cda/stds/core/StructureDefinition/CD",
+      "version" : "2.0.1-sd",
+      "kind" : "logical",
+      "type" : "http://hl7.org/cda/stds/core/StructureDefinition/CD",
+      "derivation" : "specialization"
+    },
+    {
+      "filename" : "StructureDefinition-CE.json",
+      "resourceType" : "StructureDefinition",
+      "id" : "CE",
+      "url" : "http://hl7.org/cda/stds/core/StructureDefinition/CE",
+      "version" : "2.0.1-sd",
+      "kind" : "logical",
+      "type" : "http://hl7.org/cda/stds/core/StructureDefinition/CE",
+      "derivation" : "specialization"
+    },
+    {
+      "filename" : "StructureDefinition-CO.json",
+      "resourceType" : "StructureDefinition",
+      "id" : "CO",
+      "url" : "http://hl7.org/cda/stds/core/StructureDefinition/CO",
+      "version" : "2.0.1-sd",
+      "kind" : "logical",
+      "type" : "http://hl7.org/cda/stds/core/StructureDefinition/CO",
+      "derivation" : "specialization"
+    },
+    {
+      "filename" : "StructureDefinition-CR.json",
+      "resourceType" : "StructureDefinition",
+      "id" : "CR",
+      "url" : "http://hl7.org/cda/stds/core/StructureDefinition/CR",
+      "version" : "2.0.1-sd",
+      "kind" : "logical",
+      "type" : "http://hl7.org/cda/stds/core/StructureDefinition/CR",
+      "derivation" : "specialization"
+    },
+    {
+      "filename" : "StructureDefinition-CS.json",
+      "resourceType" : "StructureDefinition",
+      "id" : "CS",
+      "url" : "http://hl7.org/cda/stds/core/StructureDefinition/CS",
+      "version" : "2.0.1-sd",
+      "kind" : "logical",
+      "type" : "http://hl7.org/cda/stds/core/StructureDefinition/CS",
+      "derivation" : "specialization"
+    },
+    {
+      "filename" : "StructureDefinition-CV.json",
+      "resourceType" : "StructureDefinition",
+      "id" : "CV",
+      "url" : "http://hl7.org/cda/stds/core/StructureDefinition/CV",
+      "version" : "2.0.1-sd",
+      "kind" : "logical",
+      "type" : "http://hl7.org/cda/stds/core/StructureDefinition/CV",
+      "derivation" : "specialization"
+    },
+    {
+      "filename" : "StructureDefinition-ClinicalDocument.json",
+      "resourceType" : "StructureDefinition",
+      "id" : "ClinicalDocument",
+      "url" : "http://hl7.org/cda/stds/core/StructureDefinition/ClinicalDocument",
+      "version" : "2.0.1-sd",
+      "kind" : "logical",
+      "type" : "http://hl7.org/cda/stds/core/StructureDefinition/ClinicalDocument",
+      "derivation" : "specialization"
+    },
+    {
+      "filename" : "StructureDefinition-Component.json",
+      "resourceType" : "StructureDefinition",
+      "id" : "Component",
+      "url" : "http://hl7.org/cda/stds/core/StructureDefinition/Component",
+      "version" : "2.0.1-sd",
+      "kind" : "logical",
+      "type" : "http://hl7.org/cda/stds/core/StructureDefinition/Component",
+      "derivation" : "specialization"
+    },
+    {
+      "filename" : "StructureDefinition-ComponentOf.json",
+      "resourceType" : "StructureDefinition",
+      "id" : "ComponentOf",
+      "url" : "http://hl7.org/cda/stds/core/StructureDefinition/ComponentOf",
+      "version" : "2.0.1-sd",
+      "kind" : "logical",
+      "type" : "http://hl7.org/cda/stds/core/StructureDefinition/ComponentOf",
+      "derivation" : "specialization"
+    },
+    {
+      "filename" : "StructureDefinition-Consent.json",
+      "resourceType" : "StructureDefinition",
+      "id" : "Consent",
+      "url" : "http://hl7.org/cda/stds/core/StructureDefinition/Consent",
+      "version" : "2.0.1-sd",
+      "kind" : "logical",
+      "type" : "http://hl7.org/cda/stds/core/StructureDefinition/Consent",
+      "derivation" : "specialization"
+    },
+    {
+      "filename" : "StructureDefinition-Criterion.json",
+      "resourceType" : "StructureDefinition",
+      "id" : "Criterion",
+      "url" : "http://hl7.org/cda/stds/core/StructureDefinition/Criterion",
+      "version" : "2.0.1-sd",
+      "kind" : "logical",
+      "type" : "http://hl7.org/cda/stds/core/StructureDefinition/Criterion",
+      "derivation" : "specialization"
+    },
+    {
+      "filename" : "StructureDefinition-Custodian.json",
+      "resourceType" : "StructureDefinition",
+      "id" : "Custodian",
+      "url" : "http://hl7.org/cda/stds/core/StructureDefinition/Custodian",
+      "version" : "2.0.1-sd",
+      "kind" : "logical",
+      "type" : "http://hl7.org/cda/stds/core/StructureDefinition/Custodian",
+      "derivation" : "specialization"
+    },
+    {
+      "filename" : "StructureDefinition-CustodianOrganization.json",
+      "resourceType" : "StructureDefinition",
+      "id" : "CustodianOrganization",
+      "url" : "http://hl7.org/cda/stds/core/StructureDefinition/CustodianOrganization",
+      "version" : "2.0.1-sd",
+      "kind" : "logical",
+      "type" : "http://hl7.org/cda/stds/core/StructureDefinition/CustodianOrganization",
+      "derivation" : "specialization"
+    },
+    {
+      "filename" : "StructureDefinition-DataEnterer.json",
+      "resourceType" : "StructureDefinition",
+      "id" : "DataEnterer",
+      "url" : "http://hl7.org/cda/stds/core/StructureDefinition/DataEnterer",
+      "version" : "2.0.1-sd",
+      "kind" : "logical",
+      "type" : "http://hl7.org/cda/stds/core/StructureDefinition/DataEnterer",
+      "derivation" : "specialization"
+    },
+    {
+      "filename" : "StructureDefinition-Device.json",
+      "resourceType" : "StructureDefinition",
+      "id" : "Device",
+      "url" : "http://hl7.org/cda/stds/core/StructureDefinition/Device",
+      "version" : "2.0.1-sd",
+      "kind" : "logical",
+      "type" : "http://hl7.org/cda/stds/core/StructureDefinition/Device",
+      "derivation" : "specialization"
+    },
+    {
+      "filename" : "StructureDefinition-DocumentationOf.json",
+      "resourceType" : "StructureDefinition",
+      "id" : "DocumentationOf",
+      "url" : "http://hl7.org/cda/stds/core/StructureDefinition/DocumentationOf",
+      "version" : "2.0.1-sd",
+      "kind" : "logical",
+      "type" : "http://hl7.org/cda/stds/core/StructureDefinition/DocumentationOf",
+      "derivation" : "specialization"
+    },
+    {
+      "filename" : "StructureDefinition-ED.json",
+      "resourceType" : "StructureDefinition",
+      "id" : "ED",
+      "url" : "http://hl7.org/cda/stds/core/StructureDefinition/ED",
+      "version" : "2.0.1-sd",
+      "kind" : "logical",
+      "type" : "http://hl7.org/cda/stds/core/StructureDefinition/ED",
+      "derivation" : "specialization"
+    },
+    {
+      "filename" : "StructureDefinition-EIVL-TS.json",
+      "resourceType" : "StructureDefinition",
+      "id" : "EIVL-TS",
+      "url" : "http://hl7.org/cda/stds/core/StructureDefinition/EIVL-TS",
+      "version" : "2.0.1-sd",
+      "kind" : "logical",
+      "type" : "http://hl7.org/cda/stds/core/StructureDefinition/EIVL_TS",
+      "derivation" : "specialization"
+    },
+    {
+      "filename" : "StructureDefinition-EN.json",
+      "resourceType" : "StructureDefinition",
+      "id" : "EN",
+      "url" : "http://hl7.org/cda/stds/core/StructureDefinition/EN",
+      "version" : "2.0.1-sd",
+      "kind" : "logical",
+      "type" : "http://hl7.org/cda/stds/core/StructureDefinition/EN",
+      "derivation" : "specialization"
+    },
+    {
+      "filename" : "StructureDefinition-ENXP.json",
+      "resourceType" : "StructureDefinition",
+      "id" : "ENXP",
+      "url" : "http://hl7.org/cda/stds/core/StructureDefinition/ENXP",
+      "version" : "2.0.1-sd",
+      "kind" : "logical",
+      "type" : "http://hl7.org/cda/stds/core/StructureDefinition/ENXP",
+      "derivation" : "specialization"
+    },
+    {
+      "filename" : "StructureDefinition-EncompassingEncounter.json",
+      "resourceType" : "StructureDefinition",
+      "id" : "EncompassingEncounter",
+      "url" : "http://hl7.org/cda/stds/core/StructureDefinition/EncompassingEncounter",
+      "version" : "2.0.1-sd",
+      "kind" : "logical",
+      "type" : "http://hl7.org/cda/stds/core/StructureDefinition/EncompassingEncounter",
+      "derivation" : "specialization"
+    },
+    {
+      "filename" : "StructureDefinition-Encounter.json",
+      "resourceType" : "StructureDefinition",
+      "id" : "Encounter",
+      "url" : "http://hl7.org/cda/stds/core/StructureDefinition/Encounter",
+      "version" : "2.0.1-sd",
+      "kind" : "logical",
+      "type" : "http://hl7.org/cda/stds/core/StructureDefinition/Encounter",
+      "derivation" : "specialization"
+    },
+    {
+      "filename" : "StructureDefinition-EncounterParticipant.json",
+      "resourceType" : "StructureDefinition",
+      "id" : "EncounterParticipant",
+      "url" : "http://hl7.org/cda/stds/core/StructureDefinition/EncounterParticipant",
+      "version" : "2.0.1-sd",
+      "kind" : "logical",
+      "type" : "http://hl7.org/cda/stds/core/StructureDefinition/EncounterParticipant",
+      "derivation" : "specialization"
+    },
+    {
+      "filename" : "StructureDefinition-Entity.json",
+      "resourceType" : "StructureDefinition",
+      "id" : "Entity",
+      "url" : "http://hl7.org/cda/stds/core/StructureDefinition/Entity",
+      "version" : "2.0.1-sd",
+      "kind" : "logical",
+      "type" : "http://hl7.org/cda/stds/core/StructureDefinition/Entity",
+      "derivation" : "specialization"
+    },
+    {
+      "filename" : "StructureDefinition-Entry.json",
+      "resourceType" : "StructureDefinition",
+      "id" : "Entry",
+      "url" : "http://hl7.org/cda/stds/core/StructureDefinition/Entry",
+      "version" : "2.0.1-sd",
+      "kind" : "logical",
+      "type" : "http://hl7.org/cda/stds/core/StructureDefinition/Entry",
+      "derivation" : "specialization"
+    },
+    {
+      "filename" : "StructureDefinition-EntryRelationship.json",
+      "resourceType" : "StructureDefinition",
+      "id" : "EntryRelationship",
+      "url" : "http://hl7.org/cda/stds/core/StructureDefinition/EntryRelationship",
+      "version" : "2.0.1-sd",
+      "kind" : "logical",
+      "type" : "http://hl7.org/cda/stds/core/StructureDefinition/EntryRelationship",
+      "derivation" : "specialization"
+    },
+    {
+      "filename" : "StructureDefinition-ExternalAct.json",
+      "resourceType" : "StructureDefinition",
+      "id" : "ExternalAct",
+      "url" : "http://hl7.org/cda/stds/core/StructureDefinition/ExternalAct",
+      "version" : "2.0.1-sd",
+      "kind" : "logical",
+      "type" : "http://hl7.org/cda/stds/core/StructureDefinition/ExternalAct",
+      "derivation" : "specialization"
+    },
+    {
+      "filename" : "StructureDefinition-ExternalDocument.json",
+      "resourceType" : "StructureDefinition",
+      "id" : "ExternalDocument",
+      "url" : "http://hl7.org/cda/stds/core/StructureDefinition/ExternalDocument",
+      "version" : "2.0.1-sd",
+      "kind" : "logical",
+      "type" : "http://hl7.org/cda/stds/core/StructureDefinition/ExternalDocument",
+      "derivation" : "specialization"
+    },
+    {
+      "filename" : "StructureDefinition-ExternalObservation.json",
+      "resourceType" : "StructureDefinition",
+      "id" : "ExternalObservation",
+      "url" : "http://hl7.org/cda/stds/core/StructureDefinition/ExternalObservation",
+      "version" : "2.0.1-sd",
+      "kind" : "logical",
+      "type" : "http://hl7.org/cda/stds/core/StructureDefinition/ExternalObservation",
+      "derivation" : "specialization"
+    },
+    {
+      "filename" : "StructureDefinition-ExternalProcedure.json",
+      "resourceType" : "StructureDefinition",
+      "id" : "ExternalProcedure",
+      "url" : "http://hl7.org/cda/stds/core/StructureDefinition/ExternalProcedure",
+      "version" : "2.0.1-sd",
+      "kind" : "logical",
+      "type" : "http://hl7.org/cda/stds/core/StructureDefinition/ExternalProcedure",
+      "derivation" : "specialization"
+    },
+    {
+      "filename" : "StructureDefinition-Guardian.json",
+      "resourceType" : "StructureDefinition",
+      "id" : "Guardian",
+      "url" : "http://hl7.org/cda/stds/core/StructureDefinition/Guardian",
+      "version" : "2.0.1-sd",
+      "kind" : "logical",
+      "type" : "http://hl7.org/cda/stds/core/StructureDefinition/Guardian",
+      "derivation" : "specialization"
+    },
+    {
+      "filename" : "StructureDefinition-HealthCareFacility.json",
+      "resourceType" : "StructureDefinition",
+      "id" : "HealthCareFacility",
+      "url" : "http://hl7.org/cda/stds/core/StructureDefinition/HealthCareFacility",
+      "version" : "2.0.1-sd",
+      "kind" : "logical",
+      "type" : "http://hl7.org/cda/stds/core/StructureDefinition/HealthCareFacility",
+      "derivation" : "specialization"
+    },
+    {
+      "filename" : "StructureDefinition-II.json",
+      "resourceType" : "StructureDefinition",
+      "id" : "II",
+      "url" : "http://hl7.org/cda/stds/core/StructureDefinition/II",
+      "version" : "2.0.1-sd",
+      "kind" : "logical",
+      "type" : "http://hl7.org/cda/stds/core/StructureDefinition/II",
+      "derivation" : "specialization"
+    },
+    {
+      "filename" : "StructureDefinition-INT-POS.json",
+      "resourceType" : "StructureDefinition",
+      "id" : "INT-POS",
+      "url" : "http://hl7.org/cda/stds/core/StructureDefinition/INT-POS",
+      "version" : "2.0.1-sd",
+      "kind" : "logical",
+      "type" : "http://hl7.org/cda/stds/core/StructureDefinition/INT_POS",
+      "derivation" : "specialization"
+    },
+    {
+      "filename" : "StructureDefinition-INT.json",
+      "resourceType" : "StructureDefinition",
+      "id" : "INT",
+      "url" : "http://hl7.org/cda/stds/core/StructureDefinition/INT",
+      "version" : "2.0.1-sd",
+      "kind" : "logical",
+      "type" : "http://hl7.org/cda/stds/core/StructureDefinition/INT",
+      "derivation" : "specialization"
+    },
+    {
+      "filename" : "StructureDefinition-IVL-INT.json",
+      "resourceType" : "StructureDefinition",
+      "id" : "IVL-INT",
+      "url" : "http://hl7.org/cda/stds/core/StructureDefinition/IVL-INT",
+      "version" : "2.0.1-sd",
+      "kind" : "logical",
+      "type" : "http://hl7.org/cda/stds/core/StructureDefinition/IVL_INT",
+      "derivation" : "specialization"
+    },
+    {
+      "filename" : "StructureDefinition-IVL-PQ.json",
+      "resourceType" : "StructureDefinition",
+      "id" : "IVL-PQ",
+      "url" : "http://hl7.org/cda/stds/core/StructureDefinition/IVL-PQ",
+      "version" : "2.0.1-sd",
+      "kind" : "logical",
+      "type" : "http://hl7.org/cda/stds/core/StructureDefinition/IVL_PQ",
+      "derivation" : "specialization"
+    },
+    {
+      "filename" : "StructureDefinition-IVL-TS.json",
+      "resourceType" : "StructureDefinition",
+      "id" : "IVL-TS",
+      "url" : "http://hl7.org/cda/stds/core/StructureDefinition/IVL-TS",
+      "version" : "2.0.1-sd",
+      "kind" : "logical",
+      "type" : "http://hl7.org/cda/stds/core/StructureDefinition/IVL_TS",
+      "derivation" : "specialization"
+    },
+    {
+      "filename" : "StructureDefinition-IVXB-INT.json",
+      "resourceType" : "StructureDefinition",
+      "id" : "IVXB-INT",
+      "url" : "http://hl7.org/cda/stds/core/StructureDefinition/IVXB-INT",
+      "version" : "2.0.1-sd",
+      "kind" : "logical",
+      "type" : "http://hl7.org/cda/stds/core/StructureDefinition/IVXB_INT",
+      "derivation" : "specialization"
+    },
+    {
+      "filename" : "StructureDefinition-IVXB-PQ.json",
+      "resourceType" : "StructureDefinition",
+      "id" : "IVXB-PQ",
+      "url" : "http://hl7.org/cda/stds/core/StructureDefinition/IVXB-PQ",
+      "version" : "2.0.1-sd",
+      "kind" : "logical",
+      "type" : "http://hl7.org/cda/stds/core/StructureDefinition/IVXB_PQ",
+      "derivation" : "specialization"
+    },
+    {
+      "filename" : "StructureDefinition-IVXB-TS.json",
+      "resourceType" : "StructureDefinition",
+      "id" : "IVXB-TS",
+      "url" : "http://hl7.org/cda/stds/core/StructureDefinition/IVXB-TS",
+      "version" : "2.0.1-sd",
+      "kind" : "logical",
+      "type" : "http://hl7.org/cda/stds/core/StructureDefinition/IVXB_TS",
+      "derivation" : "specialization"
+    },
+    {
+      "filename" : "StructureDefinition-IdentifiedBy.json",
+      "resourceType" : "StructureDefinition",
+      "id" : "IdentifiedBy",
+      "url" : "http://hl7.org/cda/stds/core/StructureDefinition/IdentifiedBy",
+      "version" : "2.0.1-sd",
+      "kind" : "logical",
+      "type" : "http://hl7.org/cda/stds/core/StructureDefinition/IdentifiedBy",
+      "derivation" : "specialization"
+    },
+    {
+      "filename" : "StructureDefinition-InFulfillmentOf.json",
+      "resourceType" : "StructureDefinition",
+      "id" : "InFulfillmentOf",
+      "url" : "http://hl7.org/cda/stds/core/StructureDefinition/InFulfillmentOf",
+      "version" : "2.0.1-sd",
+      "kind" : "logical",
+      "type" : "http://hl7.org/cda/stds/core/StructureDefinition/InFulfillmentOf",
+      "derivation" : "specialization"
+    },
+    {
+      "filename" : "StructureDefinition-InFulfillmentOf1.json",
+      "resourceType" : "StructureDefinition",
+      "id" : "InFulfillmentOf1",
+      "url" : "http://hl7.org/cda/stds/core/StructureDefinition/InFulfillmentOf1",
+      "version" : "2.0.1-sd",
+      "kind" : "logical",
+      "type" : "http://hl7.org/cda/stds/core/StructureDefinition/InFulfillmentOf1",
+      "derivation" : "specialization"
+    },
+    {
+      "filename" : "StructureDefinition-Informant.json",
+      "resourceType" : "StructureDefinition",
+      "id" : "Informant",
+      "url" : "http://hl7.org/cda/stds/core/StructureDefinition/Informant",
+      "version" : "2.0.1-sd",
+      "kind" : "logical",
+      "type" : "http://hl7.org/cda/stds/core/StructureDefinition/Informant",
+      "derivation" : "specialization"
+    },
+    {
+      "filename" : "StructureDefinition-InformationRecipient.json",
+      "resourceType" : "StructureDefinition",
+      "id" : "InformationRecipient",
+      "url" : "http://hl7.org/cda/stds/core/StructureDefinition/InformationRecipient",
+      "version" : "2.0.1-sd",
+      "kind" : "logical",
+      "type" : "http://hl7.org/cda/stds/core/StructureDefinition/InformationRecipient",
+      "derivation" : "specialization"
+    },
+    {
+      "filename" : "StructureDefinition-InfrastructureRoot.json",
+      "resourceType" : "StructureDefinition",
+      "id" : "InfrastructureRoot",
+      "url" : "http://hl7.org/cda/stds/core/StructureDefinition/InfrastructureRoot",
+      "version" : "2.0.1-sd",
+      "kind" : "logical",
+      "type" : "http://hl7.org/cda/stds/core/StructureDefinition/InfrastructureRoot",
+      "derivation" : "specialization"
+    },
+    {
+      "filename" : "StructureDefinition-IntendedRecipient.json",
+      "resourceType" : "StructureDefinition",
+      "id" : "IntendedRecipient",
+      "url" : "http://hl7.org/cda/stds/core/StructureDefinition/IntendedRecipient",
+      "version" : "2.0.1-sd",
+      "kind" : "logical",
+      "type" : "http://hl7.org/cda/stds/core/StructureDefinition/IntendedRecipient",
+      "derivation" : "specialization"
+    },
+    {
+      "filename" : "StructureDefinition-LabeledDrug.json",
+      "resourceType" : "StructureDefinition",
+      "id" : "LabeledDrug",
+      "url" : "http://hl7.org/cda/stds/core/StructureDefinition/LabeledDrug",
+      "version" : "2.0.1-sd",
+      "kind" : "logical",
+      "type" : "http://hl7.org/cda/stds/core/StructureDefinition/LabeledDrug",
+      "derivation" : "specialization"
+    },
+    {
+      "filename" : "StructureDefinition-LanguageCommunication.json",
+      "resourceType" : "StructureDefinition",
+      "id" : "LanguageCommunication",
+      "url" : "http://hl7.org/cda/stds/core/StructureDefinition/LanguageCommunication",
+      "version" : "2.0.1-sd",
+      "kind" : "logical",
+      "type" : "http://hl7.org/cda/stds/core/StructureDefinition/LanguageCommunication",
+      "derivation" : "specialization"
+    },
+    {
+      "filename" : "StructureDefinition-LegalAuthenticator.json",
+      "resourceType" : "StructureDefinition",
+      "id" : "LegalAuthenticator",
+      "url" : "http://hl7.org/cda/stds/core/StructureDefinition/LegalAuthenticator",
+      "version" : "2.0.1-sd",
+      "kind" : "logical",
+      "type" : "http://hl7.org/cda/stds/core/StructureDefinition/LegalAuthenticator",
+      "derivation" : "specialization"
+    },
+    {
+      "filename" : "StructureDefinition-MO.json",
+      "resourceType" : "StructureDefinition",
+      "id" : "MO",
+      "url" : "http://hl7.org/cda/stds/core/StructureDefinition/MO",
+      "version" : "2.0.1-sd",
+      "kind" : "logical",
+      "type" : "http://hl7.org/cda/stds/core/StructureDefinition/MO",
+      "derivation" : "specialization"
+    },
+    {
+      "filename" : "StructureDefinition-MaintainedEntity.json",
+      "resourceType" : "StructureDefinition",
+      "id" : "MaintainedEntity",
+      "url" : "http://hl7.org/cda/stds/core/StructureDefinition/MaintainedEntity",
+      "version" : "2.0.1-sd",
+      "kind" : "logical",
+      "type" : "http://hl7.org/cda/stds/core/StructureDefinition/MaintainedEntity",
+      "derivation" : "specialization"
+    },
+    {
+      "filename" : "StructureDefinition-ManufacturedProduct.json",
+      "resourceType" : "StructureDefinition",
+      "id" : "ManufacturedProduct",
+      "url" : "http://hl7.org/cda/stds/core/StructureDefinition/ManufacturedProduct",
+      "version" : "2.0.1-sd",
+      "kind" : "logical",
+      "type" : "http://hl7.org/cda/stds/core/StructureDefinition/ManufacturedProduct",
+      "derivation" : "specialization"
+    },
+    {
+      "filename" : "StructureDefinition-Material.json",
+      "resourceType" : "StructureDefinition",
+      "id" : "Material",
+      "url" : "http://hl7.org/cda/stds/core/StructureDefinition/Material",
+      "version" : "2.0.1-sd",
+      "kind" : "logical",
+      "type" : "http://hl7.org/cda/stds/core/StructureDefinition/Material",
+      "derivation" : "specialization"
+    },
+    {
+      "filename" : "StructureDefinition-NonXMLBody.json",
+      "resourceType" : "StructureDefinition",
+      "id" : "NonXMLBody",
+      "url" : "http://hl7.org/cda/stds/core/StructureDefinition/NonXMLBody",
+      "version" : "2.0.1-sd",
+      "kind" : "logical",
+      "type" : "http://hl7.org/cda/stds/core/StructureDefinition/NonXMLBody",
+      "derivation" : "specialization"
+    },
+    {
+      "filename" : "StructureDefinition-ON.json",
+      "resourceType" : "StructureDefinition",
+      "id" : "ON",
+      "url" : "http://hl7.org/cda/stds/core/StructureDefinition/ON",
+      "version" : "2.0.1-sd",
+      "kind" : "logical",
+      "type" : "http://hl7.org/cda/stds/core/StructureDefinition/ON",
+      "derivation" : "specialization"
+    },
+    {
+      "filename" : "StructureDefinition-Observation.json",
+      "resourceType" : "StructureDefinition",
+      "id" : "Observation",
+      "url" : "http://hl7.org/cda/stds/core/StructureDefinition/Observation",
+      "version" : "2.0.1-sd",
+      "kind" : "logical",
+      "type" : "http://hl7.org/cda/stds/core/StructureDefinition/Observation",
+      "derivation" : "specialization"
+    },
+    {
+      "filename" : "StructureDefinition-ObservationMedia.json",
+      "resourceType" : "StructureDefinition",
+      "id" : "ObservationMedia",
+      "url" : "http://hl7.org/cda/stds/core/StructureDefinition/ObservationMedia",
+      "version" : "2.0.1-sd",
+      "kind" : "logical",
+      "type" : "http://hl7.org/cda/stds/core/StructureDefinition/ObservationMedia",
+      "derivation" : "specialization"
+    },
+    {
+      "filename" : "StructureDefinition-ObservationRange.json",
+      "resourceType" : "StructureDefinition",
+      "id" : "ObservationRange",
+      "url" : "http://hl7.org/cda/stds/core/StructureDefinition/ObservationRange",
+      "version" : "2.0.1-sd",
+      "kind" : "logical",
+      "type" : "http://hl7.org/cda/stds/core/StructureDefinition/ObservationRange",
+      "derivation" : "specialization"
+    },
+    {
+      "filename" : "StructureDefinition-Order.json",
+      "resourceType" : "StructureDefinition",
+      "id" : "Order",
+      "url" : "http://hl7.org/cda/stds/core/StructureDefinition/Order",
+      "version" : "2.0.1-sd",
+      "kind" : "logical",
+      "type" : "http://hl7.org/cda/stds/core/StructureDefinition/Order",
+      "derivation" : "specialization"
+    },
+    {
+      "filename" : "StructureDefinition-Organization.json",
+      "resourceType" : "StructureDefinition",
+      "id" : "Organization",
+      "url" : "http://hl7.org/cda/stds/core/StructureDefinition/Organization",
+      "version" : "2.0.1-sd",
+      "kind" : "logical",
+      "type" : "http://hl7.org/cda/stds/core/StructureDefinition/Organization",
+      "derivation" : "specialization"
+    },
+    {
+      "filename" : "StructureDefinition-OrganizationPartOf.json",
+      "resourceType" : "StructureDefinition",
+      "id" : "OrganizationPartOf",
+      "url" : "http://hl7.org/cda/stds/core/StructureDefinition/OrganizationPartOf",
+      "version" : "2.0.1-sd",
+      "kind" : "logical",
+      "type" : "http://hl7.org/cda/stds/core/StructureDefinition/OrganizationPartOf",
+      "derivation" : "specialization"
+    },
+    {
+      "filename" : "StructureDefinition-Organizer.json",
+      "resourceType" : "StructureDefinition",
+      "id" : "Organizer",
+      "url" : "http://hl7.org/cda/stds/core/StructureDefinition/Organizer",
+      "version" : "2.0.1-sd",
+      "kind" : "logical",
+      "type" : "http://hl7.org/cda/stds/core/StructureDefinition/Organizer",
+      "derivation" : "specialization"
+    },
+    {
+      "filename" : "StructureDefinition-OrganizerComponent.json",
+      "resourceType" : "StructureDefinition",
+      "id" : "OrganizerComponent",
+      "url" : "http://hl7.org/cda/stds/core/StructureDefinition/OrganizerComponent",
+      "version" : "2.0.1-sd",
+      "kind" : "logical",
+      "type" : "http://hl7.org/cda/stds/core/StructureDefinition/OrganizerComponent",
+      "derivation" : "specialization"
+    },
+    {
+      "filename" : "StructureDefinition-PIVL-TS.json",
+      "resourceType" : "StructureDefinition",
+      "id" : "PIVL-TS",
+      "url" : "http://hl7.org/cda/stds/core/StructureDefinition/PIVL-TS",
+      "version" : "2.0.1-sd",
+      "kind" : "logical",
+      "type" : "http://hl7.org/cda/stds/core/StructureDefinition/PIVL_TS",
+      "derivation" : "specialization"
+    },
+    {
+      "filename" : "StructureDefinition-PN.json",
+      "resourceType" : "StructureDefinition",
+      "id" : "PN",
+      "url" : "http://hl7.org/cda/stds/core/StructureDefinition/PN",
+      "version" : "2.0.1-sd",
+      "kind" : "logical",
+      "type" : "http://hl7.org/cda/stds/core/StructureDefinition/PN",
+      "derivation" : "specialization"
+    },
+    {
+      "filename" : "StructureDefinition-PQ.json",
+      "resourceType" : "StructureDefinition",
+      "id" : "PQ",
+      "url" : "http://hl7.org/cda/stds/core/StructureDefinition/PQ",
+      "version" : "2.0.1-sd",
+      "kind" : "logical",
+      "type" : "http://hl7.org/cda/stds/core/StructureDefinition/PQ",
+      "derivation" : "specialization"
+    },
+    {
+      "filename" : "StructureDefinition-PQR.json",
+      "resourceType" : "StructureDefinition",
+      "id" : "PQR",
+      "url" : "http://hl7.org/cda/stds/core/StructureDefinition/PQR",
+      "version" : "2.0.1-sd",
+      "kind" : "logical",
+      "type" : "http://hl7.org/cda/stds/core/StructureDefinition/PQR",
+      "derivation" : "specialization"
+    },
+    {
+      "filename" : "StructureDefinition-ParentDocument.json",
+      "resourceType" : "StructureDefinition",
+      "id" : "ParentDocument",
+      "url" : "http://hl7.org/cda/stds/core/StructureDefinition/ParentDocument",
+      "version" : "2.0.1-sd",
+      "kind" : "logical",
+      "type" : "http://hl7.org/cda/stds/core/StructureDefinition/ParentDocument",
+      "derivation" : "specialization"
+    },
+    {
+      "filename" : "StructureDefinition-Participant1.json",
+      "resourceType" : "StructureDefinition",
+      "id" : "Participant1",
+      "url" : "http://hl7.org/cda/stds/core/StructureDefinition/Participant1",
+      "version" : "2.0.1-sd",
+      "kind" : "logical",
+      "type" : "http://hl7.org/cda/stds/core/StructureDefinition/Participant1",
+      "derivation" : "specialization"
+    },
+    {
+      "filename" : "StructureDefinition-Participant2.json",
+      "resourceType" : "StructureDefinition",
+      "id" : "Participant2",
+      "url" : "http://hl7.org/cda/stds/core/StructureDefinition/Participant2",
+      "version" : "2.0.1-sd",
+      "kind" : "logical",
+      "type" : "http://hl7.org/cda/stds/core/StructureDefinition/Participant2",
+      "derivation" : "specialization"
+    },
+    {
+      "filename" : "StructureDefinition-ParticipantRole.json",
+      "resourceType" : "StructureDefinition",
+      "id" : "ParticipantRole",
+      "url" : "http://hl7.org/cda/stds/core/StructureDefinition/ParticipantRole",
+      "version" : "2.0.1-sd",
+      "kind" : "logical",
+      "type" : "http://hl7.org/cda/stds/core/StructureDefinition/ParticipantRole",
+      "derivation" : "specialization"
+    },
+    {
+      "filename" : "StructureDefinition-Patient.json",
+      "resourceType" : "StructureDefinition",
+      "id" : "Patient",
+      "url" : "http://hl7.org/cda/stds/core/StructureDefinition/Patient",
+      "version" : "2.0.1-sd",
+      "kind" : "logical",
+      "type" : "http://hl7.org/cda/stds/core/StructureDefinition/Patient",
+      "derivation" : "specialization"
+    },
+    {
+      "filename" : "StructureDefinition-PatientRole.json",
+      "resourceType" : "StructureDefinition",
+      "id" : "PatientRole",
+      "url" : "http://hl7.org/cda/stds/core/StructureDefinition/PatientRole",
+      "version" : "2.0.1-sd",
+      "kind" : "logical",
+      "type" : "http://hl7.org/cda/stds/core/StructureDefinition/PatientRole",
+      "derivation" : "specialization"
+    },
+    {
+      "filename" : "StructureDefinition-Performer1.json",
+      "resourceType" : "StructureDefinition",
+      "id" : "Performer1",
+      "url" : "http://hl7.org/cda/stds/core/StructureDefinition/Performer1",
+      "version" : "2.0.1-sd",
+      "kind" : "logical",
+      "type" : "http://hl7.org/cda/stds/core/StructureDefinition/Performer1",
+      "derivation" : "specialization"
+    },
+    {
+      "filename" : "StructureDefinition-Performer2.json",
+      "resourceType" : "StructureDefinition",
+      "id" : "Performer2",
+      "url" : "http://hl7.org/cda/stds/core/StructureDefinition/Performer2",
+      "version" : "2.0.1-sd",
+      "kind" : "logical",
+      "type" : "http://hl7.org/cda/stds/core/StructureDefinition/Performer2",
+      "derivation" : "specialization"
+    },
+    {
+      "filename" : "StructureDefinition-Person.json",
+      "resourceType" : "StructureDefinition",
+      "id" : "Person",
+      "url" : "http://hl7.org/cda/stds/core/StructureDefinition/Person",
+      "version" : "2.0.1-sd",
+      "kind" : "logical",
+      "type" : "http://hl7.org/cda/stds/core/StructureDefinition/Person",
+      "derivation" : "specialization"
+    },
+    {
+      "filename" : "StructureDefinition-Place.json",
+      "resourceType" : "StructureDefinition",
+      "id" : "Place",
+      "url" : "http://hl7.org/cda/stds/core/StructureDefinition/Place",
+      "version" : "2.0.1-sd",
+      "kind" : "logical",
+      "type" : "http://hl7.org/cda/stds/core/StructureDefinition/Place",
+      "derivation" : "specialization"
+    },
+    {
+      "filename" : "StructureDefinition-PlayingEntity.json",
+      "resourceType" : "StructureDefinition",
+      "id" : "PlayingEntity",
+      "url" : "http://hl7.org/cda/stds/core/StructureDefinition/PlayingEntity",
+      "version" : "2.0.1-sd",
+      "kind" : "logical",
+      "type" : "http://hl7.org/cda/stds/core/StructureDefinition/PlayingEntity",
+      "derivation" : "specialization"
+    },
+    {
+      "filename" : "StructureDefinition-Precondition.json",
+      "resourceType" : "StructureDefinition",
+      "id" : "Precondition",
+      "url" : "http://hl7.org/cda/stds/core/StructureDefinition/Precondition",
+      "version" : "2.0.1-sd",
+      "kind" : "logical",
+      "type" : "http://hl7.org/cda/stds/core/StructureDefinition/Precondition",
+      "derivation" : "specialization"
+    },
+    {
+      "filename" : "StructureDefinition-Precondition2.json",
+      "resourceType" : "StructureDefinition",
+      "id" : "Precondition2",
+      "url" : "http://hl7.org/cda/stds/core/StructureDefinition/Precondition2",
+      "version" : "2.0.1-sd",
+      "kind" : "logical",
+      "type" : "http://hl7.org/cda/stds/core/StructureDefinition/Precondition2",
+      "derivation" : "specialization"
+    },
+    {
+      "filename" : "StructureDefinition-PreconditionBase.json",
+      "resourceType" : "StructureDefinition",
+      "id" : "PreconditionBase",
+      "url" : "http://hl7.org/cda/stds/core/StructureDefinition/PreconditionBase",
+      "version" : "2.0.1-sd",
+      "kind" : "logical",
+      "type" : "http://hl7.org/cda/stds/core/StructureDefinition/PreconditionBase",
+      "derivation" : "specialization"
+    },
+    {
+      "filename" : "StructureDefinition-Procedure.json",
+      "resourceType" : "StructureDefinition",
+      "id" : "Procedure",
+      "url" : "http://hl7.org/cda/stds/core/StructureDefinition/Procedure",
+      "version" : "2.0.1-sd",
+      "kind" : "logical",
+      "type" : "http://hl7.org/cda/stds/core/StructureDefinition/Procedure",
+      "derivation" : "specialization"
+    },
+    {
+      "filename" : "StructureDefinition-QTY.json",
+      "resourceType" : "StructureDefinition",
+      "id" : "QTY",
+      "url" : "http://hl7.org/cda/stds/core/StructureDefinition/QTY",
+      "version" : "2.0.1-sd",
+      "kind" : "logical",
+      "type" : "http://hl7.org/cda/stds/core/StructureDefinition/QTY",
+      "derivation" : "specialization"
+    },
+    {
+      "filename" : "StructureDefinition-REAL.json",
+      "resourceType" : "StructureDefinition",
+      "id" : "REAL",
+      "url" : "http://hl7.org/cda/stds/core/StructureDefinition/REAL",
+      "version" : "2.0.1-sd",
+      "kind" : "logical",
+      "type" : "http://hl7.org/cda/stds/core/StructureDefinition/REAL",
+      "derivation" : "specialization"
+    },
+    {
+      "filename" : "StructureDefinition-RTO-PQ-PQ.json",
+      "resourceType" : "StructureDefinition",
+      "id" : "RTO-PQ-PQ",
+      "url" : "http://hl7.org/cda/stds/core/StructureDefinition/RTO-PQ-PQ",
+      "version" : "2.0.1-sd",
+      "kind" : "logical",
+      "type" : "http://hl7.org/cda/stds/core/StructureDefinition/RTO_PQ_PQ",
+      "derivation" : "specialization"
+    },
+    {
+      "filename" : "StructureDefinition-RecordTarget.json",
+      "resourceType" : "StructureDefinition",
+      "id" : "RecordTarget",
+      "url" : "http://hl7.org/cda/stds/core/StructureDefinition/RecordTarget",
+      "version" : "2.0.1-sd",
+      "kind" : "logical",
+      "type" : "http://hl7.org/cda/stds/core/StructureDefinition/RecordTarget",
+      "derivation" : "specialization"
+    },
+    {
+      "filename" : "StructureDefinition-Reference.json",
+      "resourceType" : "StructureDefinition",
+      "id" : "Reference",
+      "url" : "http://hl7.org/cda/stds/core/StructureDefinition/Reference",
+      "version" : "2.0.1-sd",
+      "kind" : "logical",
+      "type" : "http://hl7.org/cda/stds/core/StructureDefinition/Reference",
+      "derivation" : "specialization"
+    },
+    {
+      "filename" : "StructureDefinition-RegionOfInterest.json",
+      "resourceType" : "StructureDefinition",
+      "id" : "RegionOfInterest",
+      "url" : "http://hl7.org/cda/stds/core/StructureDefinition/RegionOfInterest",
+      "version" : "2.0.1-sd",
+      "kind" : "logical",
+      "type" : "http://hl7.org/cda/stds/core/StructureDefinition/RegionOfInterest",
+      "derivation" : "specialization"
+    },
+    {
+      "filename" : "StructureDefinition-RelatedDocument.json",
+      "resourceType" : "StructureDefinition",
+      "id" : "RelatedDocument",
+      "url" : "http://hl7.org/cda/stds/core/StructureDefinition/RelatedDocument",
+      "version" : "2.0.1-sd",
+      "kind" : "logical",
+      "type" : "http://hl7.org/cda/stds/core/StructureDefinition/RelatedDocument",
+      "derivation" : "specialization"
+    },
+    {
+      "filename" : "StructureDefinition-RelatedEntity.json",
+      "resourceType" : "StructureDefinition",
+      "id" : "RelatedEntity",
+      "url" : "http://hl7.org/cda/stds/core/StructureDefinition/RelatedEntity",
+      "version" : "2.0.1-sd",
+      "kind" : "logical",
+      "type" : "http://hl7.org/cda/stds/core/StructureDefinition/RelatedEntity",
+      "derivation" : "specialization"
+    },
+    {
+      "filename" : "StructureDefinition-RelatedSubject.json",
+      "resourceType" : "StructureDefinition",
+      "id" : "RelatedSubject",
+      "url" : "http://hl7.org/cda/stds/core/StructureDefinition/RelatedSubject",
+      "version" : "2.0.1-sd",
+      "kind" : "logical",
+      "type" : "http://hl7.org/cda/stds/core/StructureDefinition/RelatedSubject",
+      "derivation" : "specialization"
+    },
+    {
+      "filename" : "StructureDefinition-SC.json",
+      "resourceType" : "StructureDefinition",
+      "id" : "SC",
+      "url" : "http://hl7.org/cda/stds/core/StructureDefinition/SC",
+      "version" : "2.0.1-sd",
+      "kind" : "logical",
+      "type" : "http://hl7.org/cda/stds/core/StructureDefinition/SC",
+      "derivation" : "specialization"
+    },
+    {
+      "filename" : "StructureDefinition-ST.json",
+      "resourceType" : "StructureDefinition",
+      "id" : "ST",
+      "url" : "http://hl7.org/cda/stds/core/StructureDefinition/ST",
+      "version" : "2.0.1-sd",
+      "kind" : "logical",
+      "type" : "http://hl7.org/cda/stds/core/StructureDefinition/ST",
+      "derivation" : "specialization"
+    },
+    {
+      "filename" : "StructureDefinition-SXCM-TS.json",
+      "resourceType" : "StructureDefinition",
+      "id" : "SXCM-TS",
+      "url" : "http://hl7.org/cda/stds/core/StructureDefinition/SXCM-TS",
+      "version" : "2.0.1-sd",
+      "kind" : "logical",
+      "type" : "http://hl7.org/cda/stds/core/StructureDefinition/SXCM_TS",
+      "derivation" : "specialization"
+    },
+    {
+      "filename" : "StructureDefinition-SXPR-TS.json",
+      "resourceType" : "StructureDefinition",
+      "id" : "SXPR-TS",
+      "url" : "http://hl7.org/cda/stds/core/StructureDefinition/SXPR-TS",
+      "version" : "2.0.1-sd",
+      "kind" : "logical",
+      "type" : "http://hl7.org/cda/stds/core/StructureDefinition/SXPR_TS",
+      "derivation" : "specialization"
+    },
+    {
+      "filename" : "StructureDefinition-Section.json",
+      "resourceType" : "StructureDefinition",
+      "id" : "Section",
+      "url" : "http://hl7.org/cda/stds/core/StructureDefinition/Section",
+      "version" : "2.0.1-sd",
+      "kind" : "logical",
+      "type" : "http://hl7.org/cda/stds/core/StructureDefinition/Section",
+      "derivation" : "specialization"
+    },
+    {
+      "filename" : "StructureDefinition-ServiceEvent.json",
+      "resourceType" : "StructureDefinition",
+      "id" : "ServiceEvent",
+      "url" : "http://hl7.org/cda/stds/core/StructureDefinition/ServiceEvent",
+      "version" : "2.0.1-sd",
+      "kind" : "logical",
+      "type" : "http://hl7.org/cda/stds/core/StructureDefinition/ServiceEvent",
+      "derivation" : "specialization"
+    },
+    {
+      "filename" : "StructureDefinition-Specimen.json",
+      "resourceType" : "StructureDefinition",
+      "id" : "Specimen",
+      "url" : "http://hl7.org/cda/stds/core/StructureDefinition/Specimen",
+      "version" : "2.0.1-sd",
+      "kind" : "logical",
+      "type" : "http://hl7.org/cda/stds/core/StructureDefinition/Specimen",
+      "derivation" : "specialization"
+    },
+    {
+      "filename" : "StructureDefinition-SpecimenRole.json",
+      "resourceType" : "StructureDefinition",
+      "id" : "SpecimenRole",
+      "url" : "http://hl7.org/cda/stds/core/StructureDefinition/SpecimenRole",
+      "version" : "2.0.1-sd",
+      "kind" : "logical",
+      "type" : "http://hl7.org/cda/stds/core/StructureDefinition/SpecimenRole",
+      "derivation" : "specialization"
+    },
+    {
+      "filename" : "StructureDefinition-StructuredBody.json",
+      "resourceType" : "StructureDefinition",
+      "id" : "StructuredBody",
+      "url" : "http://hl7.org/cda/stds/core/StructureDefinition/StructuredBody",
+      "version" : "2.0.1-sd",
+      "kind" : "logical",
+      "type" : "http://hl7.org/cda/stds/core/StructureDefinition/StructuredBody",
+      "derivation" : "specialization"
+    },
+    {
+      "filename" : "StructureDefinition-Subject.json",
+      "resourceType" : "StructureDefinition",
+      "id" : "Subject",
+      "url" : "http://hl7.org/cda/stds/core/StructureDefinition/Subject",
+      "version" : "2.0.1-sd",
+      "kind" : "logical",
+      "type" : "http://hl7.org/cda/stds/core/StructureDefinition/Subject",
+      "derivation" : "specialization"
+    },
+    {
+      "filename" : "StructureDefinition-SubjectPerson.json",
+      "resourceType" : "StructureDefinition",
+      "id" : "SubjectPerson",
+      "url" : "http://hl7.org/cda/stds/core/StructureDefinition/SubjectPerson",
+      "version" : "2.0.1-sd",
+      "kind" : "logical",
+      "type" : "http://hl7.org/cda/stds/core/StructureDefinition/SubjectPerson",
+      "derivation" : "specialization"
+    },
+    {
+      "filename" : "StructureDefinition-SubstanceAdministration.json",
+      "resourceType" : "StructureDefinition",
+      "id" : "SubstanceAdministration",
+      "url" : "http://hl7.org/cda/stds/core/StructureDefinition/SubstanceAdministration",
+      "version" : "2.0.1-sd",
+      "kind" : "logical",
+      "type" : "http://hl7.org/cda/stds/core/StructureDefinition/SubstanceAdministration",
+      "derivation" : "specialization"
+    },
+    {
+      "filename" : "StructureDefinition-Supply.json",
+      "resourceType" : "StructureDefinition",
+      "id" : "Supply",
+      "url" : "http://hl7.org/cda/stds/core/StructureDefinition/Supply",
+      "version" : "2.0.1-sd",
+      "kind" : "logical",
+      "type" : "http://hl7.org/cda/stds/core/StructureDefinition/Supply",
+      "derivation" : "specialization"
+    },
+    {
+      "filename" : "StructureDefinition-TEL.json",
+      "resourceType" : "StructureDefinition",
+      "id" : "TEL",
+      "url" : "http://hl7.org/cda/stds/core/StructureDefinition/TEL",
+      "version" : "2.0.1-sd",
+      "kind" : "logical",
+      "type" : "http://hl7.org/cda/stds/core/StructureDefinition/TEL",
+      "derivation" : "specialization"
+    },
+    {
+      "filename" : "StructureDefinition-TN.json",
+      "resourceType" : "StructureDefinition",
+      "id" : "TN",
+      "url" : "http://hl7.org/cda/stds/core/StructureDefinition/TN",
+      "version" : "2.0.1-sd",
+      "kind" : "logical",
+      "type" : "http://hl7.org/cda/stds/core/StructureDefinition/EN",
+      "derivation" : "constraint"
+    },
+    {
+      "filename" : "StructureDefinition-TS.json",
+      "resourceType" : "StructureDefinition",
+      "id" : "TS",
+      "url" : "http://hl7.org/cda/stds/core/StructureDefinition/TS",
+      "version" : "2.0.1-sd",
+      "kind" : "logical",
+      "type" : "http://hl7.org/cda/stds/core/StructureDefinition/TS",
+      "derivation" : "specialization"
+    },
+    {
+      "filename" : "StructureDefinition-bin.json",
+      "resourceType" : "StructureDefinition",
+      "id" : "bin",
+      "url" : "http://hl7.org/cda/stds/core/StructureDefinition/bin",
+      "version" : "2.0.1-sd",
+      "kind" : "primitive-type",
+      "type" : "base64Binary",
+      "derivation" : "constraint"
+    },
+    {
+      "filename" : "StructureDefinition-bl-simple.json",
+      "resourceType" : "StructureDefinition",
+      "id" : "bl-simple",
+      "url" : "http://hl7.org/cda/stds/core/StructureDefinition/bl-simple",
+      "version" : "2.0.1-sd",
+      "kind" : "primitive-type",
+      "type" : "boolean",
+      "derivation" : "constraint"
+    },
+    {
+      "filename" : "StructureDefinition-bn.json",
+      "resourceType" : "StructureDefinition",
+      "id" : "bn",
+      "url" : "http://hl7.org/cda/stds/core/StructureDefinition/bn",
+      "version" : "2.0.1-sd",
+      "kind" : "primitive-type",
+      "type" : "boolean",
+      "derivation" : "constraint"
+    },
+    {
+      "filename" : "StructureDefinition-cs-simple.json",
+      "resourceType" : "StructureDefinition",
+      "id" : "cs-simple",
+      "url" : "http://hl7.org/cda/stds/core/StructureDefinition/cs-simple",
+      "version" : "2.0.1-sd",
+      "kind" : "primitive-type",
+      "type" : "code",
+      "derivation" : "constraint"
+    },
+    {
+      "filename" : "StructureDefinition-int-simple.json",
+      "resourceType" : "StructureDefinition",
+      "id" : "int-simple",
+      "url" : "http://hl7.org/cda/stds/core/StructureDefinition/int-simple",
+      "version" : "2.0.1-sd",
+      "kind" : "primitive-type",
+      "type" : "integer",
+      "derivation" : "constraint"
+    },
+    {
+      "filename" : "StructureDefinition-oid.json",
+      "resourceType" : "StructureDefinition",
+      "id" : "oid",
+      "url" : "http://hl7.org/cda/stds/core/StructureDefinition/oid",
+      "version" : "2.0.1-sd",
+      "kind" : "primitive-type",
+      "type" : "string",
+      "derivation" : "constraint"
+    },
+    {
+      "filename" : "StructureDefinition-probability.json",
+      "resourceType" : "StructureDefinition",
+      "id" : "probability",
+      "url" : "http://hl7.org/cda/stds/core/StructureDefinition/probability",
+      "version" : "2.0.1-sd",
+      "kind" : "primitive-type",
+      "type" : "decimal",
+      "derivation" : "constraint"
+    },
+    {
+      "filename" : "StructureDefinition-real-simple.json",
+      "resourceType" : "StructureDefinition",
+      "id" : "real-simple",
+      "url" : "http://hl7.org/cda/stds/core/StructureDefinition/real-simple",
+      "version" : "2.0.1-sd",
+      "kind" : "primitive-type",
+      "type" : "decimal",
+      "derivation" : "constraint"
+    },
+    {
+      "filename" : "StructureDefinition-ruid.json",
+      "resourceType" : "StructureDefinition",
+      "id" : "ruid",
+      "url" : "http://hl7.org/cda/stds/core/StructureDefinition/ruid",
+      "version" : "2.0.1-sd",
+      "kind" : "primitive-type",
+      "type" : "string",
+      "derivation" : "constraint"
+    },
+    {
+      "filename" : "StructureDefinition-st-simple.json",
+      "resourceType" : "StructureDefinition",
+      "id" : "st-simple",
+      "url" : "http://hl7.org/cda/stds/core/StructureDefinition/st-simple",
+      "version" : "2.0.1-sd",
+      "kind" : "primitive-type",
+      "type" : "string",
+      "derivation" : "constraint"
+    },
+    {
+      "filename" : "StructureDefinition-ts-simple.json",
+      "resourceType" : "StructureDefinition",
+      "id" : "ts-simple",
+      "url" : "http://hl7.org/cda/stds/core/StructureDefinition/ts-simple",
+      "version" : "2.0.1-sd",
+      "kind" : "primitive-type",
+      "type" : "dateTime",
+      "derivation" : "constraint"
+    },
+    {
+      "filename" : "StructureDefinition-uid.json",
+      "resourceType" : "StructureDefinition",
+      "id" : "uid",
+      "url" : "http://hl7.org/cda/stds/core/StructureDefinition/uid",
+      "version" : "2.0.1-sd",
+      "kind" : "primitive-type",
+      "type" : "string",
+      "derivation" : "constraint"
+    },
+    {
+      "filename" : "StructureDefinition-url.json",
+      "resourceType" : "StructureDefinition",
+      "id" : "url",
+      "url" : "http://hl7.org/cda/stds/core/StructureDefinition/url",
+      "version" : "2.0.1-sd",
+      "kind" : "primitive-type",
+      "type" : "url",
+      "derivation" : "constraint"
+    },
+    {
+      "filename" : "StructureDefinition-uuid.json",
+      "resourceType" : "StructureDefinition",
+      "id" : "uuid",
+      "url" : "http://hl7.org/cda/stds/core/StructureDefinition/uuid",
+      "version" : "2.0.1-sd",
+      "kind" : "primitive-type",
+      "type" : "string",
+      "derivation" : "constraint"
+    },
+    {
+      "filename" : "StructureDefinition-xs-ID.json",
+      "resourceType" : "StructureDefinition",
+      "id" : "xs-ID",
+      "url" : "http://hl7.org/cda/stds/core/StructureDefinition/xs-ID",
+      "version" : "2.0.1-sd",
+      "kind" : "primitive-type",
+      "type" : "id",
+      "derivation" : "constraint"
+    },
+    {
+      "filename" : "CodeSystem-IGParametersCDAValidation.json",
+      "resourceType" : "CodeSystem",
+      "id" : "IGParametersCDAValidation",
+      "url" : "http://hl7.org/cda/stds/core/CodeSystem/IGParametersCDAValidation",
+      "version" : "2.0.1-sd",
+      "content" : "complete"
+    },
+    {
+      "filename" : "CodeSystem-BinaryDataEncoding.json",
+      "resourceType" : "CodeSystem",
+      "id" : "BinaryDataEncoding",
+      "url" : "http://hl7.org/cda/stds/core/CodeSystem/BinaryDataEncoding",
+      "version" : "2.0.1-sd",
+      "content" : "complete"
+    },
+    {
+      "filename" : "ValueSet-BinaryDataEncoding.json",
+      "resourceType" : "ValueSet",
+      "id" : "BinaryDataEncoding",
+      "url" : "http://hl7.org/cda/stds/core/ValueSet/BinaryDataEncoding",
+      "version" : "2.0.1-sd"
+    },
+    {
+      "filename" : "ValueSet-CDACompressionAlgorithm.json",
+      "resourceType" : "ValueSet",
+      "id" : "CDACompressionAlgorithm",
+      "url" : "http://hl7.org/cda/stds/core/ValueSet/CDACompressionAlgorithm",
+      "version" : "2.0.1-sd"
+    },
+    {
+      "filename" : "ValueSet-CDAEntityNameUse.json",
+      "resourceType" : "ValueSet",
+      "id" : "CDAEntityNameUse",
+      "url" : "http://hl7.org/cda/stds/core/ValueSet/CDAEntityNameUse",
+      "version" : "2.0.1-sd"
+    },
+    {
+      "filename" : "ValueSet-CDAInformationRecipientRole.json",
+      "resourceType" : "ValueSet",
+      "id" : "CDAInformationRecipientRole",
+      "url" : "http://hl7.org/cda/stds/core/ValueSet/CDAInformationRecipientRole",
+      "version" : "2.0.1-sd"
+    },
+    {
+      "filename" : "ValueSet-CDAPostalAddressUse.json",
+      "resourceType" : "ValueSet",
+      "id" : "CDAPostalAddressUse",
+      "url" : "http://hl7.org/cda/stds/core/ValueSet/CDAPostalAddressUse",
+      "version" : "2.0.1-sd"
+    },
+    {
+      "filename" : "ValueSet-CDASignatureCode.json",
+      "resourceType" : "ValueSet",
+      "id" : "CDASignatureCode",
+      "url" : "http://hl7.org/cda/stds/core/ValueSet/CDASignatureCode",
+      "version" : "2.0.1-sd"
+    },
+    {
+      "filename" : "ValueSet-CDANullFlavor.json",
+      "resourceType" : "ValueSet",
+      "id" : "CDANullFlavor",
+      "url" : "http://hl7.org/cda/stds/core/ValueSet/CDANullFlavor",
+      "version" : "2.0.1-sd"
+    },
+    {
+      "filename" : "ValueSet-CDAActClass.json",
+      "resourceType" : "ValueSet",
+      "id" : "CDAActClass",
+      "url" : "http://hl7.org/cda/stds/core/ValueSet/CDAActClass",
+      "version" : "2.0.1-sd"
+    },
+    {
+      "filename" : "ValueSet-CDAActClassObservation.json",
+      "resourceType" : "ValueSet",
+      "id" : "CDAActClassObservation",
+      "url" : "http://hl7.org/cda/stds/core/ValueSet/CDAActClassObservation",
+      "version" : "2.0.1-sd"
+    },
+    {
+      "filename" : "ValueSet-CDAActMood.json",
+      "resourceType" : "ValueSet",
+      "id" : "CDAActMood",
+      "url" : "http://hl7.org/cda/stds/core/ValueSet/CDAActMood",
+      "version" : "2.0.1-sd"
+    },
+    {
+      "filename" : "ValueSet-CDAActMoodIntent.json",
+      "resourceType" : "ValueSet",
+      "id" : "CDAActMoodIntent",
+      "url" : "http://hl7.org/cda/stds/core/ValueSet/CDAActMoodIntent",
+      "version" : "2.0.1-sd"
+    },
+    {
+      "filename" : "ValueSet-CDAActRelationshipType.json",
+      "resourceType" : "ValueSet",
+      "id" : "CDAActRelationshipType",
+      "url" : "http://hl7.org/cda/stds/core/ValueSet/CDAActRelationshipType",
+      "version" : "2.0.1-sd"
+    },
+    {
+      "filename" : "ValueSet-CDAContextControl.json",
+      "resourceType" : "ValueSet",
+      "id" : "CDAContextControl",
+      "url" : "http://hl7.org/cda/stds/core/ValueSet/CDAContextControl",
+      "version" : "2.0.1-sd"
+    },
+    {
+      "filename" : "ValueSet-CDAEntityNamePartQualifier.json",
+      "resourceType" : "ValueSet",
+      "id" : "CDAEntityNamePartQualifier",
+      "url" : "http://hl7.org/cda/stds/core/ValueSet/CDAEntityNamePartQualifier",
+      "version" : "2.0.1-sd"
+    },
+    {
+      "filename" : "ValueSet-CDAParticipationType.json",
+      "resourceType" : "ValueSet",
+      "id" : "CDAParticipationType",
+      "url" : "http://hl7.org/cda/stds/core/ValueSet/CDAParticipationType",
+      "version" : "2.0.1-sd"
+    },
+    {
+      "filename" : "ValueSet-CDARoleClass.json",
+      "resourceType" : "ValueSet",
+      "id" : "CDARoleClass",
+      "url" : "http://hl7.org/cda/stds/core/ValueSet/CDARoleClass",
+      "version" : "2.0.1-sd"
+    },
+    {
+      "filename" : "ValueSet-CDARoleClassAssociative.json",
+      "resourceType" : "ValueSet",
+      "id" : "CDARoleClassAssociative",
+      "url" : "http://hl7.org/cda/stds/core/ValueSet/CDARoleClassAssociative",
+      "version" : "2.0.1-sd"
+    },
+    {
+      "filename" : "ValueSet-CDARoleClassMutualRelationship.json",
+      "resourceType" : "ValueSet",
+      "id" : "CDARoleClassMutualRelationship",
+      "url" : "http://hl7.org/cda/stds/core/ValueSet/CDARoleClassMutualRelationship",
+      "version" : "2.0.1-sd"
+    },
+    {
+      "filename" : "ValueSet-CDARoleClassRoot.json",
+      "resourceType" : "ValueSet",
+      "id" : "CDARoleClassRoot",
+      "url" : "http://hl7.org/cda/stds/core/ValueSet/CDARoleClassRoot",
+      "version" : "2.0.1-sd"
+    },
+    {
+      "filename" : "ValueSet-CDASetOperator.json",
+      "resourceType" : "ValueSet",
+      "id" : "CDASetOperator",
+      "url" : "http://hl7.org/cda/stds/core/ValueSet/CDASetOperator",
+      "version" : "2.0.1-sd"
+    },
+    {
+      "filename" : "ValueSet-CDAActSubstanceAdministrationCode.json",
+      "resourceType" : "ValueSet",
+      "id" : "CDAActSubstanceAdministrationCode",
+      "url" : "http://hl7.org/cda/stds/core/ValueSet/CDAActSubstanceAdministrationCode",
+      "version" : "2.0.1-sd"
+    },
+    {
+      "filename" : "ValueSet-CDAEntityCode.json",
+      "resourceType" : "ValueSet",
+      "id" : "CDAEntityCode",
+      "url" : "http://hl7.org/cda/stds/core/ValueSet/CDAEntityCode",
+      "version" : "2.0.1-sd"
+    },
+    {
+      "filename" : "ValueSet-CDAMaterialEntityClassType.json",
+      "resourceType" : "ValueSet",
+      "id" : "CDAMaterialEntityClassType",
+      "url" : "http://hl7.org/cda/stds/core/ValueSet/CDAMaterialEntityClassType",
+      "version" : "2.0.1-sd"
+    },
+    {
+      "filename" : "ValueSet-CDAObservationInterpretation.json",
+      "resourceType" : "ValueSet",
+      "id" : "CDAObservationInterpretation",
+      "url" : "http://hl7.org/cda/stds/core/ValueSet/CDAObservationInterpretation",
+      "version" : "2.0.1-sd"
+    },
+    {
+      "filename" : "ValueSet-CDARoleCode.json",
+      "resourceType" : "ValueSet",
+      "id" : "CDARoleCode",
+      "url" : "http://hl7.org/cda/stds/core/ValueSet/CDARoleCode",
+      "version" : "2.0.1-sd"
+    }
+  ]
+}
