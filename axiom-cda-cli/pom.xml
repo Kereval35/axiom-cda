@@ -28,6 +28,11 @@
             <artifactId>axiom-cda-engine</artifactId>
             <version>${project.version}</version>
         </dependency>
+        <dependency>
+            <groupId>info.picocli</groupId>
+            <artifactId>picocli</artifactId>
+            <version>4.7.6</version>
+        </dependency>
     </dependencies>
 
     <build>

@@ -5,14 +5,22 @@ import java.io.InputStream;
 import java.net.JarURLConnection;
 import java.net.URISyntaxException;
 import java.net.URL;
+import java.nio.file.FileVisitOption;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
+import java.util.Comparator;
+import java.util.LinkedHashSet;
+import java.util.Set;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.jar.JarEntry;
 import java.util.jar.JarFile;
 
 public final class ResourcePaths {
+    private static final Set<Path> EXTRACTED_PATHS = new LinkedHashSet<>();
+    private static final AtomicBoolean HOOK_REGISTERED = new AtomicBoolean(false);
+
     private ResourcePaths() {
     }
 
@@ -50,6 +58,7 @@ public final class ResourcePaths {
 
     private static Path extractDirectory(JarFile jarFile, String prefix) throws IOException {
         Path targetDir = Files.createTempDirectory("axiom-cda-resource-");
+        registerExtractedPath(targetDir);
         for (JarEntry entry : jarFile.stream().toList()) {
             if (!entry.getName().startsWith(prefix)) {
                 continue;
@@ -73,9 +82,48 @@ public final class ResourcePaths {
         }
         String suffix = entryName.contains(".") ? entryName.substring(entryName.lastIndexOf('.')) : ".tmp";
         Path target = Files.createTempFile("axiom-cda-resource-", suffix);
+        registerExtractedPath(target);
         try (InputStream inputStream = jarFile.getInputStream(entry)) {
             Files.copy(inputStream, target, StandardCopyOption.REPLACE_EXISTING);
         }
         return target;
+    }
+
+    public static void cleanupExtractedResources() {
+        synchronized (EXTRACTED_PATHS) {
+            for (Path path : EXTRACTED_PATHS) {
+                deleteRecursively(path);
+            }
+            EXTRACTED_PATHS.clear();
+        }
+    }
+
+    private static void registerExtractedPath(Path path) {
+        if (path == null) {
+            return;
+        }
+        synchronized (EXTRACTED_PATHS) {
+            EXTRACTED_PATHS.add(path);
+        }
+        if (HOOK_REGISTERED.compareAndSet(false, true)) {
+            Runtime.getRuntime().addShutdownHook(new Thread(ResourcePaths::cleanupExtractedResources));
+        }
+    }
+
+    private static void deleteRecursively(Path path) {
+        if (path == null || !Files.exists(path)) {
+            return;
+        }
+        try (var walk = Files.walk(path, FileVisitOption.FOLLOW_LINKS)) {
+            walk.sorted(Comparator.reverseOrder()).forEach(current -> {
+                try {
+                    Files.deleteIfExists(current);
+                } catch (IOException ignored) {
+                    // Best-effort cleanup.
+                }
+            });
+        } catch (IOException ignored) {
+            // Best-effort cleanup.
+        }
     }
 }

@@ -43,7 +43,7 @@ public class DefaultBbrToIrTransformer implements BbrToIrTransformer {
 
         Rules rules = decor.getRules();
         if (rules == null) {
-            return new IrTransformResult(List.of(), List.of());
+            return new IrTransformResult(List.of(), List.of(), 0);
         }
 
         Map<String, List<TemplateDefinition>> byId = new HashMap<>();
@@ -74,11 +74,13 @@ public class DefaultBbrToIrTransformer implements BbrToIrTransformer {
         Set<String> selectedIds = selectTemplateIds(latestById, config.templateSelection());
         Set<String> expandedIds = expandIncludes(selectedIds, latestById);
 
+        int templatesConsidered = 0;
         for (String templateId : expandedIds) {
             TemplateDefinition template = latestById.get(templateId);
             if (template == null) {
                 continue;
             }
+            templatesConsidered++;
             TemplateBuildContext context = new TemplateBuildContext(template, preferredLanguage, config, cdaRepository, latestById, diagnostics);
             IRTemplate irTemplate = buildTemplate(context, config);
             if (irTemplate != null) {
@@ -87,12 +89,12 @@ public class DefaultBbrToIrTransformer implements BbrToIrTransformer {
         }
 
         templates.sort(Comparator.comparing(IRTemplate::rootCdaType).thenComparing(IRTemplate::id));
-        return new IrTransformResult(templates, diagnostics);
+        return new IrTransformResult(templates, diagnostics, templatesConsidered);
     }
 
     private IRTemplate buildTemplate(TemplateBuildContext context, GenerationConfig config) {
         TemplateDefinition template = context.template;
-        RuleDefinition rootRule = findRootRule(template);
+        RuleDefinition rootRule = findRootRule(template, context.cdaRepository);
         if (rootRule == null || rootRule.getName() == null) {
             context.addDiagnostic(IRDiagnosticSeverity.WARNING, null, "No root element found");
             return null;
@@ -265,7 +267,7 @@ public class DefaultBbrToIrTransformer implements BbrToIrTransformer {
             context.addDiagnostic(IRDiagnosticSeverity.WARNING, parentPath, "Included template not found: " + ref);
             return;
         }
-        RuleDefinition includedRoot = findRootRule(includedTemplate);
+        RuleDefinition includedRoot = findRootRule(includedTemplate, context.cdaRepository);
         if (includedRoot == null || includedRoot.getName() == null) {
             context.addDiagnostic(IRDiagnosticSeverity.WARNING, parentPath, "Included template missing root element: " + ref);
             return;
@@ -391,23 +393,43 @@ public class DefaultBbrToIrTransformer implements BbrToIrTransformer {
                 && status != TemplateStatusCodeLifeCycle.REJECTED;
     }
 
-    private RuleDefinition findRootRule(TemplateDefinition template) {
+    private RuleDefinition findRootRule(TemplateDefinition template, CdaModelRepository cdaRepository) {
         if (template.getAttributeOrChoiceOrElement() == null) {
             return null;
         }
+        RuleDefinition fallback = null;
         for (Object entry : template.getAttributeOrChoiceOrElement()) {
             if (entry instanceof RuleDefinition rule && rule.getName() != null) {
-                return rule;
+                if (fallback == null) {
+                    fallback = rule;
+                }
+                if (cdaRepository == null || isCdaRoot(rule.getName(), cdaRepository)) {
+                    return rule;
+                }
             }
             if (entry instanceof ChoiceDefinition choice && choice.getIncludeOrElementOrConstraint() != null) {
                 for (Object choiceEntry : choice.getIncludeOrElementOrConstraint()) {
                     if (choiceEntry instanceof RuleDefinition rule && rule.getName() != null) {
-                        return rule;
+                        if (fallback == null) {
+                            fallback = rule;
+                        }
+                        if (cdaRepository == null || isCdaRoot(rule.getName(), cdaRepository)) {
+                            return rule;
+                        }
                     }
                 }
             }
         }
-        return null;
+        return fallback;
+    }
+
+    private boolean isCdaRoot(String name, CdaModelRepository cdaRepository) {
+        ParsedName parsed = parseElementName(name);
+        if (parsed == null || parsed.baseName == null || parsed.baseName.isBlank()) {
+            return false;
+        }
+        String rootType = resolveRootCdaType(parsed.baseName);
+        return cdaRepository.findByName(rootType).isPresent();
     }
 
     private Instant effectiveInstant(TemplateDefinition template) {
@@ -868,6 +890,9 @@ public class DefaultBbrToIrTransformer implements BbrToIrTransformer {
         private IRFixedValueType determineFixedValueType(QName datatype, String attributeName) {
             String data = datatype != null ? datatype.getLocalPart() : null;
             String name = attributeName == null ? "" : attributeName;
+            if (name.endsWith("Ind") || name.endsWith("Indicator")) {
+                return IRFixedValueType.BOOLEAN;
+            }
             if (data != null) {
                 String upper = data.toUpperCase(Locale.ROOT);
                 if (upper.equals("BL") || upper.equals("BOOLEAN") || upper.equals("BOOL") || upper.startsWith("BL.")) {
@@ -876,9 +901,6 @@ public class DefaultBbrToIrTransformer implements BbrToIrTransformer {
                 if (upper.equals("CS") || upper.equals("CE") || upper.equals("CD") || upper.equals("CV")) {
                     return IRFixedValueType.CODE;
                 }
-            }
-            if (name.endsWith("Ind") || name.endsWith("Indicator")) {
-                return IRFixedValueType.BOOLEAN;
             }
             if (name.endsWith("Code") || name.equals("code") || name.equals("classCode") || name.equals("moodCode") || name.equals("typeCode")) {
                 return IRFixedValueType.CODE;

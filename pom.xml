@@ -12,6 +12,7 @@
         <module>axiom-cda-api</module>
         <module>axiom-cda-engine</module>
         <module>axiom-cda-cli</module>
+        <module>axiom-cda-ws</module>
     </modules>
 
     <properties>
