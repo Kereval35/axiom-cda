@@ -24,6 +24,7 @@ import net.ihe.gazelle.axiomcda.engine.technical.JaxbBbrLoader;
 import net.ihe.gazelle.axiomcda.engine.technical.JsonCdaModelRepository;
 import net.ihe.gazelle.axiomcda.engine.technical.YamlConfigLoader;
 import net.ihe.gazelle.axiomcda.engine.util.ResourcePaths;
+import net.ihe.gazelle.axiomcda.ws.dto.FshProfile;
 import net.ihe.gazelle.axiomcda.ws.dto.GenerationRequest;
 import net.ihe.gazelle.axiomcda.ws.dto.GenerationResult;
 import net.ihe.gazelle.axiomcda.ws.util.ZipUtils;
@@ -96,15 +97,23 @@ public class FshGenerationService {
             
             writer.write(fshOutputDir, bundle);
 
+            if (config.emitIrSnapshot()) {
+                writeIrSnapshot(outDir, transformResult);
+            }
+
             GenerationReport report = buildReport(transformResult, bundle);
+
+            List<FshProfile> profiles = extractProfiles(bundle);
 
             Path zipPath = tempDir.resolve("axiom-cda-fsh.zip");
             ZipUtils.zipDirectory(outDir, zipPath);
-            
+
             byte[] zipBytes = Files.readAllBytes(zipPath);
             String zipBase64 = Base64.getEncoder().encodeToString(zipBytes);
-            
-            return new GenerationResult(zipBase64, report);
+
+            List<IRTemplate> irTemplates = config.emitIrSnapshot() ? transformResult.templates() : List.of();
+
+            return new GenerationResult(zipBase64, report, profiles, irTemplates);
         } catch (Exception e) {
             LOG.error("Generation failed", e);
             throw e;
@@ -260,5 +269,25 @@ public class FshGenerationService {
                 warnings,
                 errors
         );
+    }
+
+    private List<FshProfile> extractProfiles(FshBundle bundle) {
+        List<FshProfile> profiles = new ArrayList<>();
+        String resourcesDir = DefaultIrToFshGenerator.RESOURCES_DIR + "/";
+        for (var entry : bundle.files().entrySet()) {
+            String filePath = entry.getKey();
+            if (filePath.startsWith(resourcesDir)) {
+                String fileName = filePath.substring(resourcesDir.length());
+                String profileName = fileName.endsWith(".fsh") ? fileName.substring(0, fileName.length() - 4) : fileName;
+                profiles.add(new FshProfile(profileName, entry.getValue()));
+            }
+        }
+        return profiles;
+    }
+
+    private void writeIrSnapshot(Path outputDir, IrTransformResult transformResult) throws Exception {
+        Path target = outputDir.resolve("axiom-cda-ir.json");
+        MAPPER.writerWithDefaultPrettyPrinter().writeValue(target.toFile(), transformResult.templates());
+        LOG.info("IR snapshot written to {}", target);
     }
 }
