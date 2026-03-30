@@ -1,144 +1,149 @@
 # axiom-cda
 
-Java 21 multi-module project that generates FSH-CDA profiles and terminology from ART-DECOR BBR exports.
+`axiom-cda` is a Java 21 multi-module project that turns ART-DECOR BBR exports into FSH artifacts for CDA profiling.
 
-It currently exposes:
-- a CLI for local/batch generation
-- a Quarkus REST service for HTTP-based generation
+The project now has two ways to use it:
+- a CLI for batch or local generation
+- a Quarkus web service that also serves the UI through Quinoa
 
-## What this project does
+The frontend source is embedded in the `axiom-cda-ws` module and is built as part of the Quarkus application. That means the backend and the UI are packaged together, deployed together, and shipped together in the same runnable artifact or Docker image.
 
-This tool turns an ART-DECOR BBR (Building Block Repository) export into:
+## What It Does
+
+The generator converts an ART-DECOR BBR (Building Block Repository) export into:
 - FSH profiles that specialize HL7 CDA logical models from the `hl7.cda.uv.core` package
-- FSH ValueSets and CodeSystems extracted from the BBR `terminology` section
-- A SUSHI-ready repository with `sushi-config.yaml` and `input/fsh`
+- FSH `ValueSet` and `CodeSystem` definitions extracted from the BBR `terminology` section
+- a SUSHI-ready repository with `sushi-config.yaml` and `input/fsh`
 
-### End-to-end pipeline
+The conversion pipeline is:
 
-1) **BBR (ART-DECOR) input**
-   - We load the BBR XML (Decor) and extract templates, constraints, and terminology.
-2) **IR (Intermediate Representation)**
-   - Templates are normalized into a stable IR: root CDA type, element paths, cardinalities,
-     fixed values, bindings, includes, and invariants.
-3) **FSH generation**
-   - IR becomes FSH CDA profiles (FSH `Profile:` + constraints).
-   - BBR terminology becomes FSH `ValueSet:` and `CodeSystem:` definitions.
+1. **BBR input**
+   - Load the ART-DECOR XML export
+   - Extract templates, constraints, and terminology
+2. **Intermediate representation**
+   - Normalize templates into a stable IR
+   - Capture root CDA type, element paths, cardinalities, fixed values, bindings, includes, and invariants
+3. **FSH generation**
+   - Emit FSH CDA profiles from the IR
+   - Emit ValueSets and CodeSystems from the terminology section
 
-## Modules
+## Project Structure
 
 - `axiom-cda-api`: shared API contracts, configuration, IR, and FSH model types
-- `axiom-cda-engine`: implementation of BBR loading, IR transformation, and FSH generation
-- `axiom-cda-cli`: Picocli-based command line interface
-- `axiom-cda-ws`: Quarkus REST API for generation requests
+- `axiom-cda-engine`: BBR loading, IR transformation, and FSH generation
+- `axiom-cda-cli`: Picocli command-line entry point
+- `axiom-cda-ws`: Quarkus web service, REST API, and bundled Quinoa UI
 
-## CDA foundations
+## CDA Model Rules
 
-We generate profiles **on top of HL7 CDA R2 logical models** from the `hl7.cda.uv.core` package:
-- `StructureDefinition/<CDAClass>` is used as the profile `Parent`.
-- Paths are validated and normalized against the CDA snapshot.
-- Cardinalities, bindings, and fixed values are clamped to avoid weakening the base CDA rules.
+Generated profiles are built on top of HL7 CDA R2 logical models from `hl7.cda.uv.core`.
 
-## Output layout
+Important rules:
+- profiles use the matching `StructureDefinition/<CDAClass>` as their parent
+- paths are normalized against the CDA snapshot
+- cardinalities, bindings, and fixed values are clamped so the generated profile never weakens the base CDA constraints
 
-By default, output is:
-- `Resources<ProjectNameToken>/` profiles (token derived from Decor project name)
-- `Invariants/` invariant FSH files
-- `ValueSets/` ValueSet FSH files
-- `CodeSystems/` CodeSystem FSH files
+## Output Layout
 
-With `--sushi-repo`, files go under `input/fsh` and a `sushi-config.yaml` is emitted.
-When `emitIrSnapshot` (or `--emit-ir`) is enabled, an `axiom-cda-ir.json` snapshot is written to the output directory.
+By default, the generator writes:
+- `Resources<ProjectNameToken>/` for profile FSH files
+- `Invariants/` for invariant FSH files
+- `ValueSets/` for ValueSet FSH files
+- `CodeSystems/` for CodeSystem FSH files
 
-## Business rules and considerations
+When `--sushi-repo` is enabled, output is written in SUSHI layout under `input/fsh`, and `sushi-config.yaml` is emitted.
 
-Key behaviors that keep output valid and aligned with CDA:
-- **No hardcoded prefixes**: profile names/ids are generic unless you provide CLI prefixes.
-- **Default is all templates**: we do not filter to headers unless you explicitly do so.
-- **Paths are normalized** against CDA snapshots, including namespaces and `sdtc` attributes.
-- **Fixed values** are emitted only if they do not conflict with base CDA fixed values.
-- **Binding strength** is never weakened relative to the CDA base (e.g., required stays required).
-- **Cardinality** is clamped to the CDA base cardinality to avoid invalid constraints.
-- **Includes** generate `only` constraints only when compatible with the allowed CDA types.
-- **Terminology**:
-  - ValueSets and CodeSystems are generated from BBR `terminology`.
-  - URLs default to `urn:oid:<oid>` unless mapped via config.
-  - Duplicate codes are deduplicated within each ValueSet.
+When `--emit-ir` is enabled, an `axiom-cda-ir.json` snapshot is also written to the output directory.
 
-### Known limitations
+## Building the Project
 
-These are intentionally not supported (reported as warnings):
-- Predicated elements (slicing) are ignored.
-- Choice elements are skipped.
-- Some CDA attributes and paths may be unmapped depending on the BBR structure.
+Build everything:
 
-## Build
-
-```
+```bash
 mvn -q package
 ```
 
-To build only the runnable entry points:
+Build the runnable modules only:
 
-```
+```bash
 mvn -q -pl axiom-cda-cli,axiom-cda-ws -am package
 ```
 
-## Run
+Build only the web service module:
 
-CLI jar:
-
+```bash
+mvn -q -pl axiom-cda-ws -am package
 ```
+
+## Running the CLI
+
+Run the CLI jar:
+
+```bash
 java -jar axiom-cda-cli/target/axiom-cda-cli-1.0-SNAPSHOT.jar generate \
   --bbr axiom-cda-engine/src/main/resources/head.xml \
   --out /tmp/axiom-cda-out
 ```
 
-Classpath (dev):
+Run from classes while developing:
 
-```
+```bash
 java -cp axiom-cda-cli/target/classes:axiom-cda-engine/target/classes:axiom-cda-api/target/classes \
   net.ihe.gazelle.axiomcda.cli.AxiomCdaCli generate \
   --bbr axiom-cda-engine/src/main/resources/head.xml \
   --out /tmp/axiom-cda-out
 ```
 
-To generate a SUSHI-ready repo:
+Common CLI options:
 
-```
-java ... AxiomCdaCli generate --bbr head.xml --out /tmp/out --sushi-repo
-```
-
-To emit the intermediate representation JSON:
-
-```
-java ... AxiomCdaCli generate --bbr head.xml --out /tmp/out --emit-ir
-```
-
-To prefix profile names or ids:
-
-```
-java ... AxiomCdaCli generate --bbr head.xml --out /tmp/out --profile-prefix MY --id-prefix my-
-```
-
-To use a different CDA package directory:
-
-```
-java ... AxiomCdaCli generate --bbr head.xml --out /tmp/out --cda-package /path/to/package
-```
-
-REST service:
-
-```
-mvn -q -pl axiom-cda-ws -am quarkus:dev
+```bash
+--bbr <path>                 Path to the BBR XML input
+--out <dir>                  Output directory
+--cda-package <dir>          Override the CDA package directory
+--ans-reference <dir>        Optional ANS FSH path for comparison
+--config <yaml>              Generation config override
+--profile-prefix <s>         Prefix profile names
+--id-prefix <s>              Prefix profile ids
+--title-prefix <s>           Prefix profile titles
+--resources-dir <s>          Output folder for profiles
+--invariants-dir <s>         Output folder for invariants
+--classification-types <csv>  Template classification filters
+--template-ids <csv>         Explicit template ids to generate
+--all-templates              Ignore classification filters and generate all
+--sushi-repo                 Emit a SUSHI-ready repo
+--ig-id <s>                  IG id for sushi-config.yaml
+--ig-name <s>                IG name for sushi-config.yaml
+--ig-title <s>               IG title for sushi-config.yaml
+--ig-canonical <url>         IG canonical for sushi-config.yaml
+--ig-version <s>             IG version for sushi-config.yaml
+--ig-copyright-year <s>      IG copyrightYear for sushi-config.yaml
+--ig-release-label <s>       IG releaseLabel for sushi-config.yaml
+--emit-ir                    Emit axiom-cda-ir.json
 ```
 
-The service listens on `http://localhost:8080` and exposes:
+## Running the Web Service and UI
 
+The web module is a Quarkus application with Quinoa enabled. Quinoa builds the frontend from `axiom-cda-ws/src/main/webui`, exports it as static content, and packages it into the Quarkus runtime.
+
+Run in dev mode:
+
+```bash
+mvn -f axiom-cda-ws/pom.xml quarkus:dev
+```
+
+The app listens on:
+- `http://localhost:8080`
+
+UI routes:
+- `http://localhost:8080/axiom-cda/`
+- `http://localhost:8080/axiom-cda` redirects to `/axiom-cda/`
+
+API routes:
 - `POST /api/generate`
 
 Example request:
 
-```
+```bash
 curl -X POST http://localhost:8080/api/generate \
   -H 'Content-Type: application/json' \
   -d '{
@@ -150,78 +155,66 @@ curl -X POST http://localhost:8080/api/generate \
   }'
 ```
 
-The response includes:
-
-- `zipBase64`: the generated output archive as base64
+The response contains:
+- `zipBase64`: the generated archive as base64
 - `report`: generation diagnostics and counts
 - `profiles`: the generated FSH profile names and content
 - `irTemplates`: the IR templates when `emitIr` is enabled
 
-## Config
+## Configuration
 
-Pass a YAML config file to override naming, ValueSet mappings, or template selection.
-CLI flags override config values for naming and template selection when both are provided.
+Generation can be customized with a YAML config file. CLI flags override config values when both are provided.
 
-```
+Example:
+
+```bash
 java ... AxiomCdaCli generate --bbr head.xml --out /tmp/out --config config.yaml
 ```
 
-### CLI options
+Relevant config sections:
+- `naming`: prefixes and explicit template overrides
+- `nullFlavorPolicy`: paths that must be forced to `0..0`
+- `valueSetPolicy`: canonical URL mapping and default binding strength
+- `templateSelection`: template filters
+- `emitInvariants` and `emitIrSnapshot`: output toggles
 
-```
---bbr <path>              Path to the BBR XML (required)
---out <dir>               Output directory (required)
---cda-package <dir>       Override CDA package directory
---ans-reference <dir>     Optional ANS FSH path (comparison only)
---config <yaml>           Generation config override
---profile-prefix <s>      Prefix profile names
---id-prefix <s>           Prefix profile ids
---title-prefix <s>        Prefix profile titles
---resources-dir <s>       Output folder for profiles (default: Resources<ProjectNameToken>)
---invariants-dir <s>      Output folder for invariants (default: Invariants)
---classification-types <csv>  Template classification filters
---template-ids <csv>      Explicit template ids to generate
---all-templates           Ignore classification filters and generate all
---sushi-repo              Emit a SUSHI-ready repo (sushi-config.yaml + input/fsh)
---ig-id <s>               IG id for sushi-config.yaml
---ig-name <s>             IG name for sushi-config.yaml
---ig-title <s>            IG title for sushi-config.yaml
---ig-canonical <url>      IG canonical for sushi-config.yaml
---ig-version <s>          IG version for sushi-config.yaml
---ig-copyright-year <s>   IG copyrightYear for sushi-config.yaml
---ig-release-label <s>    IG releaseLabel for sushi-config.yaml
---emit-ir                 Emit the intermediate representation as axiom-cda-ir.json
-```
+## Known Limits
 
-### Config file structure
+Some inputs are intentionally handled with warnings rather than hard failures:
+- predicated elements and slicing are ignored
+- choice elements are skipped
+- some CDA attributes and paths may remain unmapped depending on the BBR structure
 
-The YAML config mirrors `GenerationConfig`:
+## Docker Image
 
-```
-naming:
-  profilePrefix: ""
-  idPrefix: ""
-  titlePrefix: ""
-  profileNameOverrides: {}
-  idOverrides: {}
-nullFlavorPolicy:
-  forbiddenPaths: []
-valueSetPolicy:
-  oidToCanonical: {}
-  defaultStrength: EXTENSIBLE
-  useOidAsCanonical: true
-templateSelection:
-  classificationTypes: []
-  templateIds: []
-emitInvariants: true
-emitIrSnapshot: false
+The Docker image for `axiom-cda-ws` contains both the backend and the built UI, because Quinoa runs the frontend build during the Quarkus build and embeds the static export into the final application.
+
+Use this flow:
+
+1. Build the Quarkus module so Quinoa can compile the frontend and package the static assets:
+
+```bash
+mvn -q -pl axiom-cda-ws -am package -DskipTests
 ```
 
-Config field notes:
-- `naming.profilePrefix`, `naming.idPrefix`, `naming.titlePrefix` are global prefixes applied to all generated profiles.
-- `naming.profileNameOverrides` and `naming.idOverrides` map BBR templateIds to explicit names/ids.
-- `nullFlavorPolicy.forbiddenPaths` lists CDA element paths; each path gets `nullFlavor` forced to 0..0.
-- `valueSetPolicy.oidToCanonical` maps ValueSet OIDs to canonical URLs; `useOidAsCanonical` falls back to `urn:oid:<oid>`.
-- `valueSetPolicy.defaultStrength` applies when BBR does not specify binding strength.
-- `templateSelection.classificationTypes` and `templateSelection.templateIds` filter templates; empty lists mean "all templates".
-- `emitInvariants` toggles invariant FSH emission; `emitIrSnapshot` writes `axiom-cda-ir.json` to the output directory.
+2. Build the JVM image from the Quarkus module directory:
+
+```bash
+docker build -f src/main/docker/Dockerfile.jvm -t axiom-cda-app:${VERSION} axiom-cda-ws
+```
+
+3. Run the image:
+
+```bash
+docker run -i --rm -p 8080:8080 axiom-cda-ws-jvm
+```
+
+The image serves:
+- UI at `http://localhost:8080/axiom-cda/`
+- API at `http://localhost:8080/api/generate`
+
+The same package output can also be used with the other generated Quarkus Dockerfiles:
+- `axiom-cda-ws/src/main/docker/Dockerfile.legacy-jar`
+- `axiom-cda-ws/src/main/docker/Dockerfile.native`
+- `axiom-cda-ws/src/main/docker/Dockerfile.native-micro`
+
