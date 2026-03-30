@@ -1,6 +1,10 @@
 # axiom-cda
 
-Java 21 CLI to generate FSH-CDA profiles and terminology from ART-DECOR BBR exports.
+Java 21 multi-module project that generates FSH-CDA profiles and terminology from ART-DECOR BBR exports.
+
+It currently exposes:
+- a CLI for local/batch generation
+- a Quarkus REST service for HTTP-based generation
 
 ## What this project does
 
@@ -19,6 +23,13 @@ This tool turns an ART-DECOR BBR (Building Block Repository) export into:
 3) **FSH generation**
    - IR becomes FSH CDA profiles (FSH `Profile:` + constraints).
    - BBR terminology becomes FSH `ValueSet:` and `CodeSystem:` definitions.
+
+## Modules
+
+- `axiom-cda-api`: shared API contracts, configuration, IR, and FSH model types
+- `axiom-cda-engine`: implementation of BBR loading, IR transformation, and FSH generation
+- `axiom-cda-cli`: Picocli-based command line interface
+- `axiom-cda-ws`: Quarkus REST API for generation requests
 
 ## CDA foundations
 
@@ -63,12 +74,18 @@ These are intentionally not supported (reported as warnings):
 ## Build
 
 ```
-mvn -q -pl axiom-cda-cli -am package
+mvn -q package
+```
+
+To build only the runnable entry points:
+
+```
+mvn -q -pl axiom-cda-cli,axiom-cda-ws -am package
 ```
 
 ## Run
 
-Jar (recommended):
+CLI jar:
 
 ```
 java -jar axiom-cda-cli/target/axiom-cda-cli-1.0-SNAPSHOT.jar generate \
@@ -108,6 +125,37 @@ To use a different CDA package directory:
 ```
 java ... AxiomCdaCli generate --bbr head.xml --out /tmp/out --cda-package /path/to/package
 ```
+
+REST service:
+
+```
+mvn -q -pl axiom-cda-ws -am quarkus:dev
+```
+
+The service listens on `http://localhost:8080` and exposes:
+
+- `POST /api/generate`
+
+Example request:
+
+```
+curl -X POST http://localhost:8080/api/generate \
+  -H 'Content-Type: application/json' \
+  -d '{
+    "bbr": "<Decor>...</Decor>",
+    "sushiRepo": true,
+    "emitIr": false,
+    "emitLogs": true,
+    "yamlConfig": null
+  }'
+```
+
+The response includes:
+
+- `zipBase64`: the generated output archive as base64
+- `report`: generation diagnostics and counts
+- `profiles`: the generated FSH profile names and content
+- `irTemplates`: the IR templates when `emitIr` is enabled
 
 ## Config
 
