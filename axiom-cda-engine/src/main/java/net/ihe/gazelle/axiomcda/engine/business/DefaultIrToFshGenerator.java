@@ -10,6 +10,7 @@ import net.ihe.gazelle.axiomcda.api.port.CdaModelRepository;
 import net.ihe.gazelle.axiomcda.api.port.IrToFshGenerator;
 import net.ihe.gazelle.axiomcda.engine.util.FshUtil;
 import net.ihe.gazelle.axiomcda.engine.util.NameUtil;
+import net.ihe.gazelle.axiomcda.engine.util.ProfileNamingUtil;
 
 import java.util.*;
 
@@ -20,15 +21,11 @@ public class DefaultIrToFshGenerator implements IrToFshGenerator {
     @Override
     public FshBundle generate(List<IRTemplate> templates, GenerationConfig config, CdaModelRepository cdaRepository) {
         Map<String, String> files = new LinkedHashMap<>();
-        Map<String, String> profileIdByTemplateId = new HashMap<>();
-        Map<String, String> profileNameByTemplateId = new HashMap<>();
+        Map<String, String> profileIdByTemplateId = ProfileNamingUtil.resolveProfileIds(templates, config);
+        Map<String, String> profileNameByTemplateId = ProfileNamingUtil.resolveProfileNames(templates, config);
         Map<String, String> rootTypeByTemplateId = new HashMap<>();
 
         for (IRTemplate template : templates) {
-            String profileName = resolveProfileName(template, config);
-            String profileId = resolveProfileId(template, config);
-            profileIdByTemplateId.put(template.id(), profileId);
-            profileNameByTemplateId.put(template.id(), profileName);
             rootTypeByTemplateId.put(template.id(), template.rootCdaType());
         }
 
@@ -47,7 +44,7 @@ public class DefaultIrToFshGenerator implements IrToFshGenerator {
             builder.append("Profile: ").append(profileName).append("\n");
             builder.append("Parent: ").append(baseDefinition.url()).append("\n");
             builder.append("Id: ").append(profileId).append("\n");
-            builder.append("Title: \"").append(FshUtil.escape(resolveTitle(template, config))).append("\"\n");
+            builder.append("Title: \"").append(FshUtil.escape(ProfileNamingUtil.resolveTitle(template, config))).append("\"\n");
             builder.append("Description: \"").append(FshUtil.escape(resolveDescription(template))).append("\"\n");
             builder.append("* ^status = #draft\n");
 
@@ -141,26 +138,6 @@ public class DefaultIrToFshGenerator implements IrToFshGenerator {
         }
 
         return new FshBundle(files);
-    }
-
-    private String resolveProfileName(IRTemplate template, GenerationConfig config) {
-        String override = config.naming().profileNameOverrides().get(template.id());
-        if (override != null) {
-            return override;
-        }
-        return config.naming().profilePrefix() + template.rootCdaType();
-    }
-
-    private String resolveProfileId(IRTemplate template, GenerationConfig config) {
-        String override = config.naming().idOverrides().get(template.id());
-        if (override != null) {
-            return override;
-        }
-        return config.naming().idPrefix() + NameUtil.toKebabCase(template.rootCdaType());
-    }
-
-    private String resolveTitle(IRTemplate template, GenerationConfig config) {
-        return config.naming().titlePrefix() + NameUtil.lowerFirst(template.rootCdaType());
     }
 
     private String resolveDescription(IRTemplate template) {

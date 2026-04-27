@@ -10,6 +10,8 @@ import org.junit.jupiter.api.Test;
 
 import java.util.List;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class DefaultIrToFshGeneratorTest {
@@ -51,5 +53,43 @@ class DefaultIrToFshGeneratorTest {
 
         String fsh = bundle.files().get(DefaultIrToFshGenerator.RESOURCES_DIR + "/RecordTarget.fsh");
         assertTrue(fsh.contains("* patientRole only PatientRole"));
+    }
+
+    @Test
+    void generatesDistinctProfilesForTemplatesWithSameRootType() throws Exception {
+        IRTemplate firstObservation = new IRTemplate(
+                "1.2.3.4.1",
+                "FR-Batterie-examens-de-biologie-medicale",
+                "FR-Batterie-examens-de-biologie-medicale",
+                "First observation",
+                "Observation",
+                List.of(),
+                List.of(),
+                List.of()
+        );
+
+        IRTemplate secondObservation = new IRTemplate(
+                "1.2.3.4.2",
+                "FR-Rang-de-la-vaccination",
+                "FR-Rang-de-la-vaccination",
+                "Second observation",
+                "Observation",
+                List.of(),
+                List.of(),
+                List.of()
+        );
+
+        CdaModelRepository cdaRepository = new JsonCdaModelRepository(ResourcePaths.getResourcePath("package"));
+        DefaultIrToFshGenerator generator = new DefaultIrToFshGenerator();
+        FshBundle bundle = generator.generate(List.of(firstObservation, secondObservation), GenerationConfig.defaults(), cdaRepository);
+
+        String firstName = DefaultIrToFshGenerator.RESOURCES_DIR + "/ObservationFRBatterieExamensDeBiologieMedicale.fsh";
+        String secondName = DefaultIrToFshGenerator.RESOURCES_DIR + "/ObservationFRRangDeLaVaccination.fsh";
+
+        assertEquals(2, bundle.files().keySet().stream().filter(path -> path.startsWith(DefaultIrToFshGenerator.RESOURCES_DIR + "/Observation")).count());
+        assertNotNull(bundle.files().get(firstName));
+        assertNotNull(bundle.files().get(secondName));
+        assertTrue(bundle.files().get(firstName).contains("Profile: ObservationFRBatterieExamensDeBiologieMedicale"));
+        assertTrue(bundle.files().get(secondName).contains("Profile: ObservationFRRangDeLaVaccination"));
     }
 }

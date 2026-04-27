@@ -23,6 +23,7 @@ import net.ihe.gazelle.axiomcda.engine.technical.DefaultFshWriter;
 import net.ihe.gazelle.axiomcda.engine.technical.JaxbBbrLoader;
 import net.ihe.gazelle.axiomcda.engine.technical.JsonCdaModelRepository;
 import net.ihe.gazelle.axiomcda.engine.technical.YamlConfigLoader;
+import net.ihe.gazelle.axiomcda.engine.util.ProfileNamingUtil;
 import net.ihe.gazelle.axiomcda.engine.util.ResourcePaths;
 import net.ihe.gazelle.axiomcda.ws.dto.FshProfile;
 import net.ihe.gazelle.axiomcda.ws.dto.GenerationRequest;
@@ -40,6 +41,7 @@ import java.nio.file.Path;
 import java.time.Year;
 import java.util.ArrayList;
 import java.util.Base64;
+import java.util.Comparator;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -103,7 +105,7 @@ public class FshGenerationService {
 
             GenerationReport report = buildReport(transformResult, bundle);
 
-            List<FshProfile> profiles = extractProfiles(bundle);
+            List<FshProfile> profiles = extractProfiles(bundle, transformResult.templates(), config);
 
             Path zipPath = tempDir.resolve("axiom-cda-fsh.zip");
             ZipUtils.zipDirectory(outDir, zipPath);
@@ -111,7 +113,7 @@ public class FshGenerationService {
             byte[] zipBytes = Files.readAllBytes(zipPath);
             String zipBase64 = Base64.getEncoder().encodeToString(zipBytes);
 
-            List<IRTemplate> irTemplates = config.emitIrSnapshot() ? transformResult.templates() : List.of();
+            List<IRTemplate> irTemplates = transformResult.templates();
 
             return new GenerationResult(zipBase64, report, profiles, irTemplates);
         } catch (Exception e) {
@@ -271,17 +273,35 @@ public class FshGenerationService {
         );
     }
 
-    private List<FshProfile> extractProfiles(FshBundle bundle) {
+    private List<FshProfile> extractProfiles(FshBundle bundle, List<IRTemplate> templates, GenerationConfig config) {
         List<FshProfile> profiles = new ArrayList<>();
         String resourcesDir = DefaultIrToFshGenerator.RESOURCES_DIR + "/";
+        Map<String, IRTemplate> templateByProfileName = new LinkedHashMap<>();
+        Map<String, String> profileNames = ProfileNamingUtil.resolveProfileNames(templates, config);
+        for (IRTemplate template : templates) {
+            templateByProfileName.put(profileNames.get(template.id()), template);
+        }
         for (var entry : bundle.files().entrySet()) {
             String filePath = entry.getKey();
             if (filePath.startsWith(resourcesDir)) {
                 String fileName = filePath.substring(resourcesDir.length());
                 String profileName = fileName.endsWith(".fsh") ? fileName.substring(0, fileName.length() - 4) : fileName;
-                profiles.add(new FshProfile(profileName, entry.getValue()));
+                IRTemplate template = templateByProfileName.get(profileName);
+                boolean eligible = template != null && "Observation".equals(template.rootCdaType());
+                profiles.add(new FshProfile(
+                        profileName,
+                        entry.getValue(),
+                        template != null ? template.id() : null,
+                        template != null ? template.rootCdaType() : null,
+                        eligible,
+                        eligible ? "observation" : null,
+                        eligible ? "Eligible for FHIR Observation conversion" : null
+                ));
             }
         }
+        profiles.sort(Comparator
+                .comparing(FshProfile::fhirTransformEligible, Comparator.reverseOrder())
+                .thenComparing(FshProfile::name));
         return profiles;
     }
 

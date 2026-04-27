@@ -1,0 +1,2802 @@
+{
+  "resourceType": "StructureMap",
+  "id": "cda-to-fhir-observation",
+  "text": {
+    "status": "generated",
+    "div": "<div>Cleaned for POC</div>"
+  },
+  "url": "http://hl7.at/fhir/HL7ATCoreProfiles/4.0.1/StructureMap/cda-to-fhir-observation",
+  "name": "CdaToObservation",
+  "structure": [
+    {
+      "url": "http://hl7.org/cda/stds/core/StructureDefinition/Observation",
+      "mode": "source",
+      "alias": "CDAObservation"
+    },
+    {
+      "url": "http://hl7.org/cda/stds/core/StructureDefinition/Performer2",
+      "mode": "source",
+      "alias": "Performer"
+    },
+    {
+      "url": "http://hl7.org/cda/stds/core/StructureDefinition/ClinicalDocument",
+      "mode": "source",
+      "alias": "ClinicalDocument"
+    },
+    {
+      "url": "http://hl7.org/cda/stds/core/StructureDefinition/Act",
+      "mode": "source",
+      "alias": "Act"
+    },
+    {
+      "url": "http://hl7.org/cda/stds/core/StructureDefinition/Organizer",
+      "mode": "source",
+      "alias": "Organizer"
+    },
+    {
+      "url": "http://hl7.org/cda/stds/core/StructureDefinition/AssignedEntity",
+      "mode": "source",
+      "alias": "AssignedEntity"
+    },
+    {
+      "url": "http://hl7.org/fhir/4.3/StructureDefinition/Bundle",
+      "mode": "target",
+      "alias": "Bundle"
+    },
+    {
+      "url": "http://hl7.org/fhir/4.3/StructureDefinition/Observation",
+      "mode": "target",
+      "alias": "Observation"
+    },
+    {
+      "url": "http://hl7.org/fhir/4.3/StructureDefinition/Patient",
+      "mode": "target",
+      "alias": "Patient"
+    },
+    {
+      "url": "http://hl7.org/fhir/4.3/StructureDefinition/Specimen",
+      "mode": "target",
+      "alias": "Specimen"
+    },
+    {
+      "url": "http://hl7.org/fhir/4.3/StructureDefinition/PractitionerRole",
+      "mode": "target",
+      "alias": "PractitionerRole"
+    }
+  ],
+  "import": [
+    "http://hl7.at/fhir/HL7ATCoreProfiles/4.0.1/StructureMap/at-cda-to-fhir-types"
+  ],
+  "group": [
+    {
+      "name": "CdaOrganizerToFhirObservation",
+      "typeMode": "none",
+      "input": [
+        {
+          "name": "cda",
+          "type": "ClinicalDocument",
+          "mode": "source"
+        },
+        {
+          "name": "cda_organizer",
+          "type": "Organizer",
+          "mode": "source"
+        },
+        {
+          "name": "fhir_observation",
+          "type": "Observation",
+          "mode": "target"
+        },
+        {
+          "name": "fhir_patient",
+          "type": "Patient",
+          "mode": "target"
+        }
+      ],
+      "rule": [
+        {
+          "name": "FhirObservationProfile",
+          "source": [
+            {
+              "context": "cda_organizer"
+            }
+          ],
+          "target": [
+            {
+              "context": "fhir_observation",
+              "contextType": "variable",
+              "element": "meta",
+              "variable": "fhir_observation_meta"
+            },
+            {
+              "context": "fhir_observation_meta",
+              "contextType": "variable",
+              "element": "profile",
+              "transform": "copy",
+              "parameter": [
+                {
+                  "valueString": "http://fhir.ehdsi.eu/laboratory/StructureDefinition/Observation-resultslab-lab-myhealtheu"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "name": "FhirObservationCategoryCoding",
+          "source": [
+            {
+              "context": "cda_organizer"
+            }
+          ],
+          "target": [
+            {
+              "context": "fhir_observation",
+              "contextType": "variable",
+              "element": "category",
+              "variable": "fhir_category"
+            },
+            {
+              "context": "fhir_category",
+              "contextType": "variable",
+              "element": "coding",
+              "variable": "fhir_category_coding"
+            },
+            {
+              "context": "fhir_category_coding",
+              "contextType": "variable",
+              "element": "system",
+              "transform": "copy",
+              "parameter": [
+                {
+                  "valueString": "http://terminology.hl7.org/CodeSystem/observation-category"
+                }
+              ]
+            },
+            {
+              "context": "fhir_category_coding",
+              "contextType": "variable",
+              "element": "code",
+              "transform": "copy",
+              "parameter": [
+                {
+                  "valueString": "laboratory"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "name": "FhirObservationSubject",
+          "source": [
+            {
+              "context": "cda_organizer"
+            }
+          ],
+          "target": [
+            {
+              "context": "fhir_observation",
+              "contextType": "variable",
+              "element": "subject",
+              "variable": "fhir_observation_subject_reference",
+              "transform": "create",
+              "parameter": [
+                {
+                  "valueString": "Reference"
+                }
+              ]
+            },
+            {
+              "context": "fhir_patient",
+              "contextType": "variable",
+              "element": "id",
+              "variable": "fhir_patient_id"
+            },
+            {
+              "context": "fhir_observation_subject_reference",
+              "contextType": "variable",
+              "element": "reference",
+              "transform": "append",
+              "parameter": [
+                {
+                  "valueString": "urn:uuid:"
+                },
+                {
+                  "valueId": "fhir_patient_id"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "name": "code",
+          "source": [
+            {
+              "context": "cda_organizer",
+              "element": "code",
+              "variable": "vvv"
+            }
+          ],
+          "target": [
+            {
+              "context": "fhir_observation",
+              "contextType": "variable",
+              "element": "category",
+              "variable": "vvv",
+              "transform": "create"
+            }
+          ]
+        },
+        {
+          "name": "code",
+          "source": [
+            {
+              "context": "cda_organizer",
+              "element": "code",
+              "variable": "vvv"
+            }
+          ],
+          "target": [
+            {
+              "context": "fhir_observation",
+              "contextType": "variable",
+              "element": "code",
+              "variable": "vvv",
+              "transform": "create"
+            }
+          ]
+        },
+        {
+          "name": "CdaObservationCodeToFhirObservationCodeNullFlavor",
+          "source": [
+            {
+              "context": "cda_organizer",
+              "element": "code",
+              "condition": "($this.codeSystem != '2.16.840.1.113883.6.1')"
+            }
+          ],
+          "target": [
+            {
+              "context": "fhir_observation",
+              "contextType": "variable",
+              "element": "code",
+              "variable": "fhir_observation_code"
+            },
+            {
+              "context": "fhir_observation_code",
+              "contextType": "variable",
+              "element": "coding",
+              "variable": "fhir_observation_code_coding"
+            },
+            {
+              "context": "fhir_observation_code_coding",
+              "contextType": "variable",
+              "element": "system",
+              "transform": "copy",
+              "parameter": [
+                {
+                  "valueString": "http://terminology.hl7.org/CodeSystem/v3-NullFlavor"
+                }
+              ]
+            },
+            {
+              "context": "fhir_observation_code_coding",
+              "contextType": "variable",
+              "element": "code",
+              "transform": "copy",
+              "parameter": [
+                {
+                  "valueString": "OTH"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "name": "CdaObservationCodeToFhirObservationCodeNullFlavor",
+          "source": [
+            {
+              "context": "cda_organizer",
+              "condition": "($this.code).exists().not()"
+            }
+          ],
+          "target": [
+            {
+              "context": "fhir_observation",
+              "contextType": "variable",
+              "element": "code",
+              "variable": "fhir_observation_code"
+            },
+            {
+              "context": "fhir_observation_code",
+              "contextType": "variable",
+              "element": "coding",
+              "variable": "fhir_observation_code_coding"
+            },
+            {
+              "context": "fhir_observation_code_coding",
+              "contextType": "variable",
+              "element": "system",
+              "transform": "copy",
+              "parameter": [
+                {
+                  "valueString": "http://terminology.hl7.org/CodeSystem/v3-NullFlavor"
+                }
+              ]
+            },
+            {
+              "context": "fhir_observation_code_coding",
+              "contextType": "variable",
+              "element": "code",
+              "transform": "copy",
+              "parameter": [
+                {
+                  "valueString": "OTH"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "name": "CdaStatusCodeToFhirObservationStatusMapped",
+          "source": [
+            {
+              "context": "cda_organizer",
+              "element": "statusCode",
+              "variable": "organizer_statusCode"
+            }
+          ],
+          "rule": [
+            {
+              "name": "code",
+              "source": [
+                {
+                  "context": "organizer_statusCode",
+                  "element": "code",
+                  "variable": "cda_code"
+                }
+              ],
+              "target": [
+                {
+                  "context": "fhir_observation",
+                  "contextType": "variable",
+                  "element": "status",
+                  "transform": "translate",
+                  "parameter": [
+                    {
+                      "valueId": "cda_code"
+                    },
+                    {
+                      "valueString": "#act-status-2-observation-status"
+                    },
+                    {
+                      "valueString": "code"
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "name": "CdaEffectiveTimeToFhirObservationEffective",
+          "source": [
+            {
+              "context": "cda_organizer",
+              "element": "effectiveTime",
+              "variable": "cda_effectiveTime"
+            }
+          ],
+          "target": [
+            {
+              "context": "fhir_observation",
+              "contextType": "variable",
+              "element": "effective",
+              "variable": "fhir_observation_effective",
+              "transform": "create",
+              "parameter": [
+                {
+                  "valueString": "dateTime"
+                }
+              ]
+            },
+            {
+              "context": "fhir_observation_effective",
+              "contextType": "variable",
+              "element": "extension",
+              "variable": "fhir_observation_effective_extenstion"
+            },
+            {
+              "context": "fhir_observation_effective_extenstion",
+              "contextType": "variable",
+              "element": "url",
+              "transform": "copy",
+              "parameter": [
+                {
+                  "valueString": "http://hl7.org/fhir/StructureDefinition/data-absent-reason"
+                }
+              ]
+            },
+            {
+              "context": "fhir_observation_effective_extenstion",
+              "contextType": "variable",
+              "element": "value",
+              "variable": "fhir_observation_effective_extenstion_code",
+              "transform": "create",
+              "parameter": [
+                {
+                  "valueString": "code"
+                }
+              ]
+            },
+            {
+              "context": "fhir_observation_effective_extenstion_code",
+              "contextType": "variable",
+              "element": "value",
+              "transform": "copy",
+              "parameter": [
+                {
+                  "valueString": "not-applicable"
+                }
+              ]
+            }
+          ],
+          "dependent": [
+            {
+              "name": "TSDateTime",
+              "variable": [
+                "cda_effectiveTime",
+                "fhir_observation_effective"
+              ]
+            }
+          ]
+        },
+        {
+          "name": "CdaEffectiveTimeExistsNotToFhirObservationEffective",
+          "source": [
+            {
+              "context": "cda_organizer",
+              "condition": "cda_organizer.effectiveTime.exists().not()"
+            }
+          ],
+          "target": [
+            {
+              "context": "fhir_observation",
+              "contextType": "variable",
+              "element": "effective",
+              "variable": "fhir_observation_effective",
+              "transform": "create",
+              "parameter": [
+                {
+                  "valueString": "dateTime"
+                }
+              ]
+            },
+            {
+              "context": "fhir_observation_effective",
+              "contextType": "variable",
+              "element": "extension",
+              "variable": "fhir_observation_effective_extenstion"
+            },
+            {
+              "context": "fhir_observation_effective_extenstion",
+              "contextType": "variable",
+              "element": "url",
+              "transform": "copy",
+              "parameter": [
+                {
+                  "valueString": "http://hl7.org/fhir/StructureDefinition/data-absent-reason"
+                }
+              ]
+            },
+            {
+              "context": "fhir_observation_effective_extenstion",
+              "contextType": "variable",
+              "element": "value",
+              "variable": "fhir_observation_effective_extenstion_code",
+              "transform": "create",
+              "parameter": [
+                {
+                  "valueString": "code"
+                }
+              ]
+            },
+            {
+              "context": "fhir_observation_effective_extenstion_code",
+              "contextType": "variable",
+              "element": "value",
+              "transform": "copy",
+              "parameter": [
+                {
+                  "valueString": "not-applicable"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "CdaObservationToFhirObservation",
+      "typeMode": "none",
+      "input": [
+        {
+          "name": "cda_observation",
+          "type": "CDAObservation",
+          "mode": "source"
+        },
+        {
+          "name": "fhir_observation",
+          "type": "Observation",
+          "mode": "target"
+        }
+      ],
+      "rule": [
+        {
+          "name": "id",
+          "source": [
+            {
+              "context": "cda_observation",
+              "element": "id",
+              "variable": "vvv"
+            }
+          ],
+          "target": [
+            {
+              "context": "fhir_observation",
+              "contextType": "variable",
+              "element": "identifier",
+              "variable": "vvv",
+              "transform": "create"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "CdaLaboratoryObservationToFhirObservation",
+      "typeMode": "none",
+      "input": [
+        {
+          "name": "cda",
+          "type": "ClinicalDocument",
+          "mode": "source"
+        },
+        {
+          "name": "cda_laboratory_observation",
+          "type": "CDAObservation",
+          "mode": "source"
+        },
+        {
+          "name": "fhir_observation",
+          "type": "Observation",
+          "mode": "target"
+        },
+        {
+          "name": "fhir_patient",
+          "type": "Patient",
+          "mode": "target"
+        },
+        {
+          "name": "fhir_bundle",
+          "type": "Bundle",
+          "mode": "target"
+        }
+      ],
+      "rule": [
+        {
+          "name": "FhirObservationProfile",
+          "source": [
+            {
+              "context": "cda_laboratory_observation"
+            }
+          ],
+          "target": [
+            {
+              "context": "fhir_observation",
+              "contextType": "variable",
+              "element": "meta",
+              "variable": "fhir_observation_meta"
+            },
+            {
+              "context": "fhir_observation_meta",
+              "contextType": "variable",
+              "element": "profile",
+              "transform": "copy",
+              "parameter": [
+                {
+                  "valueString": "http://fhir.ehdsi.eu/laboratory/StructureDefinition/Observation-resultslab-lab-myhealtheu"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "name": "id",
+          "source": [
+            {
+              "context": "cda_laboratory_observation",
+              "element": "id",
+              "variable": "vvv"
+            }
+          ],
+          "target": [
+            {
+              "context": "fhir_observation",
+              "contextType": "variable",
+              "element": "identifier",
+              "variable": "vvv",
+              "transform": "create"
+            }
+          ]
+        },
+        {
+          "name": "FhirObservationCategoryCoding",
+          "source": [
+            {
+              "context": "cda_laboratory_observation"
+            }
+          ],
+          "target": [
+            {
+              "context": "fhir_observation",
+              "contextType": "variable",
+              "element": "category",
+              "variable": "fhir_category"
+            },
+            {
+              "context": "fhir_category",
+              "contextType": "variable",
+              "element": "coding",
+              "variable": "fhir_category_coding"
+            },
+            {
+              "context": "fhir_category_coding",
+              "contextType": "variable",
+              "element": "system",
+              "transform": "copy",
+              "parameter": [
+                {
+                  "valueString": "http://terminology.hl7.org/CodeSystem/observation-category"
+                }
+              ]
+            },
+            {
+              "context": "fhir_category_coding",
+              "contextType": "variable",
+              "element": "code",
+              "transform": "copy",
+              "parameter": [
+                {
+                  "valueString": "laboratory"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "name": "FhirObservationSubject",
+          "source": [
+            {
+              "context": "cda_laboratory_observation"
+            }
+          ],
+          "target": [
+            {
+              "context": "fhir_observation",
+              "contextType": "variable",
+              "element": "subject",
+              "variable": "fhir_observation_subject_reference",
+              "transform": "create",
+              "parameter": [
+                {
+                  "valueString": "Reference"
+                }
+              ]
+            },
+            {
+              "context": "fhir_patient",
+              "contextType": "variable",
+              "element": "id",
+              "variable": "fhir_patient_id"
+            },
+            {
+              "context": "fhir_observation_subject_reference",
+              "contextType": "variable",
+              "element": "reference",
+              "transform": "append",
+              "parameter": [
+                {
+                  "valueString": "urn:uuid:"
+                },
+                {
+                  "valueId": "fhir_patient_id"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "name": "CdaLaboratoryObservationCodeToFhirObservationCodeNoNullFlavor",
+          "source": [
+            {
+              "context": "cda_laboratory_observation",
+              "element": "code",
+              "variable": "cda_code",
+              "condition": "($this.nullFlavor.exists().not())"
+            }
+          ],
+          "rule": [
+            {
+              "name": "code",
+              "source": [
+                {
+                  "context": "cda_code",
+                  "element": "code",
+                  "variable": "cda_code_code"
+                }
+              ],
+              "target": [
+                {
+                  "contextType": "variable",
+                  "variable": "mapping_result_coding",
+                  "transform": "copy",
+                  "parameter": [
+                    {
+                      "valueId": "cda_code_code"
+                    }
+                  ]
+                }
+              ],
+              "dependent": [
+                {
+                  "name": "LaboratoryObservationCodeCheck",
+                  "variable": [
+                    "cda_laboratory_observation",
+                    "mapping_result_coding",
+                    "fhir_observation"
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "name": "code",
+          "source": [
+            {
+              "context": "cda_laboratory_observation",
+              "element": "code",
+              "variable": "cda_code",
+              "condition": "($this.nullFlavor.exists())"
+            }
+          ],
+          "target": [
+            {
+              "context": "fhir_observation",
+              "contextType": "variable",
+              "element": "code",
+              "variable": "fhir_observation_code"
+            },
+            {
+              "context": "fhir_observation_code",
+              "contextType": "variable",
+              "element": "coding",
+              "variable": "fhir_observation_code_coding"
+            },
+            {
+              "context": "fhir_observation_code_coding",
+              "contextType": "variable",
+              "element": "system",
+              "transform": "copy",
+              "parameter": [
+                {
+                  "valueString": "http://terminology.hl7.org/CodeSystem/v3-NullFlavor"
+                }
+              ]
+            },
+            {
+              "context": "fhir_observation_code_coding",
+              "contextType": "variable",
+              "element": "code",
+              "transform": "copy",
+              "parameter": [
+                {
+                  "valueString": "OTH"
+                }
+              ]
+            }
+          ],
+          "rule": [
+            {
+              "name": "translation",
+              "source": [
+                {
+                  "context": "cda_code",
+                  "element": "translation",
+                  "variable": "cda_code_translation"
+                }
+              ],
+              "dependent": [
+                {
+                  "name": "CDCodeableConcept",
+                  "variable": [
+                    "cda_code_translation",
+                    "fhir_observation_code"
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "name": "CdaStatusCodeToFhirObservationStatus",
+          "source": [
+            {
+              "context": "cda_laboratory_observation",
+              "condition": "cda_laboratory_observation.value.exists((code = '255599008') or ((code = '281268007') and (codeSystem = '2.16.840.1.113883.6.96'))).not()"
+            }
+          ],
+          "rule": [
+            {
+              "name": "CdaStatusCodeToFhirObservationStatusMapped",
+              "source": [
+                {
+                  "context": "cda_laboratory_observation",
+                  "element": "statusCode",
+                  "variable": "observation_statusCode"
+                }
+              ],
+              "rule": [
+                {
+                  "name": "code",
+                  "source": [
+                    {
+                      "context": "observation_statusCode",
+                      "element": "code",
+                      "variable": "cda_code"
+                    }
+                  ],
+                  "target": [
+                    {
+                      "context": "fhir_observation",
+                      "contextType": "variable",
+                      "element": "status",
+                      "transform": "translate",
+                      "parameter": [
+                        {
+                          "valueId": "cda_code"
+                        },
+                        {
+                          "valueString": "#act-status-2-observation-status"
+                        },
+                        {
+                          "valueString": "code"
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "name": "CdaEffectiveTimeToFhirObservationEffective",
+          "source": [
+            {
+              "context": "cda_laboratory_observation",
+              "element": "effectiveTime",
+              "variable": "cda_effectiveTime"
+            }
+          ],
+          "target": [
+            {
+              "context": "fhir_observation",
+              "contextType": "variable",
+              "element": "effective",
+              "variable": "fhir_observation_effective",
+              "transform": "create",
+              "parameter": [
+                {
+                  "valueString": "dateTime"
+                }
+              ]
+            }
+          ],
+          "dependent": [
+            {
+              "name": "TSDateTime",
+              "variable": [
+                "cda_effectiveTime",
+                "fhir_observation_effective"
+              ]
+            }
+          ]
+        },
+        {
+          "name": "CdaEffectiveTimeExistsNotToFhirObservationEffective",
+          "source": [
+            {
+              "context": "cda_laboratory_observation",
+              "condition": "cda_laboratory_observation.where(effectiveTime.where(nullFlavor = 'UNK') or effectiveTime.exists().not())"
+            }
+          ],
+          "target": [
+            {
+              "context": "fhir_observation",
+              "contextType": "variable",
+              "element": "effective",
+              "variable": "fhir_observation_effective",
+              "transform": "create",
+              "parameter": [
+                {
+                  "valueString": "dateTime"
+                }
+              ]
+            },
+            {
+              "context": "fhir_observation_effective",
+              "contextType": "variable",
+              "element": "extension",
+              "variable": "fhir_observation_effective_extenstion"
+            },
+            {
+              "context": "fhir_observation_effective_extenstion",
+              "contextType": "variable",
+              "element": "url",
+              "transform": "copy",
+              "parameter": [
+                {
+                  "valueString": "http://hl7.org/fhir/StructureDefinition/data-absent-reason"
+                }
+              ]
+            },
+            {
+              "context": "fhir_observation_effective_extenstion",
+              "contextType": "variable",
+              "element": "value",
+              "variable": "fhir_observation_effective_extenstion_code",
+              "transform": "create",
+              "parameter": [
+                {
+                  "valueString": "code"
+                }
+              ]
+            },
+            {
+              "context": "fhir_observation_effective_extenstion_code",
+              "contextType": "variable",
+              "element": "value",
+              "transform": "copy",
+              "parameter": [
+                {
+                  "valueString": "unknown"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "name": "CdaLaboratoryObservationValueToFhirObservationValue",
+          "source": [
+            {
+              "context": "cda_laboratory_observation",
+              "condition": "templateId.where(root = '1.3.6.1.4.1.19376.1.3.1.6')"
+            }
+          ],
+          "dependent": [
+            {
+              "name": "CdaLaboratoryObservationValueToFhirObservationValue",
+              "variable": [
+                "cda_laboratory_observation",
+                "fhir_observation"
+              ]
+            }
+          ]
+        },
+        {
+          "name": "CdaNotifiableConditionCaseIdentificationValueToFhirObservationValue",
+          "source": [
+            {
+              "context": "cda_laboratory_observation",
+              "condition": "templateId.where((root = '1.3.6.1.4.1.19376.1.3.1.1.1') or (root = '1.3.6.1.4.1.19376.1.3.1.1.2'))"
+            }
+          ],
+          "dependent": [
+            {
+              "name": "CdaNotifiableConditionCaseIdentificationValueToFhirObservationValue",
+              "variable": [
+                "cda_laboratory_observation",
+                "fhir_observation"
+              ]
+            }
+          ]
+        },
+        {
+          "name": "CdaObservationInterpretationCodeToFhirObservationInterpretation",
+          "source": [
+            {
+              "context": "cda_laboratory_observation",
+              "element": "interpretationCode",
+              "variable": "cda_laboratory_observation_interpretationCode"
+            }
+          ],
+          "target": [
+            {
+              "context": "fhir_observation",
+              "contextType": "variable",
+              "element": "interpretation",
+              "variable": "fhir_observation_interpretation"
+            },
+            {
+              "context": "fhir_observation_interpretation",
+              "contextType": "variable",
+              "element": "coding",
+              "variable": "fhir_observation_interpretation_coding_01"
+            },
+            {
+              "context": "fhir_observation_interpretation",
+              "contextType": "variable",
+              "element": "coding",
+              "variable": "fhir_observation_interpretation_coding_02"
+            },
+            {
+              "context": "fhir_observation_interpretation_coding_02",
+              "contextType": "variable",
+              "element": "system",
+              "transform": "copy",
+              "parameter": [
+                {
+                  "valueString": "http://terminology.hl7.org/CodeSystem/v3-NullFlavor"
+                }
+              ]
+            },
+            {
+              "context": "fhir_observation_interpretation_coding_02",
+              "contextType": "variable",
+              "element": "code",
+              "transform": "copy",
+              "parameter": [
+                {
+                  "valueString": "OTH"
+                }
+              ]
+            }
+          ],
+          "dependent": [
+            {
+              "name": "CECoding",
+              "variable": [
+                "cda_laboratory_observation_interpretationCode",
+                "fhir_observation_interpretation_coding_01"
+              ]
+            }
+          ]
+        },
+        {
+          "name": "participant",
+          "source": [
+            {
+              "context": "cda_laboratory_observation",
+              "element": "participant",
+              "variable": "cda_participant"
+            }
+          ],
+          "target": [
+            {
+              "context": "fhir_bundle",
+              "contextType": "variable",
+              "element": "entry",
+              "variable": "fhir_bundle_entry"
+            },
+            {
+              "context": "fhir_bundle_entry",
+              "contextType": "variable",
+              "element": "resource",
+              "variable": "fhir_practitioner",
+              "transform": "create",
+              "parameter": [
+                {
+                  "valueString": "Practitioner"
+                }
+              ]
+            },
+            {
+              "context": "fhir_practitioner",
+              "contextType": "variable",
+              "element": "id",
+              "variable": "fhir_practitioner_id",
+              "transform": "uuid"
+            },
+            {
+              "context": "fhir_bundle_entry",
+              "contextType": "variable",
+              "element": "fullUrl",
+              "transform": "append",
+              "parameter": [
+                {
+                  "valueString": "urn:uuid:"
+                },
+                {
+                  "valueId": "fhir_practitioner_id"
+                }
+              ]
+            },
+            {
+              "context": "fhir_observation",
+              "contextType": "variable",
+              "element": "performer",
+              "variable": "fhir_observation_performer_reference",
+              "transform": "create",
+              "parameter": [
+                {
+                  "valueString": "Reference"
+                }
+              ]
+            },
+            {
+              "context": "fhir_observation_performer_reference",
+              "contextType": "variable",
+              "element": "reference",
+              "transform": "append",
+              "parameter": [
+                {
+                  "valueString": "urn:uuid:"
+                },
+                {
+                  "valueId": "fhir_practitioner_id"
+                }
+              ]
+            },
+            {
+              "context": "fhir_observation_performer_reference",
+              "contextType": "variable",
+              "element": "type",
+              "transform": "copy",
+              "parameter": [
+                {
+                  "valueString": "Practitioner"
+                }
+              ]
+            },
+            {
+              "context": "fhir_observation_performer_reference",
+              "contextType": "variable",
+              "element": "extension",
+              "variable": "performer_function_extension"
+            },
+            {
+              "context": "performer_function_extension",
+              "contextType": "variable",
+              "element": "url",
+              "transform": "copy",
+              "parameter": [
+                {
+                  "valueString": "http://hl7.org/fhir/StructureDefinition/event-performerFunction"
+                }
+              ]
+            },
+            {
+              "context": "performer_function_extension",
+              "contextType": "variable",
+              "element": "value",
+              "variable": "performer_function_codeableConcept",
+              "transform": "create",
+              "parameter": [
+                {
+                  "valueString": "CodeableConcept"
+                }
+              ]
+            },
+            {
+              "context": "performer_function_codeableConcept",
+              "contextType": "variable",
+              "element": "coding",
+              "variable": "performer_function_coding",
+              "transform": "create",
+              "parameter": [
+                {
+                  "valueString": "Coding"
+                }
+              ]
+            },
+            {
+              "context": "performer_function_coding",
+              "contextType": "variable",
+              "element": "system",
+              "transform": "copy",
+              "parameter": [
+                {
+                  "valueString": "http://terminology.hl7.org/CodeSystem/v3-ParticipationType"
+                }
+              ]
+            },
+            {
+              "context": "performer_function_coding",
+              "contextType": "variable",
+              "element": "code",
+              "transform": "copy",
+              "parameter": [
+                {
+                  "valueString": "AUTHEN"
+                }
+              ]
+            }
+          ],
+          "rule": [
+            {
+              "name": "participantRole",
+              "source": [
+                {
+                  "context": "cda_participant",
+                  "element": "participantRole",
+                  "variable": "cda_participantRole"
+                }
+              ],
+              "rule": [
+                {
+                  "name": "id",
+                  "source": [
+                    {
+                      "context": "cda_participantRole",
+                      "element": "id",
+                      "variable": "vvv"
+                    }
+                  ],
+                  "target": [
+                    {
+                      "context": "fhir_practitioner",
+                      "contextType": "variable",
+                      "element": "identifier",
+                      "variable": "vvv",
+                      "transform": "create"
+                    }
+                  ]
+                },
+                {
+                  "name": "addr",
+                  "source": [
+                    {
+                      "context": "cda_participantRole",
+                      "element": "addr",
+                      "variable": "vvv",
+                      "condition": "(nullFlavor.exists().not())"
+                    }
+                  ],
+                  "target": [
+                    {
+                      "context": "fhir_practitioner",
+                      "contextType": "variable",
+                      "element": "address",
+                      "variable": "vvv",
+                      "transform": "create"
+                    }
+                  ]
+                },
+                {
+                  "name": "telecom",
+                  "source": [
+                    {
+                      "context": "cda_participantRole",
+                      "element": "telecom",
+                      "variable": "vvv",
+                      "condition": "(nullFlavor.exists().not())"
+                    }
+                  ],
+                  "target": [
+                    {
+                      "context": "fhir_practitioner",
+                      "contextType": "variable",
+                      "element": "telecom",
+                      "variable": "vvv",
+                      "transform": "create"
+                    }
+                  ]
+                },
+                {
+                  "name": "playingEntity",
+                  "source": [
+                    {
+                      "context": "cda_participantRole",
+                      "element": "playingEntity",
+                      "variable": "cda_playingEntity"
+                    }
+                  ],
+                  "rule": [
+                    {
+                      "name": "name",
+                      "source": [
+                        {
+                          "context": "cda_playingEntity",
+                          "element": "name",
+                          "variable": "vvv"
+                        }
+                      ],
+                      "target": [
+                        {
+                          "context": "fhir_practitioner",
+                          "contextType": "variable",
+                          "element": "name",
+                          "variable": "vvv",
+                          "transform": "create"
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "name": "entryRelationship",
+          "source": [
+            {
+              "context": "cda_laboratory_observation",
+              "element": "entryRelationship",
+              "variable": "cda_entryRelationship",
+              "condition": "($this.act.exists())"
+            }
+          ],
+          "rule": [
+            {
+              "name": "act",
+              "source": [
+                {
+                  "context": "cda_entryRelationship",
+                  "element": "act",
+                  "variable": "cda_act"
+                }
+              ],
+              "target": [
+                {
+                  "context": "fhir_observation",
+                  "contextType": "variable",
+                  "element": "note",
+                  "variable": "fhir_observation_note"
+                }
+              ],
+              "rule": [
+                {
+                  "name": "text",
+                  "source": [
+                    {
+                      "context": "cda_act",
+                      "element": "text",
+                      "variable": "cda_act_text"
+                    }
+                  ],
+                  "rule": [
+                    {
+                      "name": "reference",
+                      "source": [
+                        {
+                          "context": "cda_act_text",
+                          "element": "reference",
+                          "variable": "cda_reference"
+                        }
+                      ],
+                      "target": [
+                        {
+                          "context": "fhir_observation_note",
+                          "contextType": "variable",
+                          "element": "text",
+                          "transform": "evaluate",
+                          "parameter": [
+                            {
+                              "valueString": "cda_reference.value"
+                            }
+                          ]
+                        }
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "name": "author",
+                  "source": [
+                    {
+                      "context": "cda_act",
+                      "element": "author",
+                      "variable": "cda_author"
+                    }
+                  ],
+                  "target": [
+                    {
+                      "context": "fhir_bundle",
+                      "contextType": "variable",
+                      "element": "entry",
+                      "variable": "fhir_bundle_entry"
+                    },
+                    {
+                      "context": "fhir_bundle_entry",
+                      "contextType": "variable",
+                      "element": "resource",
+                      "variable": "fhir_practitioner",
+                      "transform": "create",
+                      "parameter": [
+                        {
+                          "valueString": "Practitioner"
+                        }
+                      ]
+                    },
+                    {
+                      "context": "fhir_practitioner",
+                      "contextType": "variable",
+                      "element": "id",
+                      "variable": "fhir_practitioner_id",
+                      "transform": "uuid"
+                    },
+                    {
+                      "context": "fhir_bundle_entry",
+                      "contextType": "variable",
+                      "element": "fullUrl",
+                      "transform": "append",
+                      "parameter": [
+                        {
+                          "valueString": "urn:uuid:"
+                        },
+                        {
+                          "valueId": "fhir_practitioner_id"
+                        }
+                      ]
+                    },
+                    {
+                      "context": "fhir_observation_note",
+                      "contextType": "variable",
+                      "element": "author",
+                      "variable": "fhir_observation_note_authorReference",
+                      "transform": "create",
+                      "parameter": [
+                        {
+                          "valueString": "Reference"
+                        }
+                      ]
+                    },
+                    {
+                      "context": "fhir_observation_note_authorReference",
+                      "contextType": "variable",
+                      "element": "reference",
+                      "transform": "append",
+                      "parameter": [
+                        {
+                          "valueString": "urn:uuid:"
+                        },
+                        {
+                          "valueId": "fhir_practitioner_id"
+                        }
+                      ]
+                    },
+                    {
+                      "context": "fhir_observation_note_authorReference",
+                      "contextType": "variable",
+                      "element": "type",
+                      "transform": "copy",
+                      "parameter": [
+                        {
+                          "valueString": "Practitioner"
+                        }
+                      ]
+                    }
+                  ],
+                  "dependent": [
+                    {
+                      "name": "CdaAuthorToFhirPractitioner",
+                      "variable": [
+                        "cda_author",
+                        "fhir_practitioner",
+                        "fhir_bundle"
+                      ]
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "name": "referenceRange",
+          "source": [
+            {
+              "context": "cda_laboratory_observation",
+              "element": "referenceRange",
+              "variable": "cda_observation_referenceRange"
+            }
+          ],
+          "rule": [
+            {
+              "name": "observationRange",
+              "source": [
+                {
+                  "context": "cda_observation_referenceRange",
+                  "element": "observationRange",
+                  "variable": "cda_referenceRange_observationRange"
+                }
+              ],
+              "target": [
+                {
+                  "context": "fhir_observation",
+                  "contextType": "variable",
+                  "element": "referenceRange",
+                  "variable": "fhir_observation_referenceRange"
+                }
+              ],
+              "rule": [
+                {
+                  "name": "value",
+                  "source": [
+                    {
+                      "context": "cda_referenceRange_observationRange",
+                      "element": "value",
+                      "variable": "cda_observationRange_value"
+                    }
+                  ],
+                  "rule": [
+                    {
+                      "name": "low",
+                      "source": [
+                        {
+                          "context": "cda_observationRange_value",
+                          "element": "low",
+                          "variable": "vvv",
+                          "condition": "(nullFlavor.exists().not())"
+                        }
+                      ],
+                      "target": [
+                        {
+                          "context": "fhir_observation_referenceRange",
+                          "contextType": "variable",
+                          "element": "low",
+                          "variable": "vvv",
+                          "transform": "create"
+                        }
+                      ]
+                    },
+                    {
+                      "name": "high",
+                      "source": [
+                        {
+                          "context": "cda_observationRange_value",
+                          "element": "high",
+                          "variable": "vvv",
+                          "condition": "(nullFlavor.exists().not())"
+                        }
+                      ],
+                      "target": [
+                        {
+                          "context": "fhir_observation_referenceRange",
+                          "contextType": "variable",
+                          "element": "high",
+                          "variable": "vvv",
+                          "transform": "create"
+                        }
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "name": "CdaInterpretationCodeToFhirInterpretationCode",
+                  "source": [
+                    {
+                      "context": "cda_referenceRange_observationRange",
+                      "element": "interpretationCode"
+                    }
+                  ],
+                  "target": [
+                    {
+                      "context": "fhir_observation_referenceRange",
+                      "contextType": "variable",
+                      "element": "type",
+                      "variable": "fhir_referenceRange_type"
+                    },
+                    {
+                      "context": "fhir_referenceRange_type",
+                      "contextType": "variable",
+                      "element": "coding",
+                      "variable": "fhir_type_coding"
+                    },
+                    {
+                      "context": "fhir_type_coding",
+                      "contextType": "variable",
+                      "element": "system",
+                      "transform": "copy",
+                      "parameter": [
+                        {
+                          "valueString": "http://terminology.hl7.org/CodeSystem/referencerange-meaning"
+                        }
+                      ]
+                    },
+                    {
+                      "context": "fhir_type_coding",
+                      "contextType": "variable",
+                      "element": "code",
+                      "transform": "copy",
+                      "parameter": [
+                        {
+                          "valueString": "normal"
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "CdaLaboratoryObservationToFhirObservationWithSpecimen",
+      "extends": "CdaLaboratoryObservationToFhirObservation",
+      "typeMode": "none",
+      "input": [
+        {
+          "name": "cda",
+          "type": "ClinicalDocument",
+          "mode": "source"
+        },
+        {
+          "name": "cda_laboratory_observation",
+          "type": "CDAObservation",
+          "mode": "source"
+        },
+        {
+          "name": "fhir_observation",
+          "type": "Observation",
+          "mode": "target"
+        },
+        {
+          "name": "fhir_patient",
+          "type": "Patient",
+          "mode": "target"
+        },
+        {
+          "name": "fhir_bundle",
+          "type": "Bundle",
+          "mode": "target"
+        },
+        {
+          "name": "fhir_specimen",
+          "type": "Specimen",
+          "mode": "target"
+        }
+      ],
+      "rule": [
+        {
+          "name": "ObservationSpecimenReference",
+          "source": [
+            {
+              "context": "cda_laboratory_observation"
+            }
+          ],
+          "target": [
+            {
+              "context": "fhir_observation",
+              "contextType": "variable",
+              "element": "specimen",
+              "variable": "fhir_observation_specimen_reference",
+              "transform": "create",
+              "parameter": [
+                {
+                  "valueString": "Reference"
+                }
+              ]
+            },
+            {
+              "context": "fhir_specimen",
+              "contextType": "variable",
+              "element": "id",
+              "variable": "fhir_specimen_id"
+            },
+            {
+              "context": "fhir_observation_specimen_reference",
+              "contextType": "variable",
+              "element": "reference",
+              "transform": "append",
+              "parameter": [
+                {
+                  "valueString": "urn:uuid:"
+                },
+                {
+                  "valueId": "fhir_specimen_id"
+                }
+              ]
+            },
+            {
+              "context": "fhir_observation_specimen_reference",
+              "contextType": "variable",
+              "element": "type",
+              "transform": "copy",
+              "parameter": [
+                {
+                  "valueString": "Specimen"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "CdaLaboratoryObservationValueToFhirObservationValue",
+      "typeMode": "none",
+      "input": [
+        {
+          "name": "cda_laboratory_observation",
+          "type": "CDAObservation",
+          "mode": "source"
+        },
+        {
+          "name": "fhir_observation",
+          "type": "Observation",
+          "mode": "target"
+        }
+      ],
+      "rule": [
+        {
+          "name": "CdaObservationValueToFhirObservationValuePQ",
+          "source": [
+            {
+              "context": "cda_laboratory_observation",
+              "type": "PQ",
+              "element": "value",
+              "variable": "cda_observation_value"
+            }
+          ],
+          "target": [
+            {
+              "context": "fhir_observation",
+              "contextType": "variable",
+              "element": "value",
+              "variable": "fhir_observation_value",
+              "transform": "create",
+              "parameter": [
+                {
+                  "valueString": "Quantity"
+                }
+              ]
+            }
+          ],
+          "dependent": [
+            {
+              "name": "PQQuantity",
+              "variable": [
+                "cda_observation_value",
+                "fhir_observation_value"
+              ]
+            }
+          ]
+        },
+        {
+          "name": "CdaObservationValueToFhirObservationValueIVLPQ",
+          "source": [
+            {
+              "context": "cda_laboratory_observation",
+              "type": "IVL_PQ",
+              "element": "value",
+              "variable": "cda_observation_value"
+            }
+          ],
+          "rule": [
+            {
+              "name": "CdaObservationValueToFhirObservationValueQuantity",
+              "source": [
+                {
+                  "context": "cda_observation_value",
+                  "condition": "(cda_observation_value.value.exists())"
+                }
+              ],
+              "target": [
+                {
+                  "context": "fhir_observation",
+                  "contextType": "variable",
+                  "element": "value",
+                  "variable": "fhir_observation_value",
+                  "transform": "create",
+                  "parameter": [
+                    {
+                      "valueString": "Quantity"
+                    }
+                  ]
+                }
+              ],
+              "dependent": [
+                {
+                  "name": "PQQuantity",
+                  "variable": [
+                    "cda_observation_value",
+                    "fhir_observation_value"
+                  ]
+                }
+              ]
+            },
+            {
+              "name": "CdaObservationValueToFhirObservationValueRange",
+              "source": [
+                {
+                  "context": "cda_observation_value",
+                  "condition": "(cda_observation_value.value.exists().not())"
+                }
+              ],
+              "target": [
+                {
+                  "context": "fhir_observation",
+                  "contextType": "variable",
+                  "element": "value",
+                  "variable": "fhir_observation_value",
+                  "transform": "create",
+                  "parameter": [
+                    {
+                      "valueString": "Range"
+                    }
+                  ]
+                }
+              ],
+              "dependent": [
+                {
+                  "name": "IVLPQRange",
+                  "variable": [
+                    "cda_observation_value",
+                    "fhir_observation_value"
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "name": "CdaValueINTToFhirObservationValue",
+          "source": [
+            {
+              "context": "cda_laboratory_observation",
+              "type": "INT",
+              "element": "value",
+              "variable": "cda_observation_value"
+            }
+          ],
+          "target": [
+            {
+              "context": "fhir_observation",
+              "contextType": "variable",
+              "element": "value",
+              "variable": "fhir_observation_value",
+              "transform": "create",
+              "parameter": [
+                {
+                  "valueString": "Quantity"
+                }
+              ]
+            }
+          ],
+          "dependent": [
+            {
+              "name": "INTQuantity",
+              "variable": [
+                "cda_observation_value",
+                "fhir_observation_value"
+              ]
+            }
+          ]
+        },
+        {
+          "name": "CdaObservationValueIVL_INTToFhirObservationValue",
+          "source": [
+            {
+              "context": "cda_laboratory_observation",
+              "type": "IVL_INT",
+              "element": "value",
+              "variable": "cda_observation_value"
+            }
+          ],
+          "rule": [
+            {
+              "name": "CdaObservationValueIVL_INTToFhirObservationValueQuantity",
+              "source": [
+                {
+                  "context": "cda_observation_value",
+                  "condition": "(cda_observation_value.value.exists())"
+                }
+              ],
+              "target": [
+                {
+                  "context": "fhir_observation",
+                  "contextType": "variable",
+                  "element": "value",
+                  "variable": "fhir_observation_value",
+                  "transform": "create",
+                  "parameter": [
+                    {
+                      "valueString": "Quantity"
+                    }
+                  ]
+                }
+              ],
+              "dependent": [
+                {
+                  "name": "INTQuantity",
+                  "variable": [
+                    "cda_observation_value",
+                    "fhir_observation_value"
+                  ]
+                }
+              ]
+            },
+            {
+              "name": "CdaObservationValueIVL_INTToFhirObservationValueRange",
+              "source": [
+                {
+                  "context": "cda_observation_value",
+                  "condition": "(cda_observation_value.value.exists().not())"
+                }
+              ],
+              "target": [
+                {
+                  "context": "fhir_observation",
+                  "contextType": "variable",
+                  "element": "value",
+                  "variable": "fhir_observation_value",
+                  "transform": "create",
+                  "parameter": [
+                    {
+                      "valueString": "Range"
+                    }
+                  ]
+                }
+              ],
+              "dependent": [
+                {
+                  "name": "IVL_INTRange",
+                  "variable": [
+                    "cda_observation_value",
+                    "fhir_observation_value"
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "name": "CdaValueBLTrueToFhirObservationValue",
+          "source": [
+            {
+              "context": "cda_laboratory_observation",
+              "type": "BL",
+              "element": "value",
+              "variable": "cda_observation_value"
+            }
+          ],
+          "target": [
+            {
+              "context": "fhir_observation",
+              "contextType": "variable",
+              "element": "value",
+              "variable": "fhir_observation_value",
+              "transform": "create",
+              "parameter": [
+                {
+                  "valueString": "CodeableConcept"
+                }
+              ]
+            },
+            {
+              "context": "fhir_observation_value",
+              "contextType": "variable",
+              "element": "coding",
+              "variable": "fhir_observation_value_coding"
+            }
+          ],
+          "rule": [
+            {
+              "name": "CdaValueBLToFhirObservationValueTrue",
+              "source": [
+                {
+                  "context": "cda_observation_value",
+                  "element": "value",
+                  "variable": "cda_observation_value_attribute",
+                  "condition": "($this = true)"
+                }
+              ],
+              "target": [
+                {
+                  "context": "fhir_observation_value",
+                  "contextType": "variable",
+                  "element": "text",
+                  "transform": "cast",
+                  "parameter": [
+                    {
+                      "valueId": "cda_observation_value_attribute"
+                    },
+                    {
+                      "valueString": "string"
+                    }
+                  ]
+                },
+                {
+                  "context": "fhir_observation_value_coding",
+                  "contextType": "variable",
+                  "element": "system",
+                  "transform": "copy",
+                  "parameter": [
+                    {
+                      "valueString": "http://snomed.info/sct"
+                    }
+                  ]
+                },
+                {
+                  "context": "fhir_observation_value_coding",
+                  "contextType": "variable",
+                  "element": "code",
+                  "transform": "copy",
+                  "parameter": [
+                    {
+                      "valueString": "373066001"
+                    }
+                  ]
+                },
+                {
+                  "context": "fhir_observation_value_coding",
+                  "contextType": "variable",
+                  "element": "display",
+                  "transform": "copy",
+                  "parameter": [
+                    {
+                      "valueString": "Yes"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "name": "CdaValueBLToFhirObservationValueFalse",
+              "source": [
+                {
+                  "context": "cda_observation_value",
+                  "element": "value",
+                  "variable": "cda_observation_value_attribute",
+                  "condition": "($this = false)"
+                }
+              ],
+              "target": [
+                {
+                  "context": "fhir_observation_value",
+                  "contextType": "variable",
+                  "element": "text",
+                  "transform": "cast",
+                  "parameter": [
+                    {
+                      "valueId": "cda_observation_value_attribute"
+                    },
+                    {
+                      "valueString": "string"
+                    }
+                  ]
+                },
+                {
+                  "context": "fhir_observation_value_coding",
+                  "contextType": "variable",
+                  "element": "system",
+                  "transform": "copy",
+                  "parameter": [
+                    {
+                      "valueString": "http://snomed.info/sct"
+                    }
+                  ]
+                },
+                {
+                  "context": "fhir_observation_value_coding",
+                  "contextType": "variable",
+                  "element": "code",
+                  "transform": "copy",
+                  "parameter": [
+                    {
+                      "valueString": "373067005"
+                    }
+                  ]
+                },
+                {
+                  "context": "fhir_observation_value_coding",
+                  "contextType": "variable",
+                  "element": "display",
+                  "transform": "copy",
+                  "parameter": [
+                    {
+                      "valueString": "No"
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "name": "CdaObservationValueToFhirObservationValueST",
+          "source": [
+            {
+              "context": "cda_laboratory_observation",
+              "type": "ST",
+              "element": "value",
+              "variable": "cda_observation_value"
+            }
+          ],
+          "target": [
+            {
+              "context": "fhir_observation",
+              "contextType": "variable",
+              "element": "value",
+              "variable": "fhir_observation_value",
+              "transform": "create",
+              "parameter": [
+                {
+                  "valueString": "string"
+                }
+              ]
+            }
+          ],
+          "dependent": [
+            {
+              "name": "STstring",
+              "variable": [
+                "cda_observation_value",
+                "fhir_observation_value"
+              ]
+            }
+          ]
+        },
+        {
+          "name": "CdaObservationValueCVToFhirObservationValueCodeableConcept",
+          "source": [
+            {
+              "context": "cda_laboratory_observation",
+              "type": "CV",
+              "element": "value",
+              "variable": "cda_observation_value"
+            }
+          ],
+          "target": [
+            {
+              "context": "fhir_observation",
+              "contextType": "variable",
+              "element": "value",
+              "variable": "fhir_observation_value",
+              "transform": "create",
+              "parameter": [
+                {
+                  "valueString": "CodeableConcept"
+                }
+              ]
+            },
+            {
+              "context": "fhir_observation_value",
+              "contextType": "variable",
+              "element": "coding",
+              "variable": "fhir_observation_value_coding"
+            },
+            {
+              "context": "fhir_observation_value_coding",
+              "contextType": "variable",
+              "element": "system",
+              "transform": "copy",
+              "parameter": [
+                {
+                  "valueString": "http://terminology.hl7.org/CodeSystem/v3-NullFlavor"
+                }
+              ]
+            },
+            {
+              "context": "fhir_observation_value_coding",
+              "contextType": "variable",
+              "element": "code",
+              "transform": "copy",
+              "parameter": [
+                {
+                  "valueString": "OTH"
+                }
+              ]
+            }
+          ],
+          "dependent": [
+            {
+              "name": "CVCodeableConcept",
+              "variable": [
+                "cda_observation_value",
+                "fhir_observation_value"
+              ]
+            }
+          ]
+        },
+        {
+          "name": "CdaValueTSToFhirObservationValuedateTime",
+          "source": [
+            {
+              "context": "cda_laboratory_observation",
+              "type": "TS",
+              "element": "value",
+              "variable": "cda_observation_value"
+            }
+          ],
+          "target": [
+            {
+              "context": "fhir_observation",
+              "contextType": "variable",
+              "element": "value",
+              "variable": "fhir_observation_value",
+              "transform": "create",
+              "parameter": [
+                {
+                  "valueString": "dateTime"
+                }
+              ]
+            }
+          ],
+          "dependent": [
+            {
+              "name": "TSDateTime",
+              "variable": [
+                "cda_observation_value",
+                "fhir_observation_value"
+              ]
+            }
+          ]
+        },
+        {
+          "name": "CdaObservationValueCDToFhirObservationValueCodeableConcept",
+          "source": [
+            {
+              "context": "cda_laboratory_observation",
+              "condition": "cda_laboratory_observation.value.exists(((code = '255599008') or (code = '281268007')) and (codeSystem = '2.16.840.1.113883.6.96')).not()"
+            }
+          ],
+          "rule": [
+            {
+              "name": "value-CD",
+              "source": [
+                {
+                  "context": "cda_laboratory_observation",
+                  "type": "CD",
+                  "element": "value",
+                  "variable": "cda_observation_value"
+                }
+              ],
+              "rule": [
+                {
+                  "name": "ElgaNachweisErgebnisToeHDSIResultsCodedValueLaboratory",
+                  "source": [
+                    {
+                      "context": "cda_laboratory_observation",
+                      "condition": "cda_laboratory_observation.value.exists(((code = '260415000') or (code = '260373001') or (code = '260413007') or (code = '89292003') or (code = '57176003') or (code = '260354000') or (code = '260396001')) and (codeSystem = '2.16.840.1.113883.6.96'))"
+                    }
+                  ],
+                  "rule": [
+                    {
+                      "name": "ElgaNachweisErgebnisToeHDSIResultsCodedValueLaboratoryKnownSNOMED",
+                      "source": [
+                        {
+                          "context": "cda_observation_value",
+                          "condition": "((code = '260415000') or (code = '260373001') or (code = '260413007') or (code = '89292003'))"
+                        }
+                      ],
+                      "target": [
+                        {
+                          "context": "fhir_observation",
+                          "contextType": "variable",
+                          "element": "value",
+                          "variable": "fhir_observation_value",
+                          "transform": "create",
+                          "parameter": [
+                            {
+                              "valueString": "CodeableConcept"
+                            }
+                          ]
+                        }
+                      ],
+                      "dependent": [
+                        {
+                          "name": "CDCodeableConcept",
+                          "variable": [
+                            "cda_observation_value",
+                            "fhir_observation_value"
+                          ]
+                        }
+                      ]
+                    },
+                    {
+                      "name": "ElgaNachweisErgebnisToeHDSIResultsCodedValueLaboratoryMap1",
+                      "source": [
+                        {
+                          "context": "cda_observation_value",
+                          "condition": "(code = '57176003')"
+                        }
+                      ],
+                      "target": [
+                        {
+                          "context": "fhir_observation",
+                          "contextType": "variable",
+                          "element": "value",
+                          "variable": "fhir_observation_value",
+                          "transform": "create",
+                          "parameter": [
+                            {
+                              "valueString": "CodeableConcept"
+                            }
+                          ]
+                        },
+                        {
+                          "context": "fhir_observation_value",
+                          "contextType": "variable",
+                          "element": "coding",
+                          "variable": "fhir_observation_value_coding"
+                        },
+                        {
+                          "context": "fhir_observation_value_coding",
+                          "contextType": "variable",
+                          "element": "system",
+                          "transform": "copy",
+                          "parameter": [
+                            {
+                              "valueString": "http://snomed.info/sct"
+                            }
+                          ]
+                        },
+                        {
+                          "context": "fhir_observation_value_coding",
+                          "contextType": "variable",
+                          "element": "code",
+                          "transform": "copy",
+                          "parameter": [
+                            {
+                              "valueString": "260348001"
+                            }
+                          ]
+                        }
+                      ]
+                    },
+                    {
+                      "name": "ElgaNachweisErgebnisToeHDSIResultsCodedValueLaboratoryMap2",
+                      "source": [
+                        {
+                          "context": "cda_observation_value",
+                          "condition": "(code = '260354000')"
+                        }
+                      ],
+                      "target": [
+                        {
+                          "context": "fhir_observation",
+                          "contextType": "variable",
+                          "element": "value",
+                          "variable": "fhir_observation_value",
+                          "transform": "create",
+                          "parameter": [
+                            {
+                              "valueString": "CodeableConcept"
+                            }
+                          ]
+                        },
+                        {
+                          "context": "fhir_observation_value",
+                          "contextType": "variable",
+                          "element": "coding",
+                          "variable": "fhir_observation_value_coding"
+                        },
+                        {
+                          "context": "fhir_observation_value_coding",
+                          "contextType": "variable",
+                          "element": "system",
+                          "transform": "copy",
+                          "parameter": [
+                            {
+                              "valueString": "http://snomed.info/sct"
+                            }
+                          ]
+                        },
+                        {
+                          "context": "fhir_observation_value_coding",
+                          "contextType": "variable",
+                          "element": "code",
+                          "transform": "copy",
+                          "parameter": [
+                            {
+                              "valueString": "260349009"
+                            }
+                          ]
+                        }
+                      ]
+                    },
+                    {
+                      "name": "ElgaNachweisErgebnisToeHDSIResultsCodedValueLaboratoryMap3",
+                      "source": [
+                        {
+                          "context": "cda_observation_value",
+                          "condition": "(code = '260396001')"
+                        }
+                      ],
+                      "target": [
+                        {
+                          "context": "fhir_observation",
+                          "contextType": "variable",
+                          "element": "value",
+                          "variable": "fhir_observation_value",
+                          "transform": "create",
+                          "parameter": [
+                            {
+                              "valueString": "CodeableConcept"
+                            }
+                          ]
+                        },
+                        {
+                          "context": "fhir_observation_value",
+                          "contextType": "variable",
+                          "element": "coding",
+                          "variable": "fhir_observation_value_coding"
+                        },
+                        {
+                          "context": "fhir_observation_value_coding",
+                          "contextType": "variable",
+                          "element": "system",
+                          "transform": "copy",
+                          "parameter": [
+                            {
+                              "valueString": "http://snomed.info/sct"
+                            }
+                          ]
+                        },
+                        {
+                          "context": "fhir_observation_value_coding",
+                          "contextType": "variable",
+                          "element": "code",
+                          "transform": "copy",
+                          "parameter": [
+                            {
+                              "valueString": "260350009"
+                            }
+                          ]
+                        }
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "name": "CdaObservationValueCDToFhirObservationValueCodeableConceptOTH",
+                  "source": [
+                    {
+                      "context": "cda_laboratory_observation",
+                      "condition": "cda_laboratory_observation.value.exists(((code = '260415000') or (code = '260373001') or (code = '260413007') or (code = '89292003') or (code = '57176003') or (code = '260354000') or (code = '260396001')) and (codeSystem = '2.16.840.1.113883.6.96')).not()"
+                    }
+                  ],
+                  "rule": [
+                    {
+                      "name": "test",
+                      "source": [
+                        {
+                          "context": "cda_observation_value"
+                        }
+                      ],
+                      "target": [
+                        {
+                          "context": "fhir_observation",
+                          "contextType": "variable",
+                          "element": "value",
+                          "variable": "fhir_observation_value",
+                          "transform": "create",
+                          "parameter": [
+                            {
+                              "valueString": "CodeableConcept"
+                            }
+                          ]
+                        },
+                        {
+                          "context": "fhir_observation_value",
+                          "contextType": "variable",
+                          "element": "coding",
+                          "variable": "fhir_observation_value_coding"
+                        },
+                        {
+                          "context": "fhir_observation_value_coding",
+                          "contextType": "variable",
+                          "element": "system",
+                          "transform": "copy",
+                          "parameter": [
+                            {
+                              "valueString": "http://terminology.hl7.org/CodeSystem/v3-NullFlavor"
+                            }
+                          ]
+                        },
+                        {
+                          "context": "fhir_observation_value_coding",
+                          "contextType": "variable",
+                          "element": "code",
+                          "transform": "copy",
+                          "parameter": [
+                            {
+                              "valueString": "OTH"
+                            }
+                          ]
+                        }
+                      ],
+                      "dependent": [
+                        {
+                          "name": "CDCodeableConcept",
+                          "variable": [
+                            "cda_observation_value",
+                            "fhir_observation_value"
+                          ]
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "name": "CdaInsufficientSampleObservationToFhirObservationStatus",
+          "source": [
+            {
+              "context": "cda_laboratory_observation",
+              "condition": "cda_laboratory_observation.value.exists((code = '281268007') and (codeSystem = '2.16.840.1.113883.6.96'))"
+            }
+          ],
+          "rule": [
+            {
+              "name": "value",
+              "source": [
+                {
+                  "context": "cda_laboratory_observation",
+                  "element": "value",
+                  "variable": "cda_laboratory_observation_value"
+                }
+              ],
+              "target": [
+                {
+                  "context": "fhir_observation",
+                  "contextType": "variable",
+                  "element": "status",
+                  "transform": "copy",
+                  "parameter": [
+                    {
+                      "valueString": "cancelled"
+                    }
+                  ]
+                },
+                {
+                  "context": "fhir_observation",
+                  "contextType": "variable",
+                  "element": "dataAbsentReason",
+                  "variable": "fhir_observation_dataAbsentReason"
+                },
+                {
+                  "context": "fhir_observation_dataAbsentReason",
+                  "contextType": "variable",
+                  "element": "coding",
+                  "variable": "fhir_observation_dataAbsentReason_coding_1"
+                },
+                {
+                  "context": "fhir_observation_dataAbsentReason_coding_1",
+                  "contextType": "variable",
+                  "element": "code",
+                  "transform": "copy",
+                  "parameter": [
+                    {
+                      "valueString": "not-performed"
+                    }
+                  ]
+                },
+                {
+                  "context": "fhir_observation_dataAbsentReason_coding_1",
+                  "contextType": "variable",
+                  "element": "system",
+                  "transform": "copy",
+                  "parameter": [
+                    {
+                      "valueString": "http://terminology.hl7.org/CodeSystem/data-absent-reason"
+                    }
+                  ]
+                },
+                {
+                  "context": "fhir_observation_dataAbsentReason",
+                  "contextType": "variable",
+                  "element": "coding",
+                  "variable": "fhir_observation_dataAbsentReason_coding_2"
+                }
+              ],
+              "dependent": [
+                {
+                  "name": "CDCoding",
+                  "variable": [
+                    "cda_laboratory_observation_value",
+                    "fhir_observation_dataAbsentReason_coding_2"
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "name": "CdaIncompleteObservationToFhirObservationStatus",
+          "source": [
+            {
+              "context": "cda_laboratory_observation",
+              "condition": "cda_laboratory_observation.value.exists((code = '255599008') and (codeSystem = '2.16.840.1.113883.6.96'))"
+            }
+          ],
+          "rule": [
+            {
+              "name": "value",
+              "source": [
+                {
+                  "context": "cda_laboratory_observation",
+                  "element": "value",
+                  "variable": "cda_laboratory_observation_value"
+                }
+              ],
+              "target": [
+                {
+                  "context": "fhir_observation",
+                  "contextType": "variable",
+                  "element": "status",
+                  "transform": "copy",
+                  "parameter": [
+                    {
+                      "valueString": "preliminary"
+                    }
+                  ]
+                },
+                {
+                  "context": "fhir_observation",
+                  "contextType": "variable",
+                  "element": "dataAbsentReason",
+                  "variable": "fhir_observation_dataAbsentReason"
+                },
+                {
+                  "context": "fhir_observation_dataAbsentReason",
+                  "contextType": "variable",
+                  "element": "coding",
+                  "variable": "fhir_observation_dataAbsentReason_coding_1"
+                },
+                {
+                  "context": "fhir_observation_dataAbsentReason_coding_1",
+                  "contextType": "variable",
+                  "element": "code",
+                  "transform": "copy",
+                  "parameter": [
+                    {
+                      "valueString": "temp-unknown"
+                    }
+                  ]
+                },
+                {
+                  "context": "fhir_observation_dataAbsentReason_coding_1",
+                  "contextType": "variable",
+                  "element": "system",
+                  "transform": "copy",
+                  "parameter": [
+                    {
+                      "valueString": "http://terminology.hl7.org/CodeSystem/data-absent-reason"
+                    }
+                  ]
+                },
+                {
+                  "context": "fhir_observation_dataAbsentReason",
+                  "contextType": "variable",
+                  "element": "coding",
+                  "variable": "fhir_observation_dataAbsentReason_coding_2"
+                }
+              ],
+              "dependent": [
+                {
+                  "name": "CDCoding",
+                  "variable": [
+                    "cda_laboratory_observation_value",
+                    "fhir_observation_dataAbsentReason_coding_2"
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "name": "CdaObservationValueRTOToFhirObservationValueRatio",
+          "source": [
+            {
+              "context": "cda_laboratory_observation",
+              "type": "RTO",
+              "element": "value",
+              "variable": "cda_observation_value"
+            }
+          ],
+          "target": [
+            {
+              "context": "fhir_observation",
+              "contextType": "variable",
+              "element": "value",
+              "variable": "fhir_observation_value",
+              "transform": "create",
+              "parameter": [
+                {
+                  "valueString": "Ratio"
+                }
+              ]
+            }
+          ],
+          "dependent": [
+            {
+              "name": "RTORatio",
+              "variable": [
+                "cda_observation_value",
+                "fhir_observation_value"
+              ]
+            }
+          ]
+        },
+        {
+          "name": "CdaObservationValueRTO_QTY_QTYToFhirObservationValueRatio",
+          "source": [
+            {
+              "context": "cda_laboratory_observation",
+              "type": "RTO_QTY_QTY",
+              "element": "value",
+              "variable": "cda_observation_value"
+            }
+          ],
+          "target": [
+            {
+              "context": "fhir_observation",
+              "contextType": "variable",
+              "element": "value",
+              "variable": "fhir_observation_value",
+              "transform": "create",
+              "parameter": [
+                {
+                  "valueString": "Ratio"
+                }
+              ]
+            }
+          ],
+          "dependent": [
+            {
+              "name": "RTORatio",
+              "variable": [
+                "cda_observation_value",
+                "fhir_observation_value"
+              ]
+            }
+          ]
+        },
+        {
+          "name": "CdaObservationValueRTO_PQ_PQToFhirObservationValueRatio",
+          "source": [
+            {
+              "context": "cda_laboratory_observation",
+              "type": "RTO_PQ_PQ",
+              "element": "value",
+              "variable": "cda_observation_value"
+            }
+          ],
+          "target": [
+            {
+              "context": "fhir_observation",
+              "contextType": "variable",
+              "element": "value",
+              "variable": "fhir_observation_value",
+              "transform": "create",
+              "parameter": [
+                {
+                  "valueString": "Ratio"
+                }
+              ]
+            }
+          ],
+          "dependent": [
+            {
+              "name": "RTORatio",
+              "variable": [
+                "cda_observation_value",
+                "fhir_observation_value"
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

@@ -4,6 +4,7 @@
  */
 
 export const BASE_PATH = "/axiom-cda";
+export const API_BASE_PATH = "/api";
 
 /**
  * Helper function to prepend the base path to any path
@@ -14,6 +15,19 @@ export function withBasePath(path: string): string {
   // Remove leading slash if present to avoid double slashes
   const cleanPath = path.startsWith("/") ? path.slice(1) : path;
   return `${BASE_PATH}/${cleanPath}`;
+}
+
+/**
+ * Helper function for backend API routes, which are not mounted under the UI base path.
+ * @param path - The API path relative to /api
+ * @returns The full API path
+ */
+export function withApiPath(path: string): string {
+  const cleanPath = path.startsWith("/") ? path.slice(1) : path;
+  if (cleanPath.startsWith("api/")) {
+    return `/${cleanPath}`;
+  }
+  return `${API_BASE_PATH}/${cleanPath}`;
 }
 
 /**

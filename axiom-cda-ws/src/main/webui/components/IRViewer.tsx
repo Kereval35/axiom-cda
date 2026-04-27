@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState } from "react";
-import { IRTemplate } from "../types/generation";
+import { IRTemplate, IRTemplateElement, IRTemplateInclude, IRTemplateInvariant } from "../types/generation";
 
 interface IRViewerProps {
     templates: IRTemplate[];
@@ -117,7 +117,7 @@ export const IRViewer: React.FC<IRViewerProps> = ({ templates }) => {
                                             Elements ({selectedTemplate.elements.length})
                                         </div>
                                         <div className="space-y-1 max-h-[200px] overflow-y-auto">
-                                            {selectedTemplate.elements.slice(0, 20).map((elem: any, idx: number) => (
+                                            {selectedTemplate.elements.slice(0, 20).map((elem: IRTemplateElement, idx: number) => (
                                                 <div
                                                     key={idx}
                                                     className="px-3 py-2 bg-zinc-100 dark:bg-zinc-800 rounded-lg text-xs !text-[#18181b] dark:!text-zinc-100"
@@ -141,7 +141,7 @@ export const IRViewer: React.FC<IRViewerProps> = ({ templates }) => {
                                             Includes ({selectedTemplate.includes.length})
                                         </div>
                                         <div className="space-y-1">
-                                            {selectedTemplate.includes.map((include: any, idx: number) => (
+                                            {selectedTemplate.includes.map((include: IRTemplateInclude, idx: number) => (
                                                 <div
                                                     key={idx}
                                                     className="px-3 py-2 bg-cyan-500/10 border border-cyan-500/30 rounded-lg text-sm !text-[#18181b] dark:!text-zinc-100"
@@ -160,7 +160,7 @@ export const IRViewer: React.FC<IRViewerProps> = ({ templates }) => {
                                             Invariants ({selectedTemplate.invariants.length})
                                         </div>
                                         <div className="space-y-1">
-                                            {selectedTemplate.invariants.map((inv: any, idx: number) => (
+                                            {selectedTemplate.invariants.map((inv: IRTemplateInvariant, idx: number) => (
                                                 <div
                                                     key={idx}
                                                     className="px-3 py-2 bg-amber-500/10 border border-amber-500/30 rounded-lg text-sm"

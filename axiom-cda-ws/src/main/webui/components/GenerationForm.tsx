@@ -15,7 +15,6 @@ export const GenerationForm: React.FC<GenerationFormProps> = ({ onGenerate, load
     const [inputMode, setInputMode] = useState<"UPLOAD" | "PASTE" | "URL">("UPLOAD");
     const [uploadedFileName, setUploadedFileName] = useState<string | null>(null);
     const [sushiRepo, setSushiRepo] = useState(true);
-    const [emitIr, setEmitIr] = useState(false);
     const [emitLogs, setEmitLogs] = useState(true);
     const [yamlConfig, setYamlConfig] = useState("");
     const fileInputRef = useRef<HTMLInputElement>(null);
@@ -37,7 +36,7 @@ export const GenerationForm: React.FC<GenerationFormProps> = ({ onGenerate, load
         onGenerate({
             bbr: bbrInput,
             sushiRepo,
-            emitIr,
+            emitIr: true,
             emitLogs,
             yamlConfig: yamlConfig || null,
         });
@@ -138,11 +137,6 @@ export const GenerationForm: React.FC<GenerationFormProps> = ({ onGenerate, load
                                 label={t.dashboard.showLogs}
                                 checked={emitLogs}
                                 onChange={setEmitLogs}
-                            />
-                            <Checkbox
-                                label={t.dashboard.includeIr}
-                                checked={emitIr}
-                                onChange={setEmitIr}
                             />
                         </div>
                     </div>

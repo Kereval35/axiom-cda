@@ -1,6 +1,6 @@
 "use client";
 
-import React, { createContext, useContext, useEffect, useState } from "react";
+import React, { createContext, useContext, useState, useSyncExternalStore } from "react";
 import { translations, Language, TranslationKey } from "../translations/i18n";
 
 interface LanguageContextType {
@@ -14,26 +14,23 @@ interface LanguageContextType {
 const LanguageContext = createContext<LanguageContextType | undefined>(undefined);
 
 export const LanguageProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const [language, setLanguage] = useState<Language>("en");
-  const [mounted, setMounted] = useState(false);
+  const mounted = useSyncExternalStore(
+    () => () => {},
+    () => true,
+    () => false
+  );
+  const [language, setLanguage] = useState<Language>(() => {
+    if (typeof window === "undefined") {
+      return "en";
+    }
 
-  useEffect(() => {
     const savedLanguage = localStorage.getItem("language") as Language | null;
-    const browserLang = navigator.language.split("-")[0];
-
-    let initialLanguage: Language = "en";
-    if (savedLanguage) {
-      initialLanguage = savedLanguage;
-    } else if (browserLang === "fr") {
-      initialLanguage = "fr";
+    if (savedLanguage === "en" || savedLanguage === "fr") {
+      return savedLanguage;
     }
 
-    if (initialLanguage === "fr") {
-      setLanguage("fr");
-    }
-
-    setMounted(true);
-  }, []);
+    return navigator.language.split("-")[0] === "fr" ? "fr" : "en";
+  });
 
   const toggleLanguage = () => {
     const newLanguage = language === "en" ? "fr" : "en";

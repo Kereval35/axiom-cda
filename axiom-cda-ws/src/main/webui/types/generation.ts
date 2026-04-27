@@ -1,3 +1,29 @@
+export interface IRTemplateElement {
+    name?: string;
+    path: string;
+    cardinality: unknown;
+    datatype: string | null;
+    fixedValue: string | null;
+    fixedValueType: string | null;
+    bindings: unknown[];
+    shortDescription: string | null;
+}
+
+export interface IRTemplateInclude {
+    id?: string;
+    path: string;
+    templateId: string;
+    cardinality: unknown;
+}
+
+export interface IRTemplateInvariant {
+    id?: string;
+    name: string;
+    description: string | null;
+    severity: string;
+    expression: string;
+}
+
 export interface GenerationReport {
     templatesConsidered: number;
     templatesGenerated: number;
@@ -14,6 +40,11 @@ export interface GenerationReport {
 export interface FshProfile {
     name: string;
     content: string;
+    templateId: string | null;
+    rootCdaType: string | null;
+    fhirTransformEligible: boolean;
+    fhirTransformKind: string | null;
+    fhirTransformNotice: string | null;
 }
 
 export interface IRTemplate {
@@ -22,9 +53,9 @@ export interface IRTemplate {
     displayName: string;
     description: string;
     rootCdaType: string;
-    elements: any[];
-    includes: any[];
-    invariants: any[];
+    elements: IRTemplateElement[];
+    includes: IRTemplateInclude[];
+    invariants: IRTemplateInvariant[];
 }
 
 export interface GenerationResult {
@@ -40,4 +71,24 @@ export interface GenerationOptions {
     emitIr: boolean;
     emitLogs: boolean;
     yamlConfig: string | null;
+}
+
+export interface FhirConversionResult {
+    profiles: FshProfile[];
+    diagnostics: string[];
+}
+
+export interface SushiCompileResult {
+    success: boolean;
+    structureDefinitionJson: string | null;
+    diagnostics: string[];
+    sushiConfig: string | null;
+    generatedFileName: string | null;
+}
+
+export interface FhirPackagePreset {
+    label: string;
+    packageId: string;
+    version: string;
+    description: string | null;
 }

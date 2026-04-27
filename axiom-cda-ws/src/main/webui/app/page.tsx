@@ -33,7 +33,7 @@ export default function AxiomCdaPage() {
               {result.irTemplates && result.irTemplates.length > 0 && (
                 <IRViewer templates={result.irTemplates} />
               )}
-              <FshProfilesViewer profiles={result.profiles} />
+              <FshProfilesViewer profiles={result.profiles} irTemplates={result.irTemplates} />
               <ReportDisplay report={result.report} />
             </div>
           )}

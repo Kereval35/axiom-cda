@@ -3,17 +3,32 @@
 import React from "react";
 import { formatFsh } from "../utils/fshFormatter";
 import { FshHighlighter } from "./FshHighlighter";
+import { FshProfile } from "../types/generation";
+import { useLanguage } from "./LanguageProvider";
 
 interface FshProfileModalProps {
-    profileName: string;
-    content: string;
+    profile: FshProfile;
+    contentOverride?: string;
+    titleOverride?: string;
+    fileNameOverride?: string;
+    convertLabelOverride?: string;
+    onConvert?: () => void;
     onClose: () => void;
 }
 
-export const FshProfileModal: React.FC<FshProfileModalProps> = ({ profileName, content, onClose }) => {
+export const FshProfileModal: React.FC<FshProfileModalProps> = ({
+    profile,
+    contentOverride,
+    titleOverride,
+    fileNameOverride,
+    convertLabelOverride,
+    onConvert,
+    onClose,
+}) => {
     const [copied, setCopied] = React.useState(false);
     const [formatted, setFormatted] = React.useState(false);
     const [isFormatting, setIsFormatting] = React.useState(false);
+    const { t } = useLanguage();
 
     const toggleFormat = () => {
         if (isFormatting) return;
@@ -24,7 +39,10 @@ export const FshProfileModal: React.FC<FshProfileModalProps> = ({ profileName, c
         }, 50);
     };
 
-    const displayContent = formatted ? formatFsh(content) : content;
+    const rawContent = contentOverride ?? profile.content;
+    const modalTitle = titleOverride ?? `${profile.name}.fsh`;
+    const downloadFileName = fileNameOverride ?? `${profile.name}.fsh`;
+    const displayContent = formatted ? formatFsh(rawContent) : rawContent;
 
     const copyToClipboard = () => {
         navigator.clipboard.writeText(displayContent);
@@ -37,7 +55,7 @@ export const FshProfileModal: React.FC<FshProfileModalProps> = ({ profileName, c
         const url = URL.createObjectURL(blob);
         const link = document.createElement("a");
         link.href = url;
-        link.download = `${profileName}.fsh`;
+        link.download = downloadFileName;
         link.click();
         URL.revokeObjectURL(url);
     };
@@ -52,7 +70,19 @@ export const FshProfileModal: React.FC<FshProfileModalProps> = ({ profileName, c
                 onClick={(e) => e.stopPropagation()}
             >
                 <div className="px-6 py-4 border-b border-zinc-200 dark:border-zinc-700 flex items-center justify-between bg-zinc-50 dark:bg-zinc-800">
-                    <h3 className="text-lg font-bold text-zinc-800 dark:text-zinc-100 font-mono">{profileName}.fsh</h3>
+                    <div>
+                        <h3 className="text-lg font-bold text-zinc-800 dark:text-zinc-100 font-mono">{modalTitle}</h3>
+                        {profile.fhirTransformEligible && (
+                            <div className="mt-2 flex items-center gap-2">
+                                <span className="inline-flex items-center rounded-full bg-cyan-100 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-cyan-700 dark:bg-cyan-950/40 dark:text-cyan-300">
+                                    FHIR
+                                </span>
+                                <span className="text-xs text-zinc-600 dark:text-zinc-300">
+                                    {profile.fhirTransformNotice ?? t.dashboard.fhirEligible}
+                                </span>
+                            </div>
+                        )}
+                    </div>
                     <div className="flex items-center gap-2">
                         <button
                             onClick={toggleFormat}
@@ -90,6 +120,14 @@ export const FshProfileModal: React.FC<FshProfileModalProps> = ({ profileName, c
                 </div>
 
                 <div className="px-6 py-4 border-t border-zinc-200 dark:border-zinc-700 bg-zinc-50 dark:bg-zinc-800 flex justify-end gap-3">
+                    {profile.fhirTransformEligible && onConvert && (
+                        <button
+                            onClick={onConvert}
+                            className="flex items-center gap-2 px-4 py-2 bg-cyan-600 hover:bg-cyan-500 text-white rounded-lg font-medium transition-colors shadow-lg shadow-cyan-600/20"
+                        >
+                            {convertLabelOverride ?? t.dashboard.convertToFhir}
+                        </button>
+                    )}
                     <button
                         onClick={copyToClipboard}
                         className="flex items-center gap-2 px-4 py-2 bg-zinc-200 dark:bg-zinc-700 hover:bg-zinc-300 dark:hover:bg-zinc-600 text-zinc-800 dark:text-zinc-100 rounded-lg font-medium transition-colors"

@@ -15,24 +15,13 @@ export const createFshLanguage = () => {
         'code', 'system', 'version', 'display', 'filter', 'valueSet', 'value'
     ];
 
-    const metaKeywords = [
-        '^status', '^experimental', '^publisher', '^contact', '^description',
-        '^useContext', '^jurisdiction', '^purpose', '^copyright', '^copyrightLabel',
-        '^short', '^definition', '^comment', '^requirements', '^alias', '^min',
-        '^max', '^type', '^base', '^contentReference', '^meaningWhenMissing',
-        '^binding', '^mapping', '^isModifier', '^isSummary', '^mustSupport',
-        '^defaultValue', '^fixedValue', '^pattern', '^example', '^maxLength',
-        '^condition', 'obligation', 'constraint', 'prohibited', 'mustSupport',
-        'slicing', 'discriminator.type', 'discriminator.path', 'ordered', 'rules'
-    ];
-
     const severityKeywords = ['error', 'warning'];
 
     const tokenize = (code: string) => {
         const lines = code.split('\n');
         const tokens = [];
 
-        for (let line of lines) {
+        for (const line of lines) {
             if (line.trim() === '') {
                 tokens.push({ type: 'whitespace', value: line });
                 continue;

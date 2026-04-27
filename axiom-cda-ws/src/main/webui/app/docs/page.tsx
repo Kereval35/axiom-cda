@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { useLanguage } from "../../components/LanguageProvider";
 
@@ -8,7 +8,7 @@ export default function DocsPage() {
     const [activeSection, setActiveSection] = useState("overview");
     const { t } = useLanguage();
 
-    const sections = [
+    const sections = useMemo(() => [
         { id: "overview", title: t.docs.overview.title },
         { id: "architecture", title: t.docs.architecture.title },
         { id: "bbr-to-ir", title: t.docs.bbrToIr.title },
@@ -16,7 +16,7 @@ export default function DocsPage() {
         { id: "usage", title: t.docs.usage.title },
         { id: "limitations", title: t.docs.limitations.title },
         { id: "api", title: t.docs.api.title },
-    ];
+    ], [t]);
 
     // Detect which section is in view when scrolling
     useEffect(() => {
@@ -47,7 +47,7 @@ export default function DocsPage() {
         return () => {
             observer.disconnect();
         };
-    }, []);
+    }, [sections]);
 
     const scrollToSection = (id: string) => {
         setActiveSection(id);
@@ -428,7 +428,7 @@ export default function DocsPage() {
                                             2. Fixed Values
                                         </h4>
                                         <p className="!text-zinc-700 dark:!text-zinc-300 text-sm mb-2">
-                                            Only applied if CDA base doesn't have a fixed value:
+                                            Only applied if CDA base doesn&apos;t have a fixed value:
                                         </p>
                                         <div className="bg-zinc-50 dark:bg-zinc-900 rounded p-3 font-mono text-sm !text-zinc-700 dark:!text-zinc-300">
                                             * recordTarget.patientRole.classCode = #PAT
@@ -452,7 +452,7 @@ export default function DocsPage() {
                                             4. Template Includes
                                         </h4>
                                         <p className="!text-zinc-700 dark:!text-zinc-300 text-sm mb-2">
-                                            Converted to "only" constraints:
+                                            Converted to &quot;only&quot; constraints:
                                         </p>
                                         <div className="bg-zinc-50 dark:bg-zinc-900 rounded p-3 font-mono text-sm !text-zinc-700 dark:!text-zinc-300">
                                             * component.structuredBody only StructuredBodyProfile
@@ -501,7 +501,7 @@ Expression: "recordTarget.patientRole.id.count() >= 1"`}
                                             <li><strong>Upload BBR:</strong> Upload your ART-DECOR BBR XML file</li>
                                             <li><strong>Configure Options:</strong> Select SUSHI layout, enable IR/logs output</li>
                                             <li><strong>Optional YAML:</strong> Provide custom generation configuration</li>
-                                            <li><strong>Generate:</strong> Click "Generate FSH Package" button</li>
+                                            <li><strong>Generate:</strong> Click &quot;Generate FSH Package&quot; button</li>
                                             <li><strong>Download:</strong> Get your FSH profiles as a ZIP file</li>
                                         </ol>
                                     </div>
