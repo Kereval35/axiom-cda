@@ -42,6 +42,9 @@ export interface FshProfile {
     content: string;
     templateId: string | null;
     rootCdaType: string | null;
+    templateOrigin: string;
+    ownershipStatus: string;
+    selectionReason: string;
     fhirTransformEligible: boolean;
     fhirTransformKind: string | null;
     fhirTransformNotice: string | null;
@@ -56,6 +59,7 @@ export interface IRTemplate {
     elements: IRTemplateElement[];
     includes: IRTemplateInclude[];
     invariants: IRTemplateInvariant[];
+    origin: string;
 }
 
 export interface GenerationResult {
@@ -71,6 +75,8 @@ export interface GenerationOptions {
     emitIr: boolean;
     emitLogs: boolean;
     yamlConfig: string | null;
+    projectPlusRequiredIncludes: boolean;
+    ownedRepositoryPrefixes: string[];
 }
 
 export interface FhirConversionResult {

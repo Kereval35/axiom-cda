@@ -5,6 +5,9 @@ public record FshProfile(
         String content,
         String templateId,
         String rootCdaType,
+        String templateOrigin,
+        String ownershipStatus,
+        String selectionReason,
         boolean fhirTransformEligible,
         String fhirTransformKind,
         String fhirTransformNotice

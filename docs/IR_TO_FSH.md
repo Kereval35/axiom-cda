@@ -1,7 +1,8 @@
 # IR to FSH generation (axiom-cda)
 
 This document explains how the Intermediate Representation (IR) is turned into
-FSH-CDA profiles and invariants.
+FSH-CDA profiles and invariants, and how Observation-root IR templates can also
+feed the FHIR FSH conversion flow.
 
 Primary implementation:
 `axiom-cda-engine/src/main/java/net/ihe/gazelle/axiomcda/engine/business/DefaultIrToFshGenerator.java`.
@@ -17,10 +18,16 @@ Output:
 - A `FshBundle` with:
   - `Resources/<ProfileName>.fsh` files
   - `Invariants/<InvariantName>.fsh` files (when enabled)
+- Optional SUSHI repository layout (`sushi-config.yaml` + `input/fsh`)
+- In the web service, optional FHIR Observation FSH generated from Observation IR
+  plus a StructureMap JSON
 
 The CLI can remap `Resources/` and `Invariants/` to different folders
 (`--resources-dir`, `--invariants-dir`) and can emit a SUSHI repo layout
 (`--sushi-repo`).
+
+When a SUSHI repo is emitted, the generated content is immediately consumable by SUSHI
+without having to rearrange the output tree.
 
 ## Step-by-step generation
 
@@ -100,6 +107,31 @@ If `emitInvariants` is enabled:
 - Invariants are de-duplicated globally and written to
   `Invariants/<InvariantName>.fsh` with description, severity, and expression.
 
+### 7) SUSHI repository emission
+
+When `--sushi-repo` is enabled, the generator writes:
+- `sushi-config.yaml`
+- `input/fsh/Resources...`
+- `input/fsh/Invariants...`
+- `input/fsh/ValueSets...`
+- `input/fsh/CodeSystems...`
+
+The web service uses the same layout to support SUSHI compilation flows for generated
+FHIR FSH.
+
+### 8) Observation IR to FHIR FSH
+
+The web service exposes a second generation path for Observation templates:
+
+1. Generate CDA IR from the BBR.
+2. Select an Observation-root IR template.
+3. Upload a StructureMap JSON.
+4. Build a FHIR Observation profile from the IR plus the semantic mapping.
+5. Optionally compile the generated FSH with SUSHI.
+
+This path is implemented separately from the CDA FSH generator and is intended for the
+current Observation-focused FML/StructureMap workstream.
+
 ## Example mapping
 
 IR input (simplified):
@@ -142,3 +174,9 @@ Description: "ExampleHeader"
 Notes:
 - The `Parent` URL is taken from the CDA package, not hardcoded.
 - The output strength can be elevated if the CDA base binding is stronger.
+
+## Related web service endpoints
+
+- `POST /api/generate`: CDA FSH generation from BBR
+- `POST /api/convert/fhir`: FHIR FSH generation from Observation IR + StructureMap
+- `POST /api/convert/fhir/sushi`: SUSHI compilation of generated FHIR FSH

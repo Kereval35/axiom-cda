@@ -27,6 +27,7 @@ import net.ihe.gazelle.axiomcda.engine.technical.DefaultFshWriter;
 import net.ihe.gazelle.axiomcda.engine.technical.JaxbBbrLoader;
 import net.ihe.gazelle.axiomcda.engine.technical.JsonCdaModelRepository;
 import net.ihe.gazelle.axiomcda.engine.technical.YamlConfigLoader;
+import net.ihe.gazelle.axiomcda.engine.util.GeneratedProfileViewUtil;
 import net.ihe.gazelle.axiomcda.engine.util.ResourcePaths;
 import picocli.CommandLine;
 import picocli.CommandLine.Command;
@@ -111,6 +112,14 @@ public class AxiomCdaCli implements Runnable {
         @Option(names = "--all-templates", description = "Ignore classification filters and generate all.")
         private boolean allTemplates;
 
+        @Option(names = "--project-plus-required-includes",
+                description = "Restrict generation to project-owned templates plus any required includes.")
+        private boolean projectPlusRequiredIncludes;
+
+        @Option(names = "--owned-repository-prefixes", split = ",", paramLabel = "<csv>",
+                description = "Repository idents to treat as project-owned in project-plus-required-includes mode.")
+        private List<String> ownedRepositoryPrefixes;
+
         @Option(names = "--sushi-repo", description = "Emit a SUSHI-ready repo (sushi-config.yaml + input/fsh).")
         private boolean sushiRepo;
 
@@ -168,8 +177,8 @@ public class AxiomCdaCli implements Runnable {
                 if (profilePrefix != null || idPrefix != null || titlePrefix != null) {
                     config = applyNamingOverrides(config, profilePrefix, idPrefix, titlePrefix);
                 }
-                if (allTemplates || classificationTypes != null || templateIds != null) {
-                    config = applySelectionOverrides(config, classificationTypes, templateIds, allTemplates);
+                if (allTemplates || classificationTypes != null || templateIds != null || projectPlusRequiredIncludes || ownedRepositoryPrefixes != null) {
+                    config = applySelectionOverrides(config, classificationTypes, templateIds, allTemplates, projectPlusRequiredIncludes, ownedRepositoryPrefixes);
                 }
                 if (emitIrSnapshot != null) {
                     config = applyIrOverride(config, emitIrSnapshot);
@@ -204,7 +213,8 @@ public class AxiomCdaCli implements Runnable {
                     writeIrSnapshot(repoRoot, transformResult);
                 }
 
-                GenerationReport report = buildReport(transformResult, bundle);
+                int visibleProfiles = GeneratedProfileViewUtil.countVisibleProfiles(bundle, transformResult.templates(), config);
+                GenerationReport report = buildReport(transformResult, bundle, visibleProfiles);
                 GenerationReportWriter reportWriter = new ConsoleGenerationReportWriter();
                 reportWriter.write(report);
                 try {
@@ -235,14 +245,11 @@ public class AxiomCdaCli implements Runnable {
         return cdaPackage;
     }
 
-    private static GenerationReport buildReport(IrTransformResult transformResult, FshBundle bundle) {
-        int profiles = 0;
+    private static GenerationReport buildReport(IrTransformResult transformResult, FshBundle bundle, int visibleProfiles) {
         int invariants = 0;
         for (String fsh : bundle.files().values()) {
             if (fsh.startsWith("Invariant:")) {
                 invariants++;
-            } else if (fsh.startsWith("Profile:")) {
-                profiles++;
             }
         }
         int unmapped = 0;
@@ -292,7 +299,7 @@ public class AxiomCdaCli implements Runnable {
                 templatesGenerated,
                 templatesSkipped,
                 templatesOk,
-                profiles,
+                visibleProfiles,
                 invariants,
                 unmapped,
                 unresolved,
@@ -483,17 +490,28 @@ public class AxiomCdaCli implements Runnable {
     private static GenerationConfig applySelectionOverrides(GenerationConfig config,
                                                             List<String> classificationTypes,
                                                             List<String> templateIds,
-                                                            boolean allTemplates) {
+                                                            boolean allTemplates,
+                                                            boolean projectPlusRequiredIncludes,
+                                                            List<String> ownedRepositoryPrefixes) {
         TemplateSelection existing = config.templateSelection();
         List<String> resolvedTemplateIds = templateIds != null ? templateIds : existing.templateIds();
         List<String> resolvedClassificationTypes = classificationTypes != null
                 ? classificationTypes
                 : existing.classificationTypes();
+        boolean resolvedProjectPlusRequiredIncludes = projectPlusRequiredIncludes || existing.projectPlusRequiredIncludes();
+        List<String> resolvedOwnedRepositoryPrefixes = ownedRepositoryPrefixes != null
+                ? ownedRepositoryPrefixes
+                : existing.ownedRepositoryPrefixes();
         if (allTemplates) {
             resolvedTemplateIds = List.of();
             resolvedClassificationTypes = List.of();
         }
-        TemplateSelection selection = new TemplateSelection(resolvedClassificationTypes, resolvedTemplateIds);
+        TemplateSelection selection = new TemplateSelection(
+                resolvedClassificationTypes,
+                resolvedTemplateIds,
+                resolvedProjectPlusRequiredIncludes,
+                resolvedOwnedRepositoryPrefixes
+        );
         return new GenerationConfig(config.naming(), config.nullFlavorPolicy(), config.valueSetPolicy(),
                 selection, config.emitInvariants(), config.emitIrSnapshot());
     }

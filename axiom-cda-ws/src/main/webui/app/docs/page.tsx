@@ -266,6 +266,40 @@ export default function DocsPage() {
                                 </div>
 
                                 <h3 className="!text-[#18181b] dark:!text-zinc-100 text-xl font-semibold mt-8 mb-4">
+                                    Ownership Filtering
+                                </h3>
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 my-4">
+                                    <div className="border border-zinc-300 dark:border-zinc-700 rounded-lg p-4">
+                                        <h4 className="font-semibold !text-[#18181b] dark:!text-zinc-100 mb-2">
+                                            Project-owned templates
+                                        </h4>
+                                        <p className="text-sm !text-zinc-700 dark:!text-zinc-300">
+                                            When <code>projectPlusRequiredIncludes</code> is enabled, the transformer first keeps every selected template that is considered project-owned. Ownership uses project OID roots, TM base roots, project prefix, scenario references, and configured owned repository prefixes.
+                                        </p>
+                                    </div>
+                                    <div className="border border-zinc-300 dark:border-zinc-700 rounded-lg p-4">
+                                        <h4 className="font-semibold !text-[#18181b] dark:!text-zinc-100 mb-2">
+                                            Required includes
+                                        </h4>
+                                        <p className="text-sm !text-zinc-700 dark:!text-zinc-300">
+                                            After ownership filtering, the engine expands every <code>&lt;include ref="..."&gt;</code>. Included templates that are not owned are still generated and tagged as <code>REQUIRED_INCLUDE</code>, while directly selected non-owned templates keep the <code>OTHER</code> origin.
+                                        </p>
+                                    </div>
+                                </div>
+                                <div className="bg-amber-500/5 border border-amber-500/20 rounded-lg p-4">
+                                    <p className="!text-zinc-700 dark:!text-zinc-300 mb-3">
+                                        This mode is intentionally repository-aware. For projects such as CR-BIO, the owned prefix list can be extended with values like <code>BBR-</code> and <code>BIO-CR-BIO-</code> to keep business templates that are authored for the project but do not sit under the project OID root.
+                                    </p>
+                                    <pre className="text-sm !text-zinc-700 dark:!text-zinc-300 bg-zinc-50 dark:bg-zinc-900 rounded p-3 overflow-x-auto">
+{`templateSelection:
+  projectPlusRequiredIncludes: true
+  ownedRepositoryPrefixes:
+    - "BBR-"
+    - "BIO-CR-BIO-"`}
+                                    </pre>
+                                </div>
+
+                                <h3 className="!text-[#18181b] dark:!text-zinc-100 text-xl font-semibold mt-8 mb-4">
                                     {t.docs.bbrToIr.pathNormalization.title}
                                 </h3>
                                 <p className="!text-zinc-700 dark:!text-zinc-300 mb-4">
@@ -483,6 +517,45 @@ Severity: #error
 Expression: "recordTarget.patientRole.id.count() >= 1"`}
                                     </pre>
                                 </div>
+
+                                <h3 className="!text-[#18181b] dark:!text-zinc-100 text-xl font-semibold mt-8 mb-4">
+                                    SUSHI Repository Emission
+                                </h3>
+                                <div className="border border-zinc-300 dark:border-zinc-700 rounded-lg p-4">
+                                    <p className="!text-zinc-700 dark:!text-zinc-300 mb-3">
+                                        The generator can emit a SUSHI-ready layout with <code>sushi-config.yaml</code> and <code>input/fsh/</code>. The WS also exposes a dedicated SUSHI compile flow for generated FHIR FSH.
+                                    </p>
+                                    <pre className="text-sm !text-zinc-700 dark:!text-zinc-300 bg-zinc-50 dark:bg-zinc-900 rounded p-3 overflow-x-auto">
+{`output/
+  sushi-config.yaml
+  input/
+    fsh/
+      Resources<...>/
+      Invariants/
+      ValueSets/
+      CodeSystems/`}
+                                    </pre>
+                                </div>
+
+                                <h3 className="!text-[#18181b] dark:!text-zinc-100 text-xl font-semibold mt-8 mb-4">
+                                    FHIR Observation Conversion
+                                </h3>
+                                <div className="space-y-4">
+                                    <div className="border border-zinc-300 dark:border-zinc-700 rounded-lg p-4">
+                                        <p className="!text-zinc-700 dark:!text-zinc-300 text-sm">
+                                            Observation-root CDA IR templates are surfaced as FHIR-convertible profiles in the UI. The conversion flow accepts a StructureMap JSON upload, generates FHIR FSH from the selected IR template, and can compile the result with SUSHI against a chosen dependency package.
+                                        </p>
+                                    </div>
+                                    <div className="bg-zinc-50 dark:bg-zinc-900 border border-zinc-300 dark:border-zinc-700 rounded-lg p-4 overflow-x-auto">
+                                        <pre className="text-sm !text-zinc-700 dark:!text-zinc-300 whitespace-pre-wrap">
+{`1. Generate CDA FSH and inspect IR origins in the dashboard
+2. Select an Observation profile marked as FHIR-convertible
+3. Upload the StructureMap JSON
+4. Generate FHIR FSH from the Observation IR
+5. Optionally compile the generated FSH with SUSHI`}
+                                        </pre>
+                                    </div>
+                                </div>
                             </div>
                         </section>
 
@@ -499,12 +572,37 @@ Expression: "recordTarget.patientRole.id.count() >= 1"`}
                                     <div className="bg-indigo-500/5 border border-indigo-500/20 rounded-lg p-4">
                                         <ol className="!text-zinc-700 dark:!text-zinc-300 space-y-2">
                                             <li><strong>Upload BBR:</strong> Upload your ART-DECOR BBR XML file</li>
-                                            <li><strong>Configure Options:</strong> Select SUSHI layout, enable IR/logs output</li>
+                                            <li><strong>Configure Options:</strong> Select SUSHI layout, enable IR/logs output, and activate project ownership filtering when needed</li>
                                             <li><strong>Optional YAML:</strong> Provide custom generation configuration</li>
                                             <li><strong>Generate:</strong> Click &quot;Generate FSH Package&quot; button</li>
+                                            <li><strong>Review Origins:</strong> Inspect PROJECT / REQUIRED_INCLUDE / OTHER tags in the IR and profile viewers</li>
                                             <li><strong>Download:</strong> Get your FSH profiles as a ZIP file</li>
                                         </ol>
                                     </div>
+                                </div>
+
+                                <h3 className="!text-[#18181b] dark:!text-zinc-100 text-xl font-semibold mt-8 mb-4">
+                                    CLI Examples
+                                </h3>
+                                <div className="bg-zinc-50 dark:bg-zinc-900 border border-zinc-300 dark:border-zinc-700 rounded-lg p-4 overflow-x-auto">
+                                    <pre className="text-sm !text-zinc-700 dark:!text-zinc-300 whitespace-pre-wrap">
+{`# Generate a SUSHI-ready repository
+axiom-cda generate \\
+  --bbr path/to/project.xml \\
+  --sushi-repo
+
+# Keep project-owned templates plus required includes
+axiom-cda generate \\
+  --bbr path/to/bio.xml \\
+  --project-plus-required-includes \\
+  --owned-repository-prefixes BIO-CR-BIO-,BBR-
+
+# Restrict to a classification while still using ownership filtering
+axiom-cda generate \\
+  --bbr path/to/project.xml \\
+  --classification-types cdaentrylevel \\
+  --project-plus-required-includes`}
+                                    </pre>
                                 </div>
 
                                 <h3 className="!text-[#18181b] dark:!text-zinc-100 text-xl font-semibold mt-8 mb-4">
@@ -554,6 +652,9 @@ valueSetPolicy:
     "2.16.840.1.113883.1.11.1": "http://hl7.org/fhir/ValueSet/administrative-gender"
 
 templateSelection:
+  projectPlusRequiredIncludes: true
+  ownedRepositoryPrefixes:
+    - "BBR-"
   templateIds:
     - "1.2.3.4.5"
     - "2.3.4.5.6"
@@ -608,7 +709,9 @@ emitInvariants: true`}
   "sushiRepo": true,
   "emitIr": false,
   "emitLogs": true,
-  "yamlConfig": "profilePrefix: Custom\\n..."
+  "yamlConfig": "profilePrefix: Custom\\n...",
+  "projectPlusRequiredIncludes": true,
+  "ownedRepositoryPrefixes": ["BBR-", "BIO-CR-BIO-"]
 }`}
                                     </pre>
 
@@ -629,12 +732,43 @@ emitInvariants: true`}
   "profiles": [
     {
       "name": "ClinicalDocument",
-      "content": "Profile: ClinicalDocument\\n..."
+      "content": "Profile: ClinicalDocument\\n...",
+      "templateOrigin": "PROJECT"
     }
   ],
-  "irTemplates": [...]
+  "irTemplates": [
+    {
+      "id": "1.2.3.4.5",
+      "origin": "REQUIRED_INCLUDE"
+    }
+  ]
 }`}
                                     </pre>
+                                </div>
+
+                                <h3 className="!text-[#18181b] dark:!text-zinc-100 text-xl font-semibold mt-8 mb-4">
+                                    POST /api/convert/fhir
+                                </h3>
+                                <div className="bg-zinc-50 dark:bg-zinc-900 border border-zinc-300 dark:border-zinc-700 rounded-lg p-4">
+                                    <p className="!text-zinc-700 dark:!text-zinc-300 mb-4">
+                                        Generate FHIR FSH from a selected Observation IR template and an uploaded StructureMap JSON.
+                                    </p>
+                                    <pre className="text-sm !text-zinc-700 dark:!text-zinc-300 bg-zinc-100 dark:bg-zinc-800 rounded p-3 overflow-x-auto">
+{`{
+  "template": { "...": "selected IR template" },
+  "sourceProfileName": "FRSimpleObservation",
+  "structureMap": "{ ... JSON ... }"
+}`}
+                                    </pre>
+                                </div>
+
+                                <h3 className="!text-[#18181b] dark:!text-zinc-100 text-xl font-semibold mt-8 mb-4">
+                                    POST /api/convert/fhir/sushi
+                                </h3>
+                                <div className="bg-zinc-50 dark:bg-zinc-900 border border-zinc-300 dark:border-zinc-700 rounded-lg p-4">
+                                    <p className="!text-zinc-700 dark:!text-zinc-300 mb-4">
+                                        Compile generated FHIR FSH with SUSHI, optionally against an official IG dependency when the parent profile is not the base Observation.
+                                    </p>
                                 </div>
                             </div>
                         </section>

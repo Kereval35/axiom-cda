@@ -6,9 +6,11 @@ import jakarta.enterprise.context.ApplicationScoped;
 import net.ihe.gazelle.axiomcda.api.bbr.Decor;
 import net.ihe.gazelle.axiomcda.api.config.GenerationConfig;
 import net.ihe.gazelle.axiomcda.api.fsh.FshBundle;
+import net.ihe.gazelle.axiomcda.api.config.TemplateSelection;
 import net.ihe.gazelle.axiomcda.api.ir.IRDiagnostic;
 import net.ihe.gazelle.axiomcda.api.ir.IRDiagnosticSeverity;
 import net.ihe.gazelle.axiomcda.api.ir.IRTemplate;
+import net.ihe.gazelle.axiomcda.api.ir.IRTemplateOrigin;
 import net.ihe.gazelle.axiomcda.api.ir.IrTransformResult;
 import net.ihe.gazelle.axiomcda.api.port.BbrLoader;
 import net.ihe.gazelle.axiomcda.api.port.CdaModelRepository;
@@ -23,6 +25,7 @@ import net.ihe.gazelle.axiomcda.engine.technical.DefaultFshWriter;
 import net.ihe.gazelle.axiomcda.engine.technical.JaxbBbrLoader;
 import net.ihe.gazelle.axiomcda.engine.technical.JsonCdaModelRepository;
 import net.ihe.gazelle.axiomcda.engine.technical.YamlConfigLoader;
+import net.ihe.gazelle.axiomcda.engine.util.GeneratedProfileViewUtil;
 import net.ihe.gazelle.axiomcda.engine.util.ProfileNamingUtil;
 import net.ihe.gazelle.axiomcda.engine.util.ResourcePaths;
 import net.ihe.gazelle.axiomcda.ws.dto.FshProfile;
@@ -66,7 +69,14 @@ public class FshGenerationService {
                     config.naming(),
                     config.nullFlavorPolicy(),
                     config.valueSetPolicy(),
-                    config.templateSelection(),
+                    new TemplateSelection(
+                            config.templateSelection().classificationTypes(),
+                            config.templateSelection().templateIds(),
+                            request.projectPlusRequiredIncludes() || config.templateSelection().projectPlusRequiredIncludes(),
+                            request.ownedRepositoryPrefixes() != null && !request.ownedRepositoryPrefixes().isEmpty()
+                                    ? request.ownedRepositoryPrefixes()
+                                    : config.templateSelection().ownedRepositoryPrefixes()
+                    ),
                     config.emitInvariants(),
                     request.emitIr()
             );
@@ -103,9 +113,8 @@ public class FshGenerationService {
                 writeIrSnapshot(outDir, transformResult);
             }
 
-            GenerationReport report = buildReport(transformResult, bundle);
-
             List<FshProfile> profiles = extractProfiles(bundle, transformResult.templates(), config);
+            GenerationReport report = buildReport(transformResult, bundle, profiles.size());
 
             Path zipPath = tempDir.resolve("axiom-cda-fsh.zip");
             ZipUtils.zipDirectory(outDir, zipPath);
@@ -210,14 +219,11 @@ public class FshGenerationService {
                                   Map<String, String> dependencies) {
     }
 
-    private GenerationReport buildReport(IrTransformResult transformResult, FshBundle bundle) {
-        int profiles = 0;
+    private GenerationReport buildReport(IrTransformResult transformResult, FshBundle bundle, int visibleProfiles) {
         int invariants = 0;
         for (String fsh : bundle.files().values()) {
             if (fsh.trim().startsWith("Invariant:")) {
                 invariants++;
-            } else if (fsh.trim().startsWith("Profile:")) {
-                profiles++;
             }
         }
         int unmapped = 0;
@@ -264,7 +270,7 @@ public class FshGenerationService {
                 templatesGenerated,
                 templatesSkipped,
                 templatesOk,
-                profiles,
+                visibleProfiles,
                 invariants,
                 unmapped,
                 unresolved,
@@ -278,6 +284,7 @@ public class FshGenerationService {
         String resourcesDir = DefaultIrToFshGenerator.RESOURCES_DIR + "/";
         Map<String, IRTemplate> templateByProfileName = new LinkedHashMap<>();
         Map<String, String> profileNames = ProfileNamingUtil.resolveProfileNames(templates, config);
+        Set<String> visibleProfileNames = GeneratedProfileViewUtil.visibleProfileNames(bundle, templates, config);
         for (IRTemplate template : templates) {
             templateByProfileName.put(profileNames.get(template.id()), template);
         }
@@ -286,13 +293,20 @@ public class FshGenerationService {
             if (filePath.startsWith(resourcesDir)) {
                 String fileName = filePath.substring(resourcesDir.length());
                 String profileName = fileName.endsWith(".fsh") ? fileName.substring(0, fileName.length() - 4) : fileName;
+                if (!visibleProfileNames.contains(profileName)) {
+                    continue;
+                }
                 IRTemplate template = templateByProfileName.get(profileName);
                 boolean eligible = template != null && "Observation".equals(template.rootCdaType());
+                String templateOrigin = template != null ? template.origin().name() : IRTemplateOrigin.OTHER.name();
                 profiles.add(new FshProfile(
                         profileName,
                         entry.getValue(),
                         template != null ? template.id() : null,
                         template != null ? template.rootCdaType() : null,
+                        templateOrigin,
+                        ownershipStatusFromOrigin(templateOrigin),
+                        selectionReasonFromOrigin(templateOrigin),
                         eligible,
                         eligible ? "observation" : null,
                         eligible ? "Eligible for FHIR Observation conversion" : null
@@ -303,6 +317,14 @@ public class FshGenerationService {
                 .comparing(FshProfile::fhirTransformEligible, Comparator.reverseOrder())
                 .thenComparing(FshProfile::name));
         return profiles;
+    }
+
+    private String ownershipStatusFromOrigin(String templateOrigin) {
+        return IRTemplateOrigin.PROJECT.name().equals(templateOrigin) ? "PROJECT" : "EXTERNAL";
+    }
+
+    private String selectionReasonFromOrigin(String templateOrigin) {
+        return IRTemplateOrigin.REQUIRED_INCLUDE.name().equals(templateOrigin) ? "REQUIRED_INCLUDE" : "DIRECT";
     }
 
     private void writeIrSnapshot(Path outputDir, IrTransformResult transformResult) throws Exception {

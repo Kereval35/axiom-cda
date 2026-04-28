@@ -17,6 +17,7 @@ Output:
 - A list of `IRTemplate` objects and diagnostics.
 - Each `IRTemplate` has:
   - `id`, `name`, `displayName`, `description`
+  - `origin` (`PROJECT`, `REQUIRED_INCLUDE`, `OTHER`)
   - `rootCdaType`
   - `elements` (list of `IRElementConstraint`)
   - `includes` (list of `IRTemplateInclude`)
@@ -44,8 +45,24 @@ Selection follows `GenerationConfig.templateSelection`:
   are selected.
 - Else, all templates are selected.
 
-After the initial selection, the transformer expands includes: any template referenced
-by `<include ref="...">` is added even if it was not explicitly selected.
+When `projectPlusRequiredIncludes=false`, the transformer expands includes from the
+selected templates: any template referenced by `<include ref="...">` is added even if
+it was not explicitly selected.
+
+When `projectPlusRequiredIncludes=true`, the transformer first classifies which selected
+templates are project-owned, keeps all of them, then expands includes from that owned set.
+Included templates that are not considered owned are still retained and tagged as
+`REQUIRED_INCLUDE`.
+
+Ownership is determined from multiple signals:
+- project OID roots
+- template model base roots
+- scenario template references
+- project prefix
+- configured `ownedRepositoryPrefixes`
+- a small internal default prefix list for common shared project repositories
+
+This makes the filtering behave as an ownership filter, not as a document-root traversal.
 
 ### 3) Find root element and resolve CDA root type
 
@@ -140,6 +157,11 @@ Each `<include ref="...">` becomes an `IRTemplateInclude`:
 
 If the included template cannot be found or mapped, a warning is emitted and the include
 is skipped.
+
+In ownership mode, include expansion also drives origin tagging:
+- owned template -> `PROJECT`
+- included but not owned -> `REQUIRED_INCLUDE`
+- without ownership mode -> `OTHER`
 
 ### 7) Invariants
 
@@ -248,3 +270,14 @@ java -jar axiom-cda-cli/target/axiom-cda-cli-1.0-SNAPSHOT.jar generate \
 ```
 
 This writes `axiom-cda-ir.json` into the output directory.
+
+Ownership-filtered example:
+
+```bash
+java -jar axiom-cda-cli/target/axiom-cda-cli-1.0-SNAPSHOT.jar generate \
+  --bbr <bbr.xml> \
+  --out <output-dir> \
+  --emit-ir \
+  --project-plus-required-includes \
+  --owned-repository-prefixes BBR-,BIO-CR-BIO-
+```

@@ -46,7 +46,7 @@ export const FshProfilesViewer: React.FC<FshProfilesViewerProps> = ({ profiles, 
         window.location.assign(withBasePath("convert/fhir/"));
     };
 
-    if (profiles.length === 0) {
+    if (sortedProfiles.length === 0) {
         return null;
     }
 
@@ -61,7 +61,7 @@ export const FshProfilesViewer: React.FC<FshProfilesViewerProps> = ({ profiles, 
                         <svg className="w-4 h-4 text-indigo-500 dark:text-indigo-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
                         </svg>
-                        Generated FSH Profiles ({profiles.length})
+                        Generated FSH Profiles ({sortedProfiles.length})
                     </h3>
                     <svg 
                         className={`w-5 h-5 text-zinc-500 dark:text-zinc-400 transition-transform duration-300 ${isCollapsed ? '-rotate-90' : ''}`}
@@ -84,16 +84,16 @@ export const FshProfilesViewer: React.FC<FshProfilesViewerProps> = ({ profiles, 
                                     key={profile.name}
                                     onClick={() => openProfile(profile)}
                                     title={profile.name}
-                                    className="px-4 py-3 bg-white dark:bg-zinc-900 border border-card-border hover:border-indigo-500/50 dark:hover:border-indigo-500/50 hover:bg-indigo-50 dark:hover:bg-indigo-950/20 hover:shadow-md transition-all rounded-lg text-left group"
+                                    className="px-4 py-3 border border-card-border bg-white dark:bg-zinc-900 hover:border-indigo-500/50 dark:hover:border-indigo-500/50 hover:bg-indigo-50 dark:hover:bg-indigo-950/20 hover:shadow-md transition-all rounded-lg text-left group"
                                 >
                                     <div
-                                        className="text-sm font-medium text-zinc-800 dark:text-zinc-200 group-hover:text-indigo-600 dark:group-hover:text-indigo-400 transition-colors truncate"
+                                        className="text-sm font-medium text-zinc-800 dark:text-zinc-200 transition-colors truncate group-hover:text-indigo-600 dark:group-hover:text-indigo-400"
                                         title={profile.name}
                                     >
                                         {readableName}
                                     </div>
-                                    <div className="mt-1 flex items-center gap-2">
-                                        <div className="text-xs text-zinc-500 dark:text-zinc-400 group-hover:text-indigo-500/70 dark:group-hover:text-indigo-400/70 transition-colors">
+                                    <div className="mt-1 flex flex-wrap items-center gap-2">
+                                        <div className="text-xs text-zinc-500 dark:text-zinc-400 transition-colors group-hover:text-indigo-500/70 dark:group-hover:text-indigo-400/70">
                                             {profile.content.split('\n').length} lines
                                         </div>
                                         {profile.fhirTransformEligible && (

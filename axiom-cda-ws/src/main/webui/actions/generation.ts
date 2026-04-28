@@ -13,6 +13,8 @@ export async function generateFshAction(options: GenerationOptions): Promise<Gen
             emitIr: options.emitIr,
             emitLogs: options.emitLogs,
             yamlConfig: options.yamlConfig,
+            projectPlusRequiredIncludes: options.projectPlusRequiredIncludes,
+            ownedRepositoryPrefixes: options.ownedRepositoryPrefixes,
         }),
     });
 

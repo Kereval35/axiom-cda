@@ -16,6 +16,8 @@ export const GenerationForm: React.FC<GenerationFormProps> = ({ onGenerate, load
     const [uploadedFileName, setUploadedFileName] = useState<string | null>(null);
     const [sushiRepo, setSushiRepo] = useState(true);
     const [emitLogs, setEmitLogs] = useState(true);
+    const [projectPlusRequiredIncludes, setProjectPlusRequiredIncludes] = useState(false);
+    const [ownedRepositoryPrefixes, setOwnedRepositoryPrefixes] = useState("");
     const [yamlConfig, setYamlConfig] = useState("");
     const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -39,6 +41,11 @@ export const GenerationForm: React.FC<GenerationFormProps> = ({ onGenerate, load
             emitIr: true,
             emitLogs,
             yamlConfig: yamlConfig || null,
+            projectPlusRequiredIncludes,
+            ownedRepositoryPrefixes: ownedRepositoryPrefixes
+                .split(",")
+                .map((prefix) => prefix.trim())
+                .filter(Boolean),
         });
     };
 
@@ -138,6 +145,36 @@ export const GenerationForm: React.FC<GenerationFormProps> = ({ onGenerate, load
                                 checked={emitLogs}
                                 onChange={setEmitLogs}
                             />
+                            <Checkbox
+                                label={
+                                    <span className="inline-flex flex-wrap items-center gap-2">
+                                        <span>{t.dashboard.projectPlusRequiredIncludes}</span>
+                                        <span className="inline-flex items-center rounded-full border border-amber-300 bg-amber-100 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-amber-800 dark:border-amber-800 dark:bg-amber-950/40 dark:text-amber-300">
+                                            {t.dashboard.experimental}
+                                        </span>
+                                    </span>
+                                }
+                                checked={projectPlusRequiredIncludes}
+                                onChange={setProjectPlusRequiredIncludes}
+                                hint={t.dashboard.projectPlusRequiredIncludesHint}
+                            />
+                            {projectPlusRequiredIncludes && (
+                                <div className="ml-8 space-y-1">
+                                    <label className="text-xs font-medium text-zinc-600 dark:text-zinc-400">
+                                        {t.dashboard.ownedRepositoryPrefixes}
+                                    </label>
+                                    <input
+                                        type="text"
+                                        value={ownedRepositoryPrefixes}
+                                        onChange={(event) => setOwnedRepositoryPrefixes(event.target.value)}
+                                        placeholder={t.dashboard.ownedRepositoryPrefixesPlaceholder}
+                                        className="w-full !bg-[#fafafa] dark:!bg-zinc-900 border border-zinc-300 dark:border-zinc-700 rounded-lg px-3 py-2 !text-[#18181b] dark:!text-zinc-100 placeholder:text-zinc-500 dark:placeholder:text-zinc-500 focus:ring-2 focus:ring-indigo-500/50 focus:border-indigo-500 outline-none transition-all text-sm"
+                                    />
+                                    <p className="text-xs text-zinc-500 dark:text-zinc-400">
+                                        {t.dashboard.ownedRepositoryPrefixesHint}
+                                    </p>
+                                </div>
+                            )}
                         </div>
                     </div>
 
@@ -182,13 +219,14 @@ export const GenerationForm: React.FC<GenerationFormProps> = ({ onGenerate, load
     );
 };
 
-const Checkbox: React.FC<{ label: string; checked: boolean; onChange: (v: boolean) => void }> = ({
+const Checkbox: React.FC<{ label: React.ReactNode; checked: boolean; onChange: (v: boolean) => void; hint?: string }> = ({
     label,
     checked,
     onChange,
+    hint,
 }) => (
-    <label className="flex items-center gap-3 cursor-pointer group">
-        <div className="relative flex items-center">
+    <label className="flex items-start gap-3 cursor-pointer group">
+        <div className="relative flex items-center pt-0.5">
             <input
                 type="checkbox"
                 checked={checked}
@@ -196,8 +234,15 @@ const Checkbox: React.FC<{ label: string; checked: boolean; onChange: (v: boolea
                 className="peer h-5 w-5 rounded border-zinc-300 dark:border-zinc-700 bg-zinc-50 dark:bg-zinc-900 text-indigo-600 focus:ring-indigo-500/50 focus:ring-offset-0 accent-indigo-600 transition-all cursor-pointer"
             />
         </div>
-        <span className="text-sm !text-[#18181b] dark:!text-zinc-300 group-hover:text-indigo-600 dark:group-hover:text-indigo-400 transition-colors">
-            {label}
-        </span>
+        <div className="min-w-0">
+            <div className="text-sm !text-[#18181b] dark:!text-zinc-300 group-hover:text-indigo-600 dark:group-hover:text-indigo-400 transition-colors">
+                {label}
+            </div>
+            {hint && (
+                <div className="mt-1 text-xs text-zinc-500 dark:text-zinc-400">
+                    {hint}
+                </div>
+            )}
+        </div>
     </label>
 );

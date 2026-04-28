@@ -14,6 +14,7 @@ The generator converts an ART-DECOR BBR (Building Block Repository) export into:
 - FSH profiles that specialize HL7 CDA logical models from the `hl7.cda.uv.core` package
 - FSH `ValueSet` and `CodeSystem` definitions extracted from the BBR `terminology` section
 - a SUSHI-ready repository with `sushi-config.yaml` and `input/fsh`
+- FHIR Observation FSH generated from selected CDA Observation IR plus a StructureMap JSON
 
 The conversion pipeline is:
 
@@ -26,6 +27,10 @@ The conversion pipeline is:
 3. **FSH generation**
    - Emit FSH CDA profiles from the IR
    - Emit ValueSets and CodeSystems from the terminology section
+4. **Optional FHIR conversion**
+   - Select an Observation-root IR template
+   - Apply a StructureMap JSON
+   - Generate FHIR Observation FSH and optionally compile it with SUSHI
 
 ## Project Structure
 
@@ -54,6 +59,11 @@ By default, the generator writes:
 When `--sushi-repo` is enabled, output is written in SUSHI layout under `input/fsh`, and `sushi-config.yaml` is emitted.
 
 When `--emit-ir` is enabled, an `axiom-cda-ir.json` snapshot is also written to the output directory.
+
+When project ownership filtering is enabled, generated templates are tagged with an origin:
+- `PROJECT`: owned by the project
+- `REQUIRED_INCLUDE`: not owned, but required by a project-owned template
+- `OTHER`: generated without ownership filtering
 
 ## Building the Project
 
@@ -110,6 +120,10 @@ Common CLI options:
 --classification-types <csv>  Template classification filters
 --template-ids <csv>         Explicit template ids to generate
 --all-templates              Ignore classification filters and generate all
+--project-plus-required-includes
+                             Keep project-owned templates and required includes
+--owned-repository-prefixes <csv>
+                             Extra ART-DECOR idents considered project-owned
 --sushi-repo                 Emit a SUSHI-ready repo
 --ig-id <s>                  IG id for sushi-config.yaml
 --ig-name <s>                IG name for sushi-config.yaml
@@ -140,6 +154,8 @@ UI routes:
 
 API routes:
 - `POST /api/generate`
+- `POST /api/convert/fhir`
+- `POST /api/convert/fhir/sushi`
 
 Example request:
 
@@ -151,6 +167,8 @@ curl -X POST http://localhost:8080/api/generate \
     "sushiRepo": true,
     "emitIr": false,
     "emitLogs": true,
+    "projectPlusRequiredIncludes": true,
+    "ownedRepositoryPrefixes": ["BBR-", "BIO-CR-BIO-"],
     "yamlConfig": null
   }'
 ```
@@ -159,7 +177,9 @@ The response contains:
 - `zipBase64`: the generated archive as base64
 - `report`: generation diagnostics and counts
 - `profiles`: the generated FSH profile names and content
+- `profiles[].templateOrigin`: `PROJECT`, `REQUIRED_INCLUDE`, or `OTHER`
 - `irTemplates`: the IR templates when `emitIr` is enabled
+- `irTemplates[].origin`: `PROJECT`, `REQUIRED_INCLUDE`, or `OTHER`
 
 ## Configuration
 
@@ -175,8 +195,18 @@ Relevant config sections:
 - `naming`: prefixes and explicit template overrides
 - `nullFlavorPolicy`: paths that must be forced to `0..0`
 - `valueSetPolicy`: canonical URL mapping and default binding strength
-- `templateSelection`: template filters
+- `templateSelection`: template filters and ownership filtering
 - `emitInvariants` and `emitIrSnapshot`: output toggles
+
+Example ownership filter:
+
+```yaml
+templateSelection:
+  projectPlusRequiredIncludes: true
+  ownedRepositoryPrefixes:
+    - "BBR-"
+    - "BIO-CR-BIO-"
+```
 
 ## Known Limits
 
@@ -217,4 +247,3 @@ The same package output can also be used with the other generated Quarkus Docker
 - `axiom-cda-ws/src/main/docker/Dockerfile.legacy-jar`
 - `axiom-cda-ws/src/main/docker/Dockerfile.native`
 - `axiom-cda-ws/src/main/docker/Dockerfile.native-micro`
-

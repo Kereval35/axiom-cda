@@ -28,6 +28,7 @@ type Slide3Text = {
   profiles: string;
   invariants: string;
   terminologies: string;
+  fhirProfiles: string;
   cliOptions: string;
   irInfo: string;
 };
@@ -63,6 +64,7 @@ type Slide6Text = {
     ignoreStatus: { condition: string; result: string };
     latestVersion: { condition: string; result: string };
     configFilter: { condition: string; result: string };
+    ownershipFilter: { condition: string; result: string };
   };
   includeCallout: string;
 };
@@ -105,12 +107,15 @@ type Slide18Text = {
   selection: {
     templateIds: string;
     classificationTypes: string;
+    projectOwnership: string;
+    ownedPrefixes: string;
   };
   output: {
     sushiRepo: string;
     emitIr: string;
     config: string;
     out: string;
+    convertFhir: string;
   };
 };
 
@@ -222,6 +227,7 @@ export const slideTranslations: Record<Language, PresentationTranslation> = {
       profiles: '→ FSH-CDA profiles',
       invariants: '→ Invariants (FSH)',
       terminologies: '→ ValueSets / CodeSystems',
+      fhirProfiles: '→ FHIR FSH from Observation IR + StructureMap',
       cliOptions: 'CLI options',
       irInfo: 'The IR (Intermediate Representation) can be exported as JSON for audit and debugging',
     },
@@ -249,7 +255,7 @@ export const slideTranslations: Record<Language, PresentationTranslation> = {
       subtitle: 'Data model',
     },
     slide6: {
-      title: 'BBR → IR: Template selection',
+      title: 'BBR → IR: Selection and ownership',
       rules: {
         ignoreStatus: {
           condition: 'Template status = RETIRED | CANCELLED | REJECTED',
@@ -263,8 +269,12 @@ export const slideTranslations: Record<Language, PresentationTranslation> = {
           condition: 'Config: templateIds or classificationTypes',
           result: 'Explicit templateIds override, else filter by classification, else all active templates',
         },
+        ownershipFilter: {
+          condition: 'projectPlusRequiredIncludes enabled',
+          result: 'Keep project-owned templates, expand includes, then tag PROJECT / REQUIRED_INCLUDE while preserving OTHER for directly selected non-owned templates',
+        },
       },
-      includeCallout: 'Include expansion: referenced templates via <include> are added even if not explicitly selected',
+      includeCallout: 'Owned repository prefixes can be configured explicitly, for example BBR- and BIO-CR-BIO- for CR-BIO',
     },
     slide15: {
       title: 'IR → FSH: Clamp & safety',
@@ -303,12 +313,15 @@ export const slideTranslations: Record<Language, PresentationTranslation> = {
       selection: {
         templateIds: 'Restrict generation to specific template ids',
         classificationTypes: 'Filter templates by classification types',
+        projectOwnership: 'Keep project-owned templates and required includes only',
+        ownedPrefixes: 'Declare additional owned ART-DECOR repository prefixes',
       },
       output: {
         sushiRepo: 'Emit SUSHI-compatible repository layout',
         emitIr: 'Export intermediate representation JSON',
         config: 'Load YAML configuration overrides',
         out: 'Set output folder',
+        convertFhir: 'Generate and compile FHIR FSH from Observation IR in the WS UI',
       },
     },
     slide20: {
@@ -324,8 +337,8 @@ export const slideTranslations: Record<Language, PresentationTranslation> = {
         title: 'What is already solid',
         pipeline: 'Pipeline BBR → IR → FSH operational',
         normalisation: 'Path normalisation, cardinalities, fixed values, bindings',
-        generation: 'Terminology generation (ValueSet/CodeSystem)',
-        diagnostics: 'Detailed diagnostics and traceability',
+        generation: 'Terminology generation plus SUSHI-ready package emission',
+        diagnostics: 'Detailed diagnostics, ownership origins and traceability',
       },
       risky: {
         title: 'What is still risky',
@@ -337,8 +350,8 @@ export const slideTranslations: Record<Language, PresentationTranslation> = {
         title: 'Roadmap',
         supportSlicing: 'Support BBR → FSH slicing',
         complexInvariants: 'More complex invariants (full FHIRPath)',
-        ci: 'Integrated SUSHI CI validation',
-        improveCoverage: 'Improve mapping coverage',
+        ci: 'Extend SUSHI and FHIR conversion validation coverage',
+        improveCoverage: 'Refine ownership heuristics and mapping coverage',
       },
     },
     slide22: {
@@ -356,7 +369,7 @@ export const slideTranslations: Record<Language, PresentationTranslation> = {
       executeCli: 'Execute CLI on a real BBR',
       inspectIr: 'Inspect the generated IR',
       analyzeFsh: 'Analyze the generated FSH profiles',
-      validateWithSushi: 'Validate with SUSHI',
+      validateWithSushi: 'Validate with SUSHI and generate FHIR FSH from an Observation profile',
     },
   },
   fr: {
@@ -395,6 +408,7 @@ export const slideTranslations: Record<Language, PresentationTranslation> = {
       profiles: '→ Profils FSH-CDA',
       invariants: '→ Invariants (FSH)',
       terminologies: '→ ValueSets / CodeSystems',
+      fhirProfiles: '→ FHIR FSH depuis un IR Observation + StructureMap',
       cliOptions: 'Options CLI',
       irInfo: "L'IR (Intermediate Representation) peut être exporté en JSON pour audit et debugging",
     },
@@ -422,7 +436,7 @@ export const slideTranslations: Record<Language, PresentationTranslation> = {
       subtitle: 'Modèle de données',
     },
     slide6: {
-      title: 'BBR → IR : Sélection des templates',
+      title: 'BBR → IR : Sélection et ownership',
       rules: {
         ignoreStatus: {
           condition: 'Template status = RETIRED | CANCELLED | REJECTED',
@@ -436,8 +450,12 @@ export const slideTranslations: Record<Language, PresentationTranslation> = {
           condition: 'Config : templateIds ou classificationTypes',
           result: 'Si templateIds défini → sélection explicite, sinon classificationTypes, sinon tous les templates actifs',
         },
+        ownershipFilter: {
+          condition: 'projectPlusRequiredIncludes activé',
+          result: 'Conserver tous les templates du projet, puis étendre les includes et tagger PROJECT / REQUIRED_INCLUDE',
+        },
       },
-      includeCallout: "Expansion des includes : Les templates référencés via <include> sont ajoutés même s'ils ne sont pas explicitement sélectionnés",
+      includeCallout: "Les prefixes de repository du projet peuvent être configurés explicitement, par exemple BBR- et BIO-CR-BIO- pour CR-BIO",
     },
     slide15: {
       title: 'IR → FSH : Clamp & sécurité',
@@ -476,12 +494,15 @@ export const slideTranslations: Record<Language, PresentationTranslation> = {
       selection: {
         templateIds: 'Restreindre la génération à des template ids précis',
         classificationTypes: 'Filtrer les templates par types de classification',
+        projectOwnership: 'Conserver uniquement les templates du projet et les includes requis',
+        ownedPrefixes: 'Déclarer des prefixes ART-DECOR supplémentaires comme appartenant au projet',
       },
       output: {
         sushiRepo: 'Émettre une structure compatible SUSHI',
         emitIr: "Exporter l'IR en JSON",
         config: 'Charger la configuration YAML',
         out: 'Définir le dossier de sortie',
+        convertFhir: 'Générer et compiler du FHIR FSH depuis un IR Observation dans la WS UI',
       },
     },
     slide20: {
@@ -497,8 +518,8 @@ export const slideTranslations: Record<Language, PresentationTranslation> = {
         title: 'Ce qui est déjà solide',
         pipeline: 'Pipeline BBR → IR → FSH opérationnel',
         normalisation: 'Normalisation des paths, cardinalités, fixed values, bindings',
-        generation: 'Génération terminologies (ValueSet/CodeSystem)',
-        diagnostics: 'Diagnostics détaillés et traçabilité',
+        generation: 'Génération des terminologies et émission SUSHI-ready',
+        diagnostics: 'Diagnostics détaillés, origines ownership et traçabilité',
       },
       risky: {
         title: 'Ce qui reste risqué',
@@ -510,8 +531,8 @@ export const slideTranslations: Record<Language, PresentationTranslation> = {
         title: 'Roadmap',
         supportSlicing: 'Support slicing BBR → FSH',
         complexInvariants: 'Invariants plus complexes (FHIRPath complet)',
-        ci: 'Validation SUSHI CI intégrée',
-        improveCoverage: 'Amélioration couverture mapping',
+        ci: 'Étendre la couverture de validation SUSHI et FHIR conversion',
+        improveCoverage: 'Affiner les heuristiques ownership et la couverture de mapping',
       },
     },
     slide22: {
@@ -529,7 +550,7 @@ export const slideTranslations: Record<Language, PresentationTranslation> = {
       executeCli: 'Exécution du CLI sur un BBR réel',
       inspectIr: "Inspection de l'IR généré",
       analyzeFsh: 'Analyse des profils FSH produits',
-      validateWithSushi: 'Validation avec SUSHI',
+      validateWithSushi: 'Validation avec SUSHI et génération FHIR FSH depuis un profil Observation',
     },
   },
 };

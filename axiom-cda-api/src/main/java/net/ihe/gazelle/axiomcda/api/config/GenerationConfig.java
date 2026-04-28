@@ -32,7 +32,7 @@ public record GenerationConfig(
                 new NamingConfig("", "", "", Map.of(), Map.of()),
                 new NullFlavorPolicy(List.of()),
                 new ValueSetPolicy(Map.of(), IRBindingStrength.EXTENSIBLE, true),
-                new TemplateSelection(List.of(), List.of()),
+                new TemplateSelection(List.of(), List.of(), false, List.of()),
                 true,
                 false
         );

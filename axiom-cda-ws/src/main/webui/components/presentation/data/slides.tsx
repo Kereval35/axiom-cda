@@ -114,6 +114,7 @@ export const getSlides = (language: Language): Slide[] => {
                 <li>{t.slide3.profiles}</li>
                 <li>{t.slide3.invariants}</li>
                 <li>{t.slide3.terminologies}</li>
+                <li>{t.slide3.fhirProfiles}</li>
               </ul>
             </div>
           </div>
@@ -277,13 +278,23 @@ export const getSlides = (language: Language): Slide[] => {
       },
       {
         step: 4,
+        type: 'rule',
+        content: (
+          <RuleCard
+            condition={t.slide6.rules.ownershipFilter.condition}
+            result={t.slide6.rules.ownershipFilter.result}
+          />
+        ),
+      },
+      {
+        step: 5,
         type: 'callout',
         content: (
           <Callout variant="info">{t.slide6.includeCallout}</Callout>
         ),
       },
     ],
-    stepsCount: 4,
+    stepsCount: 5,
   },
 
   // Slide 7 - BBR→IR: Root & rootCdaType
@@ -1021,6 +1032,8 @@ Expression: "participant.count() >= 1"`}
               {[
                 ['--template-ids', t.slide18.selection.templateIds],
                 ['--classification-types', t.slide18.selection.classificationTypes],
+                ['--project-plus-required-includes', t.slide18.selection.projectOwnership],
+                ['--owned-repository-prefixes', t.slide18.selection.ownedPrefixes],
               ].map(([flag, description]) => (
                 <div key={flag} className="flex flex-col gap-1">
                   <code className="bg-slate-100 dark:bg-slate-700 px-3 py-2 rounded">{flag}</code>
@@ -1050,6 +1063,9 @@ Expression: "participant.count() >= 1"`}
                 </div>
               ))}
             </div>
+            <Callout variant="info">
+              {t.slide18.output.convertFhir}
+            </Callout>
           </div>
         ),
       },

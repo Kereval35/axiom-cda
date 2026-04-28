@@ -48,6 +48,9 @@ public class FhirConversionService {
                         conversion.fsh(),
                         request.template().id(),
                         request.template().rootCdaType(),
+                        request.template().origin().name(),
+                        "PROJECT".equals(request.template().origin().name()) ? "PROJECT" : "EXTERNAL",
+                        "REQUIRED_INCLUDE".equals(request.template().origin().name()) ? "REQUIRED_INCLUDE" : "DIRECT",
                         false,
                         null,
                         null

@@ -20,6 +20,9 @@ import java.util.regex.Pattern;
 
 public class DefaultBbrToIrTransformer implements BbrToIrTransformer {
     private static final Pattern COUNT_ASSERT_PATTERN = Pattern.compile("count\\(([^)]+)\\)\\s*(=|>=|<=|>)\\s*(\\d+)");
+    private static final List<String> DEFAULT_OWNED_REPOSITORY_PREFIXES = List.of(
+            "bbr-"
+    );
     private static final Map<String, String> ROOT_TYPE_ALIASES = Map.of(
             "assignedPerson", "Person",
             "assignedAuthoringDevice", "AuthoringDevice",
@@ -70,9 +73,14 @@ public class DefaultBbrToIrTransformer implements BbrToIrTransformer {
         }
 
         String preferredLanguage = decor.getProject() != null ? decor.getProject().getDefaultLanguage() : null;
+        OwnershipContext ownershipContext = OwnershipContext.fromDecor(decor);
 
         Set<String> selectedIds = selectTemplateIds(latestById, config.templateSelection());
-        Set<String> expandedIds = expandIncludes(selectedIds, latestById);
+        Set<String> projectOwnedIds = findProjectOwnedIds(selectedIds, latestById, ownershipContext, config.templateSelection());
+        Set<String> expandedIds = config.templateSelection().projectPlusRequiredIncludes()
+                ? expandIncludes(projectOwnedIds, latestById)
+                : expandIncludes(selectedIds, latestById);
+        Map<String, IRTemplateOrigin> originByTemplateId = classifyOrigins(projectOwnedIds, expandedIds, latestById, ownershipContext, config.templateSelection());
 
         int templatesConsidered = 0;
         for (String templateId : expandedIds) {
@@ -82,7 +90,7 @@ public class DefaultBbrToIrTransformer implements BbrToIrTransformer {
             }
             templatesConsidered++;
             TemplateBuildContext context = new TemplateBuildContext(template, preferredLanguage, config, cdaRepository, latestById, diagnostics);
-            IRTemplate irTemplate = buildTemplate(context, config);
+            IRTemplate irTemplate = buildTemplate(context, config, originByTemplateId.getOrDefault(templateId, IRTemplateOrigin.OTHER));
             if (irTemplate != null) {
                 templates.add(irTemplate);
             }
@@ -92,7 +100,7 @@ public class DefaultBbrToIrTransformer implements BbrToIrTransformer {
         return new IrTransformResult(templates, diagnostics, templatesConsidered);
     }
 
-    private IRTemplate buildTemplate(TemplateBuildContext context, GenerationConfig config) {
+    private IRTemplate buildTemplate(TemplateBuildContext context, GenerationConfig config, IRTemplateOrigin origin) {
         TemplateDefinition template = context.template;
         RuleDefinition rootRule = findRootRule(template, context.cdaRepository);
         if (rootRule == null || rootRule.getName() == null) {
@@ -141,7 +149,8 @@ public class DefaultBbrToIrTransformer implements BbrToIrTransformer {
                 rootCdaType,
                 elementConstraints,
                 includes,
-                invariants
+                invariants,
+                origin
         );
     }
 
@@ -569,6 +578,39 @@ public class DefaultBbrToIrTransformer implements BbrToIrTransformer {
         return selected;
     }
 
+    private Map<String, IRTemplateOrigin> classifyOrigins(Set<String> projectOwnedIds,
+                                                          Set<String> expandedIds,
+                                                          Map<String, TemplateDefinition> latestById,
+                                                          OwnershipContext ownershipContext,
+                                                          TemplateSelection selection) {
+        Map<String, IRTemplateOrigin> origins = new LinkedHashMap<>();
+        if (!selection.projectPlusRequiredIncludes()) {
+            for (String templateId : expandedIds) {
+                TemplateDefinition template = latestById.get(templateId);
+                if (template == null) {
+                    continue;
+                }
+                origins.put(templateId, isProjectOwned(template, ownershipContext, selection)
+                        ? IRTemplateOrigin.PROJECT
+                        : IRTemplateOrigin.OTHER);
+            }
+            return origins;
+        }
+
+        for (String templateId : expandedIds) {
+            TemplateDefinition template = latestById.get(templateId);
+            if (template == null) {
+                continue;
+            }
+            if (projectOwnedIds.contains(templateId)) {
+                origins.put(templateId, IRTemplateOrigin.PROJECT);
+            } else {
+                origins.put(templateId, IRTemplateOrigin.REQUIRED_INCLUDE);
+            }
+        }
+        return origins;
+    }
+
     private Set<String> expandIncludes(Set<String> seedIds, Map<String, TemplateDefinition> latestById) {
         Set<String> expanded = new LinkedHashSet<>(seedIds);
         Deque<String> queue = new ArrayDeque<>(seedIds);
@@ -585,6 +627,88 @@ public class DefaultBbrToIrTransformer implements BbrToIrTransformer {
             }
         }
         return expanded;
+    }
+
+    private Set<String> findProjectOwnedIds(Set<String> selectedIds,
+                                            Map<String, TemplateDefinition> latestById,
+                                            OwnershipContext ownershipContext,
+                                            TemplateSelection selection) {
+        Set<String> owned = new LinkedHashSet<>();
+        for (String templateId : selectedIds) {
+            TemplateDefinition template = latestById.get(templateId);
+            if (template != null && isProjectOwned(template, ownershipContext, selection)) {
+                owned.add(templateId);
+            }
+        }
+        return owned;
+    }
+
+    private boolean isProjectOwned(TemplateDefinition template, OwnershipContext ownershipContext, TemplateSelection selection) {
+        if (template == null || ownershipContext == null) {
+            return false;
+        }
+        String templateId = template.getId();
+        if (templateId == null || templateId.isBlank()) {
+            return false;
+        }
+        if (ownershipContext.projectId != null
+                && (templateId.equals(ownershipContext.projectId) || templateId.startsWith(ownershipContext.projectId + "."))) {
+            return true;
+        }
+        for (String templateRoot : ownershipContext.templateRoots) {
+            if (templateId.equals(templateRoot) || templateId.startsWith(templateRoot + ".")) {
+                return true;
+            }
+        }
+        if (ownershipContext.scenarioTemplateRefs.contains(templateId)) {
+            return true;
+        }
+        String templateIdent = normalizeRepositoryIdent(template.getIdent());
+        String referencedFrom = normalizeRepositoryIdent(template.getReferencedFrom());
+        Set<String> ownedRepositoryPrefixes = ownedRepositoryPrefixes(ownershipContext, selection);
+        if (ownershipContext.projectPrefix != null
+                && (ownershipContext.projectPrefix.equals(templateIdent)
+                || ownershipContext.projectPrefix.equals(referencedFrom))) {
+            return true;
+        }
+        if (templateIdent != null && ownedRepositoryPrefixes.contains(templateIdent)) {
+            return true;
+        }
+        if (referencedFrom != null && ownedRepositoryPrefixes.contains(referencedFrom)) {
+            return true;
+        }
+        if (referencedFrom != null && !referencedFrom.isBlank() && ownershipContext.projectPrefix != null
+                && !ownershipContext.projectPrefix.equals(referencedFrom)) {
+            return false;
+        }
+        if (templateIdent == null || templateIdent.isBlank()) {
+            return template.getReferencedFrom() == null || template.getReferencedFrom().isBlank();
+        }
+        return false;
+    }
+
+    private Set<String> ownedRepositoryPrefixes(OwnershipContext ownershipContext, TemplateSelection selection) {
+        Set<String> ownedPrefixes = new LinkedHashSet<>(DEFAULT_OWNED_REPOSITORY_PREFIXES);
+        if (ownershipContext.projectPrefix != null) {
+            ownedPrefixes.add(ownershipContext.projectPrefix);
+        }
+        if (selection != null) {
+            for (String prefix : selection.ownedRepositoryPrefixes()) {
+                String normalized = normalizeRepositoryIdent(prefix);
+                if (normalized != null) {
+                    ownedPrefixes.add(normalized);
+                }
+            }
+        }
+        return ownedPrefixes;
+    }
+
+    private String normalizeRepositoryIdent(String ident) {
+        if (ident == null) {
+            return null;
+        }
+        String normalized = ident.trim();
+        return normalized.isEmpty() ? null : normalized.toLowerCase(Locale.ROOT);
     }
 
     private List<String> collectIncludes(TemplateDefinition template) {
@@ -626,6 +750,65 @@ public class DefaultBbrToIrTransformer implements BbrToIrTransformer {
         private ParsedName(String baseName, String predicate) {
             this.baseName = baseName;
             this.predicate = predicate;
+        }
+    }
+
+    private static final class OwnershipContext {
+        private final String projectId;
+        private final String projectPrefix;
+        private final Set<String> templateRoots;
+        private final Set<String> scenarioTemplateRefs;
+
+        private OwnershipContext(String projectId, String projectPrefix, Set<String> templateRoots, Set<String> scenarioTemplateRefs) {
+            this.projectId = projectId;
+            this.projectPrefix = projectPrefix;
+            this.templateRoots = templateRoots;
+            this.scenarioTemplateRefs = scenarioTemplateRefs;
+        }
+
+        private static OwnershipContext fromDecor(Decor decor) {
+            String projectId = decor != null && decor.getProject() != null ? decor.getProject().getId() : null;
+            String projectPrefix = decor != null && decor.getProject() != null
+                    ? normalizeIdent(decor.getProject().getPrefix())
+                    : null;
+            Set<String> templateRoots = new LinkedHashSet<>();
+            if (decor != null && decor.getIds() != null) {
+                for (BaseId baseId : decor.getIds().getBaseId()) {
+                    if (baseId.getType() == DecorObjectType.TM && baseId.getId() != null && !baseId.getId().isBlank()) {
+                        templateRoots.add(baseId.getId());
+                    }
+                }
+            }
+            Set<String> scenarioTemplateRefs = new LinkedHashSet<>();
+            if (decor != null && decor.getScenarios() != null) {
+                for (Scenario scenario : decor.getScenarios().getScenario()) {
+                    collectRepresentingTemplateRefs(scenario.getTransaction(), scenarioTemplateRefs);
+                }
+            }
+            return new OwnershipContext(projectId, projectPrefix, templateRoots, scenarioTemplateRefs);
+        }
+
+        private static void collectRepresentingTemplateRefs(List<Transaction> transactions, Set<String> refs) {
+            if (transactions == null) {
+                return;
+            }
+            for (Transaction transaction : transactions) {
+                if (transaction.getRepresentingTemplate() != null) {
+                    String ref = transaction.getRepresentingTemplate().getRef();
+                    if (ref != null && !ref.isBlank()) {
+                        refs.add(ref);
+                    }
+                }
+                collectRepresentingTemplateRefs(transaction.getTransactions(), refs);
+            }
+        }
+
+        private static String normalizeIdent(String ident) {
+            if (ident == null) {
+                return null;
+            }
+            String normalized = ident.trim();
+            return normalized.isEmpty() ? null : normalized.toLowerCase(Locale.ROOT);
         }
     }
 

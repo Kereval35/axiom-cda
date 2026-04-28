@@ -110,6 +110,45 @@ class FhirConversionResourceTest {
                 .statusCode(400);
     }
 
+    @Test
+    void projectPlusRequiredIncludesDoesNotReturnOtherProfilesForBioProject() throws Exception {
+        String bbr = readFixture("observation/bio.xml");
+        Map<String, Object> generationRequest = new HashMap<>();
+        generationRequest.put("bbr", bbr);
+        generationRequest.put("sushiRepo", false);
+        generationRequest.put("emitIr", false);
+        generationRequest.put("emitLogs", true);
+        generationRequest.put("yamlConfig", null);
+        generationRequest.put("projectPlusRequiredIncludes", true);
+        generationRequest.put("ownedRepositoryPrefixes", List.of());
+
+        JsonPath generation = given()
+                .contentType(ContentType.JSON)
+                .body(generationRequest)
+                .when()
+                .post("/api/generate")
+                .then()
+                .statusCode(200)
+                .extract()
+                .jsonPath();
+
+        List<Map<String, Object>> profiles = generation.getList("profiles");
+        assertNotNull(profiles);
+        assertFalse(profiles.isEmpty());
+        assertEquals(profiles.size(), generation.getInt("report.profilesGenerated"));
+        assertTrue(profiles.stream().noneMatch(profile -> "OTHER".equals(String.valueOf(profile.get("templateOrigin")))));
+        assertTrue(profiles.stream().allMatch(profile -> "PROJECT".equals(String.valueOf(profile.get("templateOrigin")))));
+        assertTrue(profiles.stream().allMatch(profile -> {
+            String templateOrigin = String.valueOf(profile.get("templateOrigin"));
+            String ownershipStatus = String.valueOf(profile.get("ownershipStatus"));
+            String selectionReason = String.valueOf(profile.get("selectionReason"));
+            if ("PROJECT".equals(templateOrigin)) {
+                return "PROJECT".equals(ownershipStatus) && "DIRECT".equals(selectionReason);
+            }
+            return false;
+        }));
+    }
+
     private String readFixture(String path) throws Exception {
         try (InputStream stream = getClass().getClassLoader().getResourceAsStream(path)) {
             assertNotNull(stream, "Missing test fixture: " + path);
