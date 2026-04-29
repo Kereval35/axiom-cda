@@ -1,20 +1,35 @@
-package net.ihe.gazelle.axiomcda.engine.business;
+package net.ihe.gazelle.axiomcda.fhirmappings.structuremap;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import net.ihe.gazelle.axiomcda.fhirmappings.api.DependentCallNode;
+import net.ihe.gazelle.axiomcda.fhirmappings.api.MappingKind;
+import net.ihe.gazelle.axiomcda.fhirmappings.api.SemanticGroup;
+import net.ihe.gazelle.axiomcda.fhirmappings.api.SemanticMappingModel;
+import net.ihe.gazelle.axiomcda.fhirmappings.api.SemanticMappingModelEnricher;
+import net.ihe.gazelle.axiomcda.fhirmappings.api.SemanticRule;
+import net.ihe.gazelle.axiomcda.fhirmappings.api.SourceNode;
+import net.ihe.gazelle.axiomcda.fhirmappings.api.TargetNode;
+import net.ihe.gazelle.axiomcda.fhirmappings.api.TargetParameter;
 
 import java.io.IOException;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.LinkedHashMap;
+import java.util.LinkedHashSet;
+import java.util.List;
+import java.util.Locale;
+import java.util.Map;
+import java.util.Set;
 
-class StructureMapSemanticAnalyzer {
+public class StructureMapSemanticAnalyzer {
 
     private static final ObjectMapper MAPPER = new ObjectMapper();
-    private static final Set<String> ROOT_GROUPS = Set.of(
+    private static final List<String> ROOT_GROUPS = List.of(
             "CdaLaboratoryObservationToFhirObservation",
             "CdaLaboratoryObservationValueToFhirObservationValue"
     );
 
-    StructureMapSemanticModel analyze(String structureMapJson) throws IOException {
+    public SemanticMappingModel analyze(String structureMapJson) throws IOException {
         JsonNode root = MAPPER.readTree(structureMapJson);
         Map<String, JsonNode> groupsByName = new LinkedHashMap<>();
         for (JsonNode group : iterable(root.path("group"))) {
@@ -35,7 +50,7 @@ class StructureMapSemanticAnalyzer {
             List<SemanticRule> rules = analyzeRules(groupName, groupsByName, group.path("rule"), context, false, 0, new LinkedHashSet<>());
             groups.add(new SemanticGroup(groupName, rules));
         }
-        return new StructureMapSemanticModel(groups);
+        return SemanticMappingModelEnricher.enrich(new SemanticMappingModel(groups));
     }
 
     private AnalysisContext initializeContext(JsonNode group) {
@@ -176,6 +191,8 @@ class StructureMapSemanticAnalyzer {
                     text(ruleNode, "name"),
                     depth,
                     conditional,
+                    null,
+                    null,
                     normalizePath(primarySourcePath),
                     lineage,
                     sources,
@@ -362,64 +379,5 @@ class StructureMapSemanticAnalyzer {
                                    Map<String, String> targetVars,
                                    String currentSourcePath,
                                    List<String> branchLineage) {
-    }
-
-    record StructureMapSemanticModel(List<SemanticGroup> groups) {
-        public List<SemanticRule> allRules() {
-            List<SemanticRule> rules = new ArrayList<>();
-            for (SemanticGroup group : groups) {
-                group.flattenInto(rules);
-            }
-            return rules;
-        }
-    }
-
-    record SemanticGroup(String name, List<SemanticRule> rules) {
-        void flattenInto(List<SemanticRule> destination) {
-            for (SemanticRule rule : rules) {
-                destination.add(rule);
-                rule.flattenInto(destination);
-            }
-        }
-    }
-
-    record SemanticRule(String groupName,
-                        String name,
-                        int depth,
-                        boolean conditional,
-                        String primarySourcePath,
-                        List<String> branchLineage,
-                        List<SourceNode> sources,
-                        List<TargetNode> targets,
-                        List<DependentCallNode> dependentCalls,
-                        List<SemanticRule> children) {
-        void flattenInto(List<SemanticRule> destination) {
-            for (SemanticRule child : children) {
-                destination.add(child);
-                child.flattenInto(destination);
-            }
-        }
-    }
-
-    record SourceNode(String path,
-                      String type,
-                      String variable,
-                      String condition,
-                      boolean conditional) {
-    }
-
-    record TargetNode(String path,
-                      String variable,
-                      String transform,
-                      String constantValue,
-                      String createdType,
-                      List<TargetParameter> parameters,
-                      boolean conditional) {
-    }
-
-    record TargetParameter(String kind, String value) {
-    }
-
-    record DependentCallNode(String name, List<String> variables) {
     }
 }

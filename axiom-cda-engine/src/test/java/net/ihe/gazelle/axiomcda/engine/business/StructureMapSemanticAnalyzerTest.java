@@ -1,5 +1,7 @@
 package net.ihe.gazelle.axiomcda.engine.business;
 
+import net.ihe.gazelle.axiomcda.fhirmappings.api.SemanticMappingModel;
+import net.ihe.gazelle.axiomcda.fhirmappings.structuremap.StructureMapSemanticAnalyzer;
 import org.junit.jupiter.api.Test;
 
 import java.io.InputStream;
@@ -16,7 +18,7 @@ class StructureMapSemanticAnalyzerTest {
         String structureMap = readFixture("observation/clean-observation-structuremap.json");
 
         StructureMapSemanticAnalyzer analyzer = new StructureMapSemanticAnalyzer();
-        StructureMapSemanticAnalyzer.StructureMapSemanticModel model = analyzer.analyze(structureMap);
+        SemanticMappingModel model = analyzer.analyze(structureMap);
 
         BranchInferenceEngine engine = new BranchInferenceEngine();
         List<BranchInferenceEngine.BranchInference> inferences = engine.infer(model);

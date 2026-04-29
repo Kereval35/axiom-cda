@@ -2,12 +2,12 @@
 
 import React from "react";
 import Link from "next/link";
-import { compileFhirSushiAction, convertFhirAction, getFhirPackagePresetsAction } from "../../../actions/generation";
+import { compileFhirSushiAction, convertFhirAction, getFhirBuiltInMappingPresetsAction, getFhirPackagePresetsAction } from "../../../actions/generation";
 import { FshProfileModal } from "../../../components/FshProfileModal";
 import { useLanguage } from "../../../components/LanguageProvider";
 import { FshHighlighter } from "../../../components/FshHighlighter";
 import { JsonHighlighter } from "../../../components/JsonHighlighter";
-import { FhirPackagePreset, FshProfile, IRTemplate, SushiCompileResult } from "../../../types/generation";
+import { FhirBuiltInMappingPreset, FhirPackagePreset, FshProfile, IRTemplate, SushiCompileResult } from "../../../types/generation";
 import { loadFhirConversionSession } from "../../../utils/fhirConversionSession";
 import { formatFsh } from "../../../utils/fshFormatter";
 
@@ -15,9 +15,16 @@ export default function FhirConversionPage() {
     const { t } = useLanguage();
     const [selectedTemplate, setSelectedTemplate] = React.useState<IRTemplate | null>(null);
     const [selectedProfile, setSelectedProfile] = React.useState<FshProfile | null>(null);
+    const [useGenericMapping, setUseGenericMapping] = React.useState(true);
     const [structureMap, setStructureMap] = React.useState("");
     const [uploadedFileName, setUploadedFileName] = React.useState<string | null>(null);
     const [result, setResult] = React.useState<FshProfile | null>(null);
+    const [mappingRulesName, setMappingRulesName] = React.useState<string | null>(null);
+    const [mappingRulesFsh, setMappingRulesFsh] = React.useState<string | null>(null);
+    const [usedMappingRulesName, setUsedMappingRulesName] = React.useState<string | null>(null);
+    const [usedMappingRulesFsh, setUsedMappingRulesFsh] = React.useState<string | null>(null);
+    const [showMappingRulesModal, setShowMappingRulesModal] = React.useState(false);
+    const [showUsedMappingRulesModal, setShowUsedMappingRulesModal] = React.useState(false);
     const [diagnostics, setDiagnostics] = React.useState<string[]>([]);
     const [loading, setLoading] = React.useState(false);
     const [error, setError] = React.useState<string | null>(null);
@@ -27,8 +34,11 @@ export default function FhirConversionPage() {
     const [resultCopied, setResultCopied] = React.useState(false);
     const [dependencyPackageId, setDependencyPackageId] = React.useState("");
     const [dependencyVersion, setDependencyVersion] = React.useState("");
+    const [builtInMappingPresets, setBuiltInMappingPresets] = React.useState<FhirBuiltInMappingPreset[]>([]);
+    const [selectedBuiltInMappingId, setSelectedBuiltInMappingId] = React.useState("");
     const [packagePresets, setPackagePresets] = React.useState<FhirPackagePreset[]>([]);
     const [packagePresetsError, setPackagePresetsError] = React.useState<string | null>(null);
+    const [builtInMappingPresetsError, setBuiltInMappingPresetsError] = React.useState<string | null>(null);
     const [selectedPackagePresetKey, setSelectedPackagePresetKey] = React.useState("");
     const [sushiLoading, setSushiLoading] = React.useState(false);
     const [sushiResult, setSushiResult] = React.useState<SushiCompileResult | null>(null);
@@ -43,6 +53,20 @@ export default function FhirConversionPage() {
         }
         setSelectedTemplate(session.irTemplates.find((template) => template.id === session.selectedTemplateId) ?? null);
         setSelectedProfile(session.profiles.find((profile) => profile.name === session.selectedProfileName) ?? null);
+    }, []);
+
+    React.useEffect(() => {
+        getFhirBuiltInMappingPresetsAction()
+            .then((presets) => {
+                setBuiltInMappingPresets(presets);
+                setBuiltInMappingPresetsError(null);
+                const defaultPreset = presets.find((preset) => preset.defaultSelected) ?? presets[0];
+                setSelectedBuiltInMappingId(defaultPreset?.id ?? "");
+            })
+            .catch((err) => {
+                setBuiltInMappingPresets([]);
+                setBuiltInMappingPresetsError(err instanceof Error ? err.message : "Unable to load built-in mapping presets");
+            });
     }, []);
 
     React.useEffect(() => {
@@ -71,12 +95,18 @@ export default function FhirConversionPage() {
     };
 
     const generate = async () => {
-        if (!selectedTemplate || !selectedProfile || !structureMap) {
+        if (!selectedTemplate || !selectedProfile) {
             return;
         }
         setLoading(true);
         setError(null);
         setResult(null);
+        setMappingRulesName(null);
+        setMappingRulesFsh(null);
+        setUsedMappingRulesName(null);
+        setUsedMappingRulesFsh(null);
+        setShowMappingRulesModal(false);
+        setShowUsedMappingRulesModal(false);
         setResultFormatted(false);
         setResultCopied(false);
         setSushiResult(null);
@@ -87,10 +117,15 @@ export default function FhirConversionPage() {
             const response = await convertFhirAction({
                 sourceProfileName: selectedProfile.name,
                 template: selectedTemplate,
-                structureMap,
+                structureMap: useGenericMapping ? null : structureMap,
+                builtInMappingId: useGenericMapping ? selectedBuiltInMappingId || null : null,
             });
             setDiagnostics(response.diagnostics);
             setResult(response.profiles[0] ?? null);
+            setMappingRulesName(response.mappingRulesName);
+            setMappingRulesFsh(response.mappingRulesFsh);
+            setUsedMappingRulesName(response.usedMappingRulesName);
+            setUsedMappingRulesFsh(response.usedMappingRulesFsh);
         } catch (err) {
             setError(err instanceof Error ? err.message : "FHIR conversion failed");
         } finally {
@@ -275,21 +310,62 @@ export default function FhirConversionPage() {
                     </div>
                 </div>
 
-                <div className="space-y-2">
-                    <label className="text-sm font-medium text-zinc-900 dark:text-zinc-100">{t.dashboard.structureMapLabel}</label>
-                    <label className="flex h-44 cursor-pointer flex-col items-center justify-center rounded-xl border-2 border-dashed border-zinc-300 bg-zinc-50/50 text-center transition-all hover:bg-zinc-100 dark:border-zinc-700 dark:bg-zinc-900/50 dark:hover:bg-zinc-800/50">
-                        <input type="file" accept=".json,application/json" className="hidden" onChange={handleUpload} />
-                        <div className="text-sm font-medium text-zinc-800 dark:text-zinc-100">
-                            {uploadedFileName ?? t.dashboard.uploadStructureMap}
+                <div className="space-y-3">
+                    <label className="flex items-start gap-3 rounded-xl border border-zinc-300 bg-zinc-50/60 p-4 dark:border-zinc-700 dark:bg-zinc-900/40">
+                        <input
+                            type="checkbox"
+                            checked={useGenericMapping}
+                            onChange={(event) => setUseGenericMapping(event.target.checked)}
+                            className="mt-0.5 h-5 w-5 rounded border-zinc-300 bg-zinc-50 text-indigo-600 focus:ring-indigo-500/50 focus:ring-offset-0 accent-indigo-600 dark:border-zinc-700 dark:bg-zinc-900"
+                        />
+                        <div className="min-w-0">
+                            <div className="text-sm font-medium text-zinc-900 dark:text-zinc-100">{t.dashboard.useGenericMapping}</div>
+                            <div className="mt-1 text-xs text-zinc-500 dark:text-zinc-400">{t.dashboard.useGenericMappingHint}</div>
                         </div>
-                        <div className="mt-1 text-xs text-zinc-500 dark:text-zinc-400">{t.dashboard.acceptsJson}</div>
                     </label>
+
+                    {!useGenericMapping && (
+                        <div className="space-y-2">
+                            <label className="text-sm font-medium text-zinc-900 dark:text-zinc-100">{t.dashboard.structureMapLabel}</label>
+                            <label className="flex h-44 cursor-pointer flex-col items-center justify-center rounded-xl border-2 border-dashed border-zinc-300 bg-zinc-50/50 text-center transition-all hover:bg-zinc-100 dark:border-zinc-700 dark:bg-zinc-900/50 dark:hover:bg-zinc-800/50">
+                                <input type="file" accept=".json,application/json" className="hidden" onChange={handleUpload} />
+                                <div className="text-sm font-medium text-zinc-800 dark:text-zinc-100">
+                                    {uploadedFileName ?? t.dashboard.uploadStructureMap}
+                                </div>
+                                <div className="mt-1 text-xs text-zinc-500 dark:text-zinc-400">{t.dashboard.acceptsJson}</div>
+                            </label>
+                        </div>
+                    )}
+
+                    {useGenericMapping && (
+                        <div className="space-y-2">
+                            <label className="text-sm font-medium text-zinc-900 dark:text-zinc-100">{t.dashboard.builtInMappingLabel}</label>
+                            <select
+                                value={selectedBuiltInMappingId}
+                                onChange={(event) => setSelectedBuiltInMappingId(event.target.value)}
+                                className="w-full rounded-lg border border-zinc-300 bg-white px-3 py-2 text-sm text-zinc-900 outline-none transition-colors focus:border-cyan-500 dark:border-zinc-700 dark:bg-zinc-950 dark:text-zinc-100"
+                            >
+                                {builtInMappingPresets.map((preset) => (
+                                    <option key={preset.id} value={preset.id}>
+                                        {preset.label}
+                                    </option>
+                                ))}
+                            </select>
+                            {builtInMappingPresetsError ? (
+                                <div className="text-xs text-red-600 dark:text-red-400">{builtInMappingPresetsError}</div>
+                            ) : (
+                                <div className="text-xs text-zinc-500 dark:text-zinc-400">
+                                    {builtInMappingPresets.find((preset) => preset.id === selectedBuiltInMappingId)?.description ?? ""}
+                                </div>
+                            )}
+                        </div>
+                    )}
                 </div>
 
                 <div className="flex justify-end">
                     <button
                         onClick={generate}
-                        disabled={loading || !structureMap}
+                        disabled={loading || (useGenericMapping && !selectedBuiltInMappingId) || (!useGenericMapping && !structureMap)}
                         className="inline-flex items-center rounded-xl bg-gradient-to-r from-cyan-600 to-indigo-600 px-6 py-3 font-semibold text-white transition-all hover:shadow-[0_0_20px_rgba(8,145,178,0.35)] disabled:cursor-not-allowed disabled:opacity-50"
                     >
                         {loading ? t.dashboard.generatingFhir : t.dashboard.generateFhir}
@@ -318,7 +394,27 @@ export default function FhirConversionPage() {
 
             {result && (
                 <div className="glass rounded-2xl p-6">
-                    <h2 className="text-lg font-semibold text-zinc-900 dark:text-zinc-100">{t.dashboard.generatedFhirProfiles}</h2>
+                    <div className="flex flex-wrap items-start justify-between gap-4">
+                        <h2 className="text-lg font-semibold text-zinc-900 dark:text-zinc-100">{t.dashboard.generatedFhirProfiles}</h2>
+                        {mappingRulesFsh && mappingRulesName && (
+                            <div className="flex flex-wrap gap-2">
+                                {usedMappingRulesFsh && usedMappingRulesName && (
+                                    <button
+                                        onClick={() => setShowUsedMappingRulesModal(true)}
+                                        className="inline-flex items-center rounded-lg bg-cyan-600 px-4 py-2 text-sm font-medium text-white hover:bg-cyan-500"
+                                    >
+                                        {t.dashboard.viewUsedMappingRules}
+                                    </button>
+                                )}
+                                <button
+                                    onClick={() => setShowMappingRulesModal(true)}
+                                    className="inline-flex items-center rounded-lg bg-zinc-200 px-4 py-2 text-sm font-medium text-zinc-800 hover:bg-zinc-300 dark:bg-zinc-800 dark:text-zinc-100 dark:hover:bg-zinc-700"
+                                >
+                                    {t.dashboard.viewMappingRules}
+                                </button>
+                            </div>
+                        )}
+                    </div>
                     <div className="mt-4 rounded-xl border border-zinc-300 bg-zinc-50/70 p-4 dark:border-zinc-700 dark:bg-zinc-900/50">
                         <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
                             <div className="font-mono text-sm font-semibold text-zinc-900 dark:text-zinc-100">{result.name}.fsh</div>
@@ -546,6 +642,48 @@ export default function FhirConversionPage() {
                     titleOverride={viewerMode === "ir" ? `${selectedTemplate.id}.ir.json` : `${selectedProfile.name}.fsh`}
                     fileNameOverride={viewerMode === "ir" ? `${selectedTemplate.id}.ir.json` : `${selectedProfile.name}.fsh`}
                     onClose={() => setViewerMode(null)}
+                />
+            )}
+
+            {showMappingRulesModal && mappingRulesFsh && mappingRulesName && (
+                <FshProfileModal
+                    profile={{
+                        name: mappingRulesName,
+                        content: mappingRulesFsh,
+                        templateId: null,
+                        rootCdaType: selectedTemplate.rootCdaType,
+                        templateOrigin: "PROJECT",
+                        ownershipStatus: "PROJECT",
+                        selectionReason: "DIRECT",
+                        fhirTransformEligible: false,
+                        fhirTransformKind: null,
+                        fhirTransformNotice: null,
+                    }}
+                    contentOverride={mappingRulesFsh}
+                    titleOverride={`${mappingRulesName}.fsh`}
+                    fileNameOverride={`${mappingRulesName}.fsh`}
+                    onClose={() => setShowMappingRulesModal(false)}
+                />
+            )}
+
+            {showUsedMappingRulesModal && usedMappingRulesFsh && usedMappingRulesName && (
+                <FshProfileModal
+                    profile={{
+                        name: usedMappingRulesName,
+                        content: usedMappingRulesFsh,
+                        templateId: null,
+                        rootCdaType: selectedTemplate.rootCdaType,
+                        templateOrigin: "PROJECT",
+                        ownershipStatus: "PROJECT",
+                        selectionReason: "DIRECT",
+                        fhirTransformEligible: false,
+                        fhirTransformKind: null,
+                        fhirTransformNotice: null,
+                    }}
+                    contentOverride={usedMappingRulesFsh}
+                    titleOverride={`${usedMappingRulesName}.fsh`}
+                    fileNameOverride={`${usedMappingRulesName}.fsh`}
+                    onClose={() => setShowUsedMappingRulesModal(false)}
                 />
             )}
         </div>

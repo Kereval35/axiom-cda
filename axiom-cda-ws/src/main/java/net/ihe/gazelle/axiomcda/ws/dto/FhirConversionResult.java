@@ -4,7 +4,11 @@ import java.util.List;
 
 public record FhirConversionResult(
         List<FshProfile> profiles,
-        List<String> diagnostics
+        List<String> diagnostics,
+        String mappingRulesName,
+        String mappingRulesFsh,
+        String usedMappingRulesName,
+        String usedMappingRulesFsh
 ) {
     public FhirConversionResult {
         if (profiles == null) {

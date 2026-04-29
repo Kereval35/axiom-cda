@@ -1,12 +1,18 @@
 package net.ihe.gazelle.axiomcda.engine.business;
 
+import net.ihe.gazelle.axiomcda.fhirmappings.api.DependentCallNode;
+import net.ihe.gazelle.axiomcda.fhirmappings.api.SemanticMappingModel;
+import net.ihe.gazelle.axiomcda.fhirmappings.api.SemanticRule;
+import net.ihe.gazelle.axiomcda.fhirmappings.api.SourceNode;
+import net.ihe.gazelle.axiomcda.fhirmappings.api.TargetNode;
+
 import java.util.*;
 
 class BranchInferenceEngine {
 
-    List<BranchInference> infer(StructureMapSemanticAnalyzer.StructureMapSemanticModel model) {
+    List<BranchInference> infer(SemanticMappingModel model) {
         Map<String, BranchAccumulator> accumulators = new LinkedHashMap<>();
-        for (StructureMapSemanticAnalyzer.SemanticRule rule : model.allRules()) {
+        for (SemanticRule rule : model.allRules()) {
             collectRule(rule, accumulators, rootSegment(rule.primarySourcePath()));
         }
         List<BranchInference> result = new ArrayList<>();
@@ -17,7 +23,7 @@ class BranchInferenceEngine {
         return result;
     }
 
-    private void collectRule(StructureMapSemanticAnalyzer.SemanticRule rule,
+    private void collectRule(SemanticRule rule,
                              Map<String, BranchAccumulator> accumulators,
                              String inheritedBranch) {
         String branch = firstNonBlank(
@@ -30,7 +36,7 @@ class BranchInferenceEngine {
         }
         BranchAccumulator accumulator = accumulators.computeIfAbsent(branch, BranchAccumulator::new);
         accumulator.record(rule);
-        for (StructureMapSemanticAnalyzer.SemanticRule child : rule.children()) {
+        for (SemanticRule child : rule.children()) {
             collectRule(child, accumulators, branch);
         }
     }
@@ -71,11 +77,11 @@ class BranchInferenceEngine {
             this.sourceBranch = sourceBranch;
         }
 
-        void record(StructureMapSemanticAnalyzer.SemanticRule rule) {
+        void record(SemanticRule rule) {
             if (rule.conditional()) {
                 anyConditional = true;
             }
-            for (StructureMapSemanticAnalyzer.SourceNode source : rule.sources()) {
+            for (SourceNode source : rule.sources()) {
                 if (source.path() != null && !source.path().isBlank()) {
                     sourcePaths.add(source.path());
                 }
@@ -83,7 +89,7 @@ class BranchInferenceEngine {
                     conditions.add(source.condition());
                 }
             }
-            for (StructureMapSemanticAnalyzer.TargetNode target : rule.targets()) {
+            for (TargetNode target : rule.targets()) {
                 if (target.transform() != null && ("uuid".equals(target.transform()) || "append".equals(target.transform()))) {
                     runtimeOnlyMechanics = true;
                 }
@@ -104,11 +110,11 @@ class BranchInferenceEngine {
                             target.conditional(),
                             target.transform(),
                             rule.groupName(),
-                            List.copyOf(rule.dependentCalls().stream().map(StructureMapSemanticAnalyzer.DependentCallNode::name).toList())
+                            List.copyOf(rule.dependentCalls().stream().map(DependentCallNode::name).toList())
                     ));
                 }
             }
-            for (StructureMapSemanticAnalyzer.DependentCallNode dependentCall : rule.dependentCalls()) {
+            for (DependentCallNode dependentCall : rule.dependentCalls()) {
                 dependentGroups.add(dependentCall.name());
             }
         }
@@ -144,8 +150,8 @@ class BranchInferenceEngine {
             );
         }
 
-        private String primarySourceType(List<StructureMapSemanticAnalyzer.SourceNode> sources) {
-            for (StructureMapSemanticAnalyzer.SourceNode source : sources) {
+        private String primarySourceType(List<SourceNode> sources) {
+            for (SourceNode source : sources) {
                 if (source.type() != null && !source.type().isBlank()) {
                     return source.type();
                 }

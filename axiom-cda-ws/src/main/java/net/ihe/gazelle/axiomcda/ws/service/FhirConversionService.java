@@ -4,6 +4,11 @@ import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.ws.rs.BadRequestException;
 import net.ihe.gazelle.axiomcda.engine.business.ObservationFhirConversionResult;
 import net.ihe.gazelle.axiomcda.engine.business.ObservationIrToFhirFshGenerator;
+import net.ihe.gazelle.axiomcda.fhirmappings.api.MappingModelProvider;
+import net.ihe.gazelle.axiomcda.fhirmappings.api.SemanticMappingModel;
+import net.ihe.gazelle.axiomcda.fhirmappings.builtin.BuiltInMappingModelProvider;
+import net.ihe.gazelle.axiomcda.fhirmappings.structuremap.StructureMapUploadModelProvider;
+import net.ihe.gazelle.axiomcda.fhirmappings.trace.SemanticMappingFshTraceRenderer;
 import net.ihe.gazelle.axiomcda.ws.dto.FhirConversionRequest;
 import net.ihe.gazelle.axiomcda.ws.dto.FhirConversionResult;
 import net.ihe.gazelle.axiomcda.ws.dto.FshProfile;
@@ -16,7 +21,9 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.time.Duration;
 import java.util.ArrayList;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Stream;
 
@@ -26,20 +33,39 @@ public class FhirConversionService {
     private static final Duration SUSHI_TIMEOUT = Duration.ofSeconds(120);
     private static final String BASE_OBSERVATION_PARENT = "Observation";
     private static final String BASE_OBSERVATION_URL = "http://hl7.org/fhir/StructureDefinition/Observation";
+    private static final String R4_CORE_PACKAGE_ID = "hl7.fhir.r4.core";
+    private static final String R4_CORE_VERSION = "4.0.1";
 
     public FhirConversionResult convertObservation(FhirConversionRequest request) throws Exception {
         if (request == null || request.template() == null) {
             throw new IllegalArgumentException("A selected IR template is required for FHIR conversion");
         }
-        if (request.structureMap() == null || request.structureMap().isBlank()) {
-            throw new IllegalArgumentException("A StructureMap JSON upload is required for FHIR conversion");
-        }
 
+        MappingModelProvider provider = request.structureMap() == null || request.structureMap().isBlank()
+                ? new BuiltInMappingModelProvider()
+                : new StructureMapUploadModelProvider(request.structureMap());
+        SemanticMappingModel mappingModel = provider instanceof BuiltInMappingModelProvider builtInProvider
+                ? builtInProvider.resolve(request.template().rootCdaType(), request.builtInMappingId())
+                : provider.resolve(request.template().rootCdaType());
         ObservationIrToFhirFshGenerator generator = new ObservationIrToFhirFshGenerator();
         ObservationFhirConversionResult conversion = generator.generate(
                 request.template(),
                 request.sourceProfileName(),
-                request.structureMap()
+                mappingModel
+        );
+        String mappingRulesName = conversion.profileName() + "MappingRules";
+        String mappingRulesFsh = new SemanticMappingFshTraceRenderer().render(
+                mappingRulesName,
+                request.template().rootCdaType(),
+                resolveMappingSourceDescription(request),
+                mappingModel
+        );
+        String usedMappingRulesName = conversion.profileName() + "UsedMappingRules";
+        String usedMappingRulesFsh = new SemanticMappingFshTraceRenderer().render(
+                usedMappingRulesName,
+                request.template().rootCdaType(),
+                resolveMappingSourceDescription(request),
+                conversion.usedMappingModel()
         );
 
         return new FhirConversionResult(
@@ -55,8 +81,25 @@ public class FhirConversionService {
                         null,
                         null
                 )),
-                conversion.diagnostics()
+                conversion.diagnostics(),
+                mappingRulesName,
+                mappingRulesFsh,
+                usedMappingRulesName,
+                usedMappingRulesFsh
         );
+    }
+
+    private String resolveMappingSourceDescription(FhirConversionRequest request) {
+        if (request == null) {
+            return "unknown";
+        }
+        if (request.structureMap() != null && !request.structureMap().isBlank()) {
+            return "uploaded StructureMap override";
+        }
+        if (request.builtInMappingId() != null && !request.builtInMappingId().isBlank()) {
+            return "built-in:" + request.builtInMappingId().trim();
+        }
+        return "built-in:default";
     }
 
     public SushiCompileResult compileWithSushi(SushiCompileRequest request) throws Exception {
@@ -130,7 +173,7 @@ public class FhirConversionService {
         }
     }
 
-    private String buildSushiConfig(SushiCompileRequest request, boolean baseObservationParent) {
+    String buildSushiConfig(SushiCompileRequest request, boolean baseObservationParent) {
         StringBuilder builder = new StringBuilder();
         builder.append("id: axiom-cda-fhir-generated\n");
         builder.append("canonical: http://example.org/axiom-cda/fhir\n");
@@ -138,15 +181,23 @@ public class FhirConversionService {
         builder.append("title: \"Axiom CDA FHIR Generated\"\n");
         builder.append("status: draft\n");
         builder.append("version: 0.1.0\n");
-        builder.append("fhirVersion: 4.0.1\n");
+        builder.append("fhirVersion: ").append(R4_CORE_VERSION).append("\n");
         builder.append("FSHOnly: true\n");
         builder.append("dependencies:\n");
-        builder.append("  hl7.fhir.r4.core: 4.0.1\n");
-        if (!baseObservationParent) {
-            builder.append("  ").append(cleanYamlScalar(request.dependencyPackageId())).append(": ")
-                    .append(cleanYamlScalar(request.dependencyVersion())).append("\n");
+        for (Map.Entry<String, String> dependency : resolveSushiDependencies(request, baseObservationParent).entrySet()) {
+            builder.append("  ").append(cleanYamlScalar(dependency.getKey())).append(": ")
+                    .append(cleanYamlScalar(dependency.getValue())).append("\n");
         }
         return builder.toString();
+    }
+
+    Map<String, String> resolveSushiDependencies(SushiCompileRequest request, boolean baseObservationParent) {
+        Map<String, String> dependencies = new LinkedHashMap<>();
+        dependencies.put(R4_CORE_PACKAGE_ID, R4_CORE_VERSION);
+        if (!baseObservationParent && !isBlank(request.dependencyPackageId()) && !isBlank(request.dependencyVersion())) {
+            dependencies.put(request.dependencyPackageId().trim(), request.dependencyVersion().trim());
+        }
+        return dependencies;
     }
 
     private ProcessResult runSushi(Path projectDir) throws IOException {

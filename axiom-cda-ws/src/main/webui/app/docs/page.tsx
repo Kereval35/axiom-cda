@@ -13,6 +13,7 @@ export default function DocsPage() {
         { id: "architecture", title: t.docs.architecture.title },
         { id: "bbr-to-ir", title: t.docs.bbrToIr.title },
         { id: "ir-to-fsh", title: t.docs.irToFsh.title },
+        { id: "fhir-mapping-library", title: "FHIR Mapping Library" },
         { id: "usage", title: t.docs.usage.title },
         { id: "limitations", title: t.docs.limitations.title },
         { id: "api", title: t.docs.api.title },
@@ -268,23 +269,10 @@ export default function DocsPage() {
                                 <h3 className="!text-[#18181b] dark:!text-zinc-100 text-xl font-semibold mt-8 mb-4">
                                     Ownership Filtering
                                 </h3>
-                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 my-4">
-                                    <div className="border border-zinc-300 dark:border-zinc-700 rounded-lg p-4">
-                                        <h4 className="font-semibold !text-[#18181b] dark:!text-zinc-100 mb-2">
-                                            Project-owned templates
-                                        </h4>
-                                        <p className="text-sm !text-zinc-700 dark:!text-zinc-300">
-                                            When <code>projectPlusRequiredIncludes</code> is enabled, the transformer first keeps every selected template that is considered project-owned. Ownership uses project OID roots, TM base roots, project prefix, scenario references, and configured owned repository prefixes.
-                                        </p>
-                                    </div>
-                                    <div className="border border-zinc-300 dark:border-zinc-700 rounded-lg p-4">
-                                        <h4 className="font-semibold !text-[#18181b] dark:!text-zinc-100 mb-2">
-                                            Required includes
-                                        </h4>
-                                        <p className="text-sm !text-zinc-700 dark:!text-zinc-300">
-                                            After ownership filtering, the engine expands every <code>&lt;include ref="..."&gt;</code>. Included templates that are not owned are still generated and tagged as <code>REQUIRED_INCLUDE</code>, while directly selected non-owned templates keep the <code>OTHER</code> origin.
-                                        </p>
-                                    </div>
+                                <div className="border border-zinc-300 dark:border-zinc-700 rounded-lg p-4 my-4">
+                                    <p className="text-sm !text-zinc-700 dark:!text-zinc-300">
+                                        When <code>projectPlusRequiredIncludes</code> is enabled, selection becomes repository-aware. The engine resolves ownership from project OID roots, TM base roots, project prefixes, scenario references, and configured owned repository prefixes, then the WS/UI only expose the project-related profiles. This keeps the visible result focused on what belongs to the project while still letting the generation pipeline resolve technical dependencies internally.
+                                    </p>
                                 </div>
                                 <div className="bg-amber-500/5 border border-amber-500/20 rounded-lg p-4">
                                     <p className="!text-zinc-700 dark:!text-zinc-300 mb-3">
@@ -538,24 +526,154 @@ Expression: "recordTarget.patientRole.id.count() >= 1"`}
                                 </div>
 
                                 <h3 className="!text-[#18181b] dark:!text-zinc-100 text-xl font-semibold mt-8 mb-4">
-                                    FHIR Observation Conversion
+                                    FHIR FSH Transformation
                                 </h3>
                                 <div className="space-y-4">
                                     <div className="border border-zinc-300 dark:border-zinc-700 rounded-lg p-4">
-                                        <p className="!text-zinc-700 dark:!text-zinc-300 text-sm">
-                                            Observation-root CDA IR templates are surfaced as FHIR-convertible profiles in the UI. The conversion flow accepts a StructureMap JSON upload, generates FHIR FSH from the selected IR template, and can compile the result with SUSHI against a chosen dependency package.
+                                        <p className="!text-zinc-700 dark:!text-zinc-300 text-sm mb-3">
+                                            axiom-cda now prototypes a true CDA to FHIR rule-mapping pipeline on top of the CDA IR. The flow starts from the BBR, produces a normalized CDA Intermediate Representation, applies a dedicated mapping rule set, projects a FHIR-oriented intermediate view, and finally emits FHIR Shorthand as the concrete output.
                                         </p>
+                                        <p className="!text-zinc-700 dark:!text-zinc-300 text-sm">
+                                            In this V1, the proof of concept focuses on Observation-root templates. Users can transform those profiles with the built-in pure HL7 R4 Observation mapping, switch to the bundled eHDSI Laboratory mapping rules, or provide their own mapping logic through an uploaded StructureMap JSON override. The objective is to establish a generic community-extensible foundation for CDA to FHIR transformation rules, while keeping project-specific mappings possible when needed.
+                                        </p>
+                                    </div>
+                                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                                        <div className="border border-zinc-300 dark:border-zinc-700 rounded-lg p-4">
+                                            <h4 className="font-semibold !text-[#18181b] dark:!text-zinc-100 mb-2">
+                                                Generic HL7 R4
+                                            </h4>
+                                            <p className="text-sm !text-zinc-700 dark:!text-zinc-300">
+                                                The default built-in preset targets base HL7 R4 Observation so the generated FHIR FSH can stay aligned with the pure specification when no IG-specific parent is required.
+                                            </p>
+                                        </div>
+                                        <div className="border border-zinc-300 dark:border-zinc-700 rounded-lg p-4">
+                                            <h4 className="font-semibold !text-[#18181b] dark:!text-zinc-100 mb-2">
+                                                eHDSI Laboratory
+                                            </h4>
+                                            <p className="text-sm !text-zinc-700 dark:!text-zinc-300">
+                                                A second built-in preset keeps the existing eHDSI laboratory specialization available out of the box for projects that need the dedicated laboratory Observation parent profile.
+                                            </p>
+                                        </div>
+                                        <div className="border border-zinc-300 dark:border-zinc-700 rounded-lg p-4">
+                                            <h4 className="font-semibold !text-[#18181b] dark:!text-zinc-100 mb-2">
+                                                Custom StructureMap
+                                            </h4>
+                                            <p className="text-sm !text-zinc-700 dark:!text-zinc-300">
+                                                The upload override remains available whenever a project wants to provide its own mapping semantics instead of relying on the shipped generic presets.
+                                            </p>
+                                        </div>
                                     </div>
                                     <div className="bg-zinc-50 dark:bg-zinc-900 border border-zinc-300 dark:border-zinc-700 rounded-lg p-4 overflow-x-auto">
                                         <pre className="text-sm !text-zinc-700 dark:!text-zinc-300 whitespace-pre-wrap">
-{`1. Generate CDA FSH and inspect IR origins in the dashboard
+{`1. Generate CDA FSH and inspect the selected IR template in the dashboard
 2. Select an Observation profile marked as FHIR-convertible
-3. Upload the StructureMap JSON
-4. Generate FHIR FSH from the Observation IR
-5. Optionally compile the generated FSH with SUSHI`}
+3. Choose a built-in mapping preset (Generic HL7 R4 or eHDSI Laboratory), or upload a StructureMap override
+4. Apply the mapping rules to project the Observation CDA IR into FHIR-oriented FSH
+5. Optionally compile the generated FHIR FSH with SUSHI`}
                                         </pre>
                                     </div>
+                                    <div className="bg-cyan-500/5 border border-cyan-500/20 rounded-lg p-4">
+                                        <p className="!text-zinc-700 dark:!text-zinc-300 text-sm">
+                                            This is intentionally positioned as a PoC for generalized CDA to FHIR transformation. Observation is the first supported root because it provides a realistic business case and a manageable validation surface, while the long-term aim is to let the community contribute additional rule packs and extend the approach to more CDA structures.
+                                        </p>
+                                    </div>
                                 </div>
+                            </div>
+                        </section>
+
+                        <section id="fhir-mapping-library" className="glass rounded-2xl p-8 border border-zinc-200 dark:border-zinc-800">
+                            <h2 className="text-3xl font-bold !text-[#18181b] dark:!text-zinc-100 mb-4">
+                                FHIR Mapping Library
+                            </h2>
+                            <div className="prose prose-zinc dark:prose-invert max-w-none">
+                                <p className="!text-zinc-700 dark:!text-zinc-300 text-lg leading-relaxed">
+                                    The FHIR conversion PoC is backed by a dedicated built-in mapping library. Instead of hardwiring a single uploaded <code>StructureMap</code> into the conversion path, axiom-cda now exposes a reusable mapping catalog that can serve shipped presets, keep custom override support, and evolve toward community-contributed CDA to FHIR rule packs.
+                                </p>
+
+                                <h3 className="!text-[#18181b] dark:!text-zinc-100 text-xl font-semibold mt-8 mb-4">
+                                    How the mechanism works
+                                </h3>
+                                <div className="bg-zinc-100/50 dark:bg-zinc-800/50 rounded-lg p-4 my-4">
+                                    <ol className="!text-zinc-700 dark:!text-zinc-300 space-y-2">
+                                        <li><strong>BBR to CDA IR:</strong> The normal generation pipeline selects templates and produces a normalized CDA IR.</li>
+                                        <li><strong>Mapping pack resolution:</strong> The FHIR conversion flow resolves either a built-in mapping preset or an uploaded StructureMap override.</li>
+                                        <li><strong>Semantic model loading:</strong> Built-in packs and uploaded StructureMaps are both transformed into the same internal semantic mapping model.</li>
+                                        <li><strong>FHIR-oriented projection:</strong> The Observation interpreter applies those rules to the CDA IR and computes parent, cardinalities, bindings, fixed values, and diagnostics.</li>
+                                        <li><strong>FHIR FSH emission:</strong> The projection is rendered as FHIR Shorthand, then can optionally be compiled with SUSHI.</li>
+                                    </ol>
+                                </div>
+
+                                <h3 className="!text-[#18181b] dark:!text-zinc-100 text-xl font-semibold mt-8 mb-4">
+                                    Built-in pack structure
+                                </h3>
+                                <p className="!text-zinc-700 dark:!text-zinc-300">
+                                    The built-in catalog lives in the dedicated <code>axiom-cda-fhir-mappings</code> module. Its entrypoint is an index file that declares each available preset with an id, label, family, CDA root type, and resource path.
+                                </p>
+                                <div className="bg-zinc-50 dark:bg-zinc-900 border border-zinc-300 dark:border-zinc-700 rounded-lg p-4 overflow-x-auto my-4">
+                                    <pre className="text-sm !text-zinc-700 dark:!text-zinc-300 whitespace-pre-wrap">
+{`# axiom-cda-fhir-mappings/src/main/resources/fhir-mappings/index.yaml
+packs:
+  - id: observation-hl7-core-v1
+    label: Generic HL7 Observation
+    family: hl7-core
+    rootCdaType: Observation
+    resource: fhir-mappings/observation/observation-core-v1.yaml
+
+  - id: observation-ehdsi-lab-v1
+    label: eHDSI Laboratory Observation
+    family: ehdsi-laboratory
+    rootCdaType: Observation
+    resource: fhir-mappings/observation/observation-ehdsi-lab-v1.yaml`}
+                                    </pre>
+                                </div>
+                                <p className="!text-zinc-700 dark:!text-zinc-300">
+                                    The current implementation keeps those semantics in separate resources. <code>observation-core-v1.yaml</code> is now the HL7-core Observation mapping resource, while <code>observation-ehdsi-lab-v1.yaml</code> holds the dedicated eHDSI laboratory specialization. This keeps the file naming aligned with the actual semantics and makes future contributions easier to reason about.
+                                </p>
+
+                                <h3 className="!text-[#18181b] dark:!text-zinc-100 text-xl font-semibold mt-8 mb-4">
+                                    Why YAML and a shared semantic model
+                                </h3>
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 my-4">
+                                    <div className="border border-zinc-300 dark:border-zinc-700 rounded-lg p-4">
+                                        <h4 className="font-semibold !text-[#18181b] dark:!text-zinc-100 mb-2">
+                                            Human-reviewable rules
+                                        </h4>
+                                        <p className="text-sm !text-zinc-700 dark:!text-zinc-300">
+                                            YAML resources are easy to diff, review, version, and discuss. That matters for interoperability work where the mapping semantics themselves are part of the artifact.
+                                        </p>
+                                    </div>
+                                    <div className="border border-zinc-300 dark:border-zinc-700 rounded-lg p-4">
+                                        <h4 className="font-semibold !text-[#18181b] dark:!text-zinc-100 mb-2">
+                                            One runtime model
+                                        </h4>
+                                        <p className="text-sm !text-zinc-700 dark:!text-zinc-300">
+                                            Both uploaded StructureMaps and built-in presets converge to the same semantic model, which keeps the downstream interpreter and diagnostics path shared instead of splitting behavior by source format.
+                                        </p>
+                                    </div>
+                                </div>
+
+                                <h3 className="!text-[#18181b] dark:!text-zinc-100 text-xl font-semibold mt-8 mb-4">
+                                    Collaboration model
+                                </h3>
+                                <p className="!text-zinc-700 dark:!text-zinc-300 mb-4">
+                                    The goal is to make the mapping library extendable by the community, not to freeze the PoC around one laboratory-specific transform. A new contribution should ideally add or refine a built-in pack rather than duplicating engine code.
+                                </p>
+                                <div className="bg-emerald-500/5 border border-emerald-500/20 rounded-lg p-4">
+                                    <ol className="!text-zinc-700 dark:!text-zinc-300 space-y-2">
+                                        <li>Add or update a semantic YAML resource under <code>axiom-cda-fhir-mappings/src/main/resources/fhir-mappings/</code>.</li>
+                                        <li>Register the pack in <code>index.yaml</code> with its id, label, family, root CDA type, and resource path.</li>
+                                        <li>Keep the mapping generic when possible, and layer specialization as a separate pack instead of hardcoding business semantics into the base engine.</li>
+                                        <li>Add parity or regression tests so the intended parent, constraints, and branch mappings are explicit.</li>
+                                        <li>Use the uploaded StructureMap path only when the project genuinely needs a local override that should not yet become a shared preset.</li>
+                                    </ol>
+                                </div>
+
+                                <h3 className="!text-[#18181b] dark:!text-zinc-100 text-xl font-semibold mt-8 mb-4">
+                                    Current V1 scope
+                                </h3>
+                                <p className="!text-zinc-700 dark:!text-zinc-300">
+                                    In V1, this mechanism is intentionally prototyped on <strong>Observation</strong>. That gives us a realistic CDA to FHIR use case, a manageable validation surface, and a concrete place to test generic HL7 mapping, eHDSI specialization, StructureMap override compatibility, and SUSHI compilation. The long-term target is broader: make this mapping-library approach the foundation for community-maintained CDA to FHIR rule packs across additional CDA roots.
+                                </p>
                             </div>
                         </section>
 
@@ -575,7 +693,7 @@ Expression: "recordTarget.patientRole.id.count() >= 1"`}
                                             <li><strong>Configure Options:</strong> Select SUSHI layout, enable IR/logs output, and activate project ownership filtering when needed</li>
                                             <li><strong>Optional YAML:</strong> Provide custom generation configuration</li>
                                             <li><strong>Generate:</strong> Click &quot;Generate FSH Package&quot; button</li>
-                                            <li><strong>Review Origins:</strong> Inspect PROJECT / REQUIRED_INCLUDE / OTHER tags in the IR and profile viewers</li>
+                                            <li><strong>Review Outputs:</strong> Inspect the generated profiles, IR templates, and FHIR-convertible Observation candidates</li>
                                             <li><strong>Download:</strong> Get your FSH profiles as a ZIP file</li>
                                         </ol>
                                     </div>
@@ -751,15 +869,25 @@ emitInvariants: true`}
                                 </h3>
                                 <div className="bg-zinc-50 dark:bg-zinc-900 border border-zinc-300 dark:border-zinc-700 rounded-lg p-4">
                                     <p className="!text-zinc-700 dark:!text-zinc-300 mb-4">
-                                        Generate FHIR FSH from a selected Observation IR template and an uploaded StructureMap JSON.
+                                        Generate FHIR FSH from a selected Observation IR template using a built-in mapping preset or a custom StructureMap JSON override.
                                     </p>
                                     <pre className="text-sm !text-zinc-700 dark:!text-zinc-300 bg-zinc-100 dark:bg-zinc-800 rounded p-3 overflow-x-auto">
 {`{
   "template": { "...": "selected IR template" },
   "sourceProfileName": "FRSimpleObservation",
-  "structureMap": "{ ... JSON ... }"
+  "builtInMappingId": "observation-hl7-core-v1",
+  "structureMap": null
 }`}
                                     </pre>
+                                </div>
+
+                                <h3 className="!text-[#18181b] dark:!text-zinc-100 text-xl font-semibold mt-8 mb-4">
+                                    GET /api/convert/fhir/mapping-presets
+                                </h3>
+                                <div className="bg-zinc-50 dark:bg-zinc-900 border border-zinc-300 dark:border-zinc-700 rounded-lg p-4">
+                                    <p className="!text-zinc-700 dark:!text-zinc-300 mb-4">
+                                        List the built-in FHIR mapping presets currently shipped by the application, such as the generic HL7 R4 Observation preset and the eHDSI laboratory specialization.
+                                    </p>
                                 </div>
 
                                 <h3 className="!text-[#18181b] dark:!text-zinc-100 text-xl font-semibold mt-8 mb-4">

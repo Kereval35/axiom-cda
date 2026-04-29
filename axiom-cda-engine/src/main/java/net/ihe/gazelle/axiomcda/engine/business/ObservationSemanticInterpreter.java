@@ -2,6 +2,10 @@ package net.ihe.gazelle.axiomcda.engine.business;
 
 import net.ihe.gazelle.axiomcda.api.ir.*;
 import net.ihe.gazelle.axiomcda.engine.util.FshUtil;
+import net.ihe.gazelle.axiomcda.fhirmappings.api.SemanticMappingModel;
+import net.ihe.gazelle.axiomcda.fhirmappings.api.SemanticRule;
+import net.ihe.gazelle.axiomcda.fhirmappings.api.SourceNode;
+import net.ihe.gazelle.axiomcda.fhirmappings.api.TargetNode;
 
 import java.util.*;
 
@@ -20,17 +24,19 @@ class ObservationSemanticInterpreter {
     );
 
     ObservationProjectionResult interpret(IRTemplate template,
-                                          StructureMapSemanticAnalyzer.StructureMapSemanticModel model,
+                                          SemanticMappingModel model,
                                           List<BranchInferenceEngine.BranchInference> inferences) {
         String parent = resolveParent(model);
         LinkedHashSet<ProjectionCandidate> candidates = new LinkedHashSet<>();
         List<ProjectionDiagnostic> diagnostics = new ArrayList<>();
+        Set<SemanticRule> usedRules = Collections.newSetFromMap(new IdentityHashMap<>());
         Map<String, BranchInferenceEngine.BranchInference> inferenceByBranch = new LinkedHashMap<>();
         for (BranchInferenceEngine.BranchInference inference : inferences) {
             inferenceByBranch.put(inference.sourceBranch(), inference);
         }
 
-        seedGlobalConstants(model, candidates);
+        seedGlobalConstants(model, candidates, usedRules);
+        markParentRuleUsed(model, usedRules, parent);
 
         Set<String> reportedDiagnosticKeys = new HashSet<>();
         for (IRElementConstraint element : template.elements()) {
@@ -42,22 +48,56 @@ class ObservationSemanticInterpreter {
             BranchInferenceEngine.BranchInference inference = inferenceByBranch.get(root);
             switch (root) {
                 case "id" -> {
+                    markRulesUsedForBranch(model, usedRules, "id", Set.of("identifier"), element);
                     if (!emitDirectBranch(element, "identifier", inference, candidates, diagnostics, reportedDiagnosticKeys, false)) {
                         recordDiagnostic(root, path, "unsupported_branch", "No safe FHIR path mapping found for CDA branch '" + root + "'.", BranchInferenceEngine.BranchConfidence.UNSAFE, diagnostics, reportedDiagnosticKeys);
                     }
                 }
-                case "code" -> emitCodeBranch(element, inference, candidates, diagnostics, reportedDiagnosticKeys);
-                case "statusCode" -> emitStatusBranch(element, inference, candidates, diagnostics, reportedDiagnosticKeys);
-                case "effectiveTime" -> emitEffectiveBranch(element, inference, candidates, diagnostics, reportedDiagnosticKeys);
+                case "code" -> {
+                    markRulesUsedForBranch(model, usedRules, "code", Set.of("code"), element);
+                    emitCodeBranch(element, inference, candidates, diagnostics, reportedDiagnosticKeys);
+                }
+                case "statusCode" -> {
+                    markRulesUsedForBranch(model, usedRules, "statusCode", Set.of("status"), element);
+                    emitStatusBranch(element, inference, candidates, diagnostics, reportedDiagnosticKeys);
+                }
+                case "effectiveTime" -> {
+                    markRulesUsedForBranch(model, usedRules, "effectiveTime", Set.of("effective"), element);
+                    emitEffectiveBranch(element, inference, candidates, diagnostics, reportedDiagnosticKeys);
+                }
                 case "text" -> emitTextBranch(element, candidates);
-                case "value" -> emitValueBranch(element, inference, candidates, diagnostics, reportedDiagnosticKeys);
-                case "interpretationCode" -> emitCodeableConceptBranch(element, inference, "interpretation", candidates, diagnostics, reportedDiagnosticKeys);
-                case "methodCode" -> emitMethodBranch(element, inference, candidates, diagnostics, reportedDiagnosticKeys);
-                case "participant" -> emitReferenceBranch(element, inference, "performer", candidates, diagnostics, reportedDiagnosticKeys);
-                case "performer" -> emitPerformerBranch(element, inference, inferenceByBranch.get("participant"), candidates, diagnostics, reportedDiagnosticKeys);
-                case "entryRelationship" -> emitEntryRelationshipBranch(element, inference, candidates, diagnostics, reportedDiagnosticKeys);
-                case "reference" -> emitReferenceLinkBranch(element, inference, candidates, diagnostics, reportedDiagnosticKeys);
-                case "referenceRange" -> emitReferenceRangeBranch(element, inference, candidates, diagnostics, reportedDiagnosticKeys);
+                case "value" -> {
+                    markRulesUsedForBranch(model, usedRules, "value", Set.of("value"), element);
+                    emitValueBranch(element, inference, candidates, diagnostics, reportedDiagnosticKeys);
+                }
+                case "interpretationCode" -> {
+                    markRulesUsedForBranch(model, usedRules, "interpretationCode", Set.of("interpretation"), element);
+                    emitCodeableConceptBranch(element, inference, "interpretation", candidates, diagnostics, reportedDiagnosticKeys);
+                }
+                case "methodCode" -> {
+                    markRulesUsedForBranch(model, usedRules, "methodCode", Set.of("method"), element);
+                    emitMethodBranch(element, inference, candidates, diagnostics, reportedDiagnosticKeys);
+                }
+                case "participant" -> {
+                    markRulesUsedForBranch(model, usedRules, "participant", Set.of("performer"), element);
+                    emitReferenceBranch(element, inference, "performer", candidates, diagnostics, reportedDiagnosticKeys);
+                }
+                case "performer" -> {
+                    markRulesUsedForBranch(model, usedRules, "participant", Set.of("performer"), element);
+                    emitPerformerBranch(element, inference, inferenceByBranch.get("participant"), candidates, diagnostics, reportedDiagnosticKeys);
+                }
+                case "entryRelationship" -> {
+                    markRulesUsedForEntryRelationship(model, usedRules, element);
+                    emitEntryRelationshipBranch(element, inference, model, candidates, diagnostics, reportedDiagnosticKeys);
+                }
+                case "reference" -> {
+                    markRulesUsedForBranch(model, usedRules, "reference", Set.of("derivedFrom", "hasMember", "partOf", "note"), element);
+                    emitReferenceLinkBranch(element, inference, candidates, diagnostics, reportedDiagnosticKeys);
+                }
+                case "referenceRange" -> {
+                    markRulesUsedForBranch(model, usedRules, "referenceRange", Set.of("referenceRange"), element);
+                    emitReferenceRangeBranch(element, inference, candidates, diagnostics, reportedDiagnosticKeys);
+                }
                 case "author" -> {
                     if (!isAuthorAbsorbedByNote(inferenceByBranch.get("entryRelationship"))) {
                         recordDiagnostic(root, path, "runtime_only_reference_creation",
@@ -78,18 +118,20 @@ class ObservationSemanticInterpreter {
                 }
             }
         }
-        return new ObservationProjectionResult(parent, List.copyOf(candidates), List.copyOf(diagnostics));
+        return new ObservationProjectionResult(parent, List.copyOf(candidates), List.copyOf(diagnostics), Set.copyOf(usedRules));
     }
 
-    private void seedGlobalConstants(StructureMapSemanticAnalyzer.StructureMapSemanticModel model,
-                                     Set<ProjectionCandidate> candidates) {
-        for (StructureMapSemanticAnalyzer.SemanticRule rule : model.allRules()) {
-            for (StructureMapSemanticAnalyzer.TargetNode target : rule.targets()) {
+    private void seedGlobalConstants(SemanticMappingModel model,
+                                     Set<ProjectionCandidate> candidates,
+                                     Set<SemanticRule> usedRules) {
+        for (SemanticRule rule : model.allRules()) {
+            for (TargetNode target : rule.targets()) {
                 if (target.path() == null || target.path().isBlank() || target.conditional()) {
                     continue;
                 }
                 if ("category.coding.system".equals(target.path()) || "category.coding.code".equals(target.path())) {
                     if (target.constantValue() != null) {
+                        usedRules.add(rule);
                         candidates.add(ProjectionCandidate.fixed(target.path(), target.constantValue(), defaultFixedTypeForPath(target.path())));
                     }
                 }
@@ -97,15 +139,126 @@ class ObservationSemanticInterpreter {
         }
     }
 
-    private String resolveParent(StructureMapSemanticAnalyzer.StructureMapSemanticModel model) {
-        for (StructureMapSemanticAnalyzer.SemanticRule rule : model.allRules()) {
-            for (StructureMapSemanticAnalyzer.TargetNode target : rule.targets()) {
+    private String resolveParent(SemanticMappingModel model) {
+        for (SemanticRule rule : model.allRules()) {
+            for (TargetNode target : rule.targets()) {
                 if ("meta.profile".equals(target.path()) && target.constantValue() != null) {
                     return target.constantValue();
                 }
             }
         }
         return DEFAULT_PARENT;
+    }
+
+    private void markParentRuleUsed(SemanticMappingModel model,
+                                    Set<SemanticRule> usedRules,
+                                    String parent) {
+        for (SemanticRule rule : model.allRules()) {
+            for (TargetNode target : rule.targets()) {
+                if ("meta.profile".equals(target.path()) && Objects.equals(parent, target.constantValue())) {
+                    usedRules.add(rule);
+                }
+            }
+        }
+    }
+
+    private void markRulesUsedForBranch(SemanticMappingModel model,
+                                        Set<SemanticRule> usedRules,
+                                        String sourceRoot,
+                                        Set<String> targetRoots,
+                                        IRElementConstraint element) {
+        String datatype = element.datatype() == null ? null : element.datatype().replace('-', '_');
+        for (SemanticRule rule : model.allRules()) {
+            if (!matchesSourceRoot(rule, sourceRoot)) {
+                continue;
+            }
+            if (!matchesDatatype(rule, datatype)) {
+                continue;
+            }
+            if (!matchesTargetRoots(rule, targetRoots)) {
+                continue;
+            }
+            usedRules.add(rule);
+        }
+    }
+
+    private void markRulesUsedForEntryRelationship(SemanticMappingModel model,
+                                                   Set<SemanticRule> usedRules,
+                                                   IRElementConstraint element) {
+        String targetRoot = entryRelationshipTargetRoot(element.path(), model);
+        if (targetRoot == null) {
+            return;
+        }
+        for (SemanticRule rule : model.allRules()) {
+            if (!matchesSourcePath(rule, element.path())) {
+                continue;
+            }
+            if (!matchesTargetRoots(rule, Set.of(targetRoot))) {
+                continue;
+            }
+            usedRules.add(rule);
+        }
+    }
+
+    private boolean matchesSourceRoot(SemanticRule rule, String sourceRoot) {
+        if (sourceRoot == null || sourceRoot.isBlank()) {
+            return false;
+        }
+        if (rule.primarySourcePath() != null && sourceRoot.equals(rootSegment(rule.primarySourcePath()))) {
+            return true;
+        }
+        if (!rule.branchLineage().isEmpty() && sourceRoot.equals(rule.branchLineage().get(rule.branchLineage().size() - 1))) {
+            return true;
+        }
+        return rule.sources().stream()
+                .map(SourceNode::path)
+                .filter(Objects::nonNull)
+                .map(this::rootSegment)
+                .anyMatch(sourceRoot::equals);
+    }
+
+    private boolean matchesDatatype(SemanticRule rule, String datatype) {
+        List<String> ruleTypes = rule.sources().stream()
+                .map(SourceNode::type)
+                .filter(Objects::nonNull)
+                .filter(type -> !type.isBlank())
+                .toList();
+        return ruleTypes.isEmpty() || datatype == null || ruleTypes.contains(datatype);
+    }
+
+    private boolean matchesTargetRoots(SemanticRule rule, Set<String> targetRoots) {
+        if (targetRoots == null || targetRoots.isEmpty()) {
+            return true;
+        }
+        Set<String> ruleTargetRoots = rule.targets().stream()
+                .map(TargetNode::path)
+                .filter(Objects::nonNull)
+                .filter(path -> !path.isBlank())
+                .map(this::rootSegment)
+                .filter(Objects::nonNull)
+                .collect(java.util.stream.Collectors.toSet());
+        return ruleTargetRoots.isEmpty() || ruleTargetRoots.stream().anyMatch(targetRoots::contains);
+    }
+
+    private boolean matchesSourcePath(SemanticRule rule, String sourcePath) {
+        if (sourcePath == null || sourcePath.isBlank()) {
+            return false;
+        }
+        if (pathMatches(rule.primarySourcePath(), sourcePath)) {
+            return true;
+        }
+        return rule.sources().stream()
+                .map(SourceNode::path)
+                .anyMatch(path -> pathMatches(path, sourcePath));
+    }
+
+    private boolean pathMatches(String rulePath, String sourcePath) {
+        if (rulePath == null || rulePath.isBlank() || sourcePath == null || sourcePath.isBlank()) {
+            return false;
+        }
+        return rulePath.equals(sourcePath)
+                || sourcePath.startsWith(rulePath + ".")
+                || rulePath.startsWith(sourcePath + ".");
     }
 
     private void emitCodeBranch(IRElementConstraint element,
@@ -355,10 +508,23 @@ class ObservationSemanticInterpreter {
 
     private void emitEntryRelationshipBranch(IRElementConstraint element,
                                              BranchInferenceEngine.BranchInference inference,
+                                             SemanticMappingModel model,
                                              Set<ProjectionCandidate> candidates,
                                              List<ProjectionDiagnostic> diagnostics,
                                              Set<String> reportedDiagnosticKeys) {
-        if (inference == null || !inference.targetsObservationRoot("note")) {
+        String targetRoot = entryRelationshipTargetRoot(element.path(), model);
+        if (targetRoot == null) {
+            if ("entryRelationship.typeCode".equals(element.path()) || "entryRelationship.inversionInd".equals(element.path())) {
+                return;
+            }
+            recordDiagnostic("entryRelationship", element.path(), "mapping_policy_required",
+                    "CDA branch 'entryRelationship' mixes multiple relationship flavors. Choose a specific child mapping such as act -> note or observation -> hasMember.",
+                    inference != null ? inference.confidence() : BranchInferenceEngine.BranchConfidence.UNSAFE,
+                    diagnostics,
+                    reportedDiagnosticKeys);
+            return;
+        }
+        if (inference == null || !inference.targetsObservationRoot(targetRoot)) {
             recordDiagnostic("entryRelationship", element.path(), "unsupported_branch",
                     "No safe FHIR path mapping found for CDA branch 'entryRelationship'.",
                     inference != null ? inference.confidence() : BranchInferenceEngine.BranchConfidence.UNSAFE,
@@ -366,21 +532,56 @@ class ObservationSemanticInterpreter {
                     reportedDiagnosticKeys);
             return;
         }
-        if ("entryRelationship".equals(element.path())) {
-            emitGenericRules(element, "note", candidates);
-            return;
-        }
-        if ("entryRelationship.typeCode".equals(element.path())) {
-            return;
-        }
-        if ("entryRelationship.inversionInd".equals(element.path())) {
+        if ("entryRelationship".equals(element.path()) || "entryRelationship.act".equals(element.path()) || "entryRelationship.observation".equals(element.path())) {
+            emitGenericRules(element, targetRoot, candidates);
             return;
         }
         recordDiagnostic("entryRelationship", element.path(), "runtime_only_reference_creation",
-                "CDA branch 'entryRelationship' participates in runtime reference construction and path '" + element.path() + "' is not emitted as a standalone profile rule.",
+                "CDA branch 'entryRelationship' maps to FHIR Observation." + targetRoot + ", but path '" + element.path() + "' is handled during runtime relationship construction.",
                 inference.confidence(),
                 diagnostics,
                 reportedDiagnosticKeys);
+    }
+
+    private String entryRelationshipTargetRoot(String sourcePath, SemanticMappingModel model) {
+        if (sourcePath == null || sourcePath.isBlank()) {
+            return null;
+        }
+        if ("entryRelationship.typeCode".equals(sourcePath) || "entryRelationship.inversionInd".equals(sourcePath)) {
+            return null;
+        }
+        if (sourcePath.startsWith("entryRelationship.act")) {
+            return hasTargetForSourcePath(model, "entryRelationship.act", "note") ? "note" : null;
+        }
+        if (sourcePath.startsWith("entryRelationship.observation")) {
+            return hasTargetForSourcePath(model, "entryRelationship.observation", "hasMember") ? "hasMember" : null;
+        }
+        if ("entryRelationship".equals(sourcePath)) {
+            boolean note = hasTargetForSourcePath(model, "entryRelationship.act", "note");
+            boolean hasMember = hasTargetForSourcePath(model, "entryRelationship.observation", "hasMember");
+            if (note && !hasMember) {
+                return "note";
+            }
+            if (hasMember && !note) {
+                return "hasMember";
+            }
+            return null;
+        }
+        return null;
+    }
+
+    private boolean hasTargetForSourcePath(SemanticMappingModel model,
+                                           String sourcePath,
+                                           String targetRoot) {
+        for (SemanticRule rule : model.allRules()) {
+            if (!matchesSourcePath(rule, sourcePath)) {
+                continue;
+            }
+            if (matchesTargetRoots(rule, Set.of(targetRoot))) {
+                return true;
+            }
+        }
+        return false;
     }
 
     private void emitReferenceLinkBranch(IRElementConstraint element,
@@ -574,7 +775,8 @@ class ObservationSemanticInterpreter {
 
     record ObservationProjectionResult(String parent,
                                        List<ProjectionCandidate> candidates,
-                                       List<ProjectionDiagnostic> diagnostics) {
+                                       List<ProjectionDiagnostic> diagnostics,
+                                       Set<SemanticRule> usedRules) {
     }
 
     record ProjectionDiagnostic(String sourceBranch,

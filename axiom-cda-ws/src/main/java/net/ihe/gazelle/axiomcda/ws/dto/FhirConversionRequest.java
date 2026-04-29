@@ -7,6 +7,7 @@ import net.ihe.gazelle.axiomcda.api.ir.IRTemplate;
 public record FhirConversionRequest(
         String sourceProfileName,
         IRTemplate template,
-        String structureMap
+        String structureMap,
+        String builtInMappingId
 ) {
 }

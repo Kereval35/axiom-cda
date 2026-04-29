@@ -1,6 +1,10 @@
 package net.ihe.gazelle.axiomcda.engine.business;
 
 import net.ihe.gazelle.axiomcda.api.ir.*;
+import net.ihe.gazelle.axiomcda.fhirmappings.api.SemanticMappingModel;
+import net.ihe.gazelle.axiomcda.fhirmappings.builtin.BuiltInMappingModelProvider;
+import net.ihe.gazelle.axiomcda.fhirmappings.structuremap.StructureMapSemanticAnalyzer;
+import net.ihe.gazelle.axiomcda.fhirmappings.trace.SemanticMappingFshTraceRenderer;
 import org.junit.jupiter.api.Test;
 
 import java.io.InputStream;
@@ -57,8 +61,10 @@ class ObservationIrToFhirFshGeneratorTest {
 
         String structureMap = readFixture("observation/clean-observation-structuremap.json");
 
+        SemanticMappingModel semanticModel = new StructureMapSemanticAnalyzer().analyze(structureMap);
+
         ObservationIrToFhirFshGenerator generator = new ObservationIrToFhirFshGenerator();
-        ObservationFhirConversionResult result = generator.generate(template, "ObservationResult", structureMap);
+        ObservationFhirConversionResult result = generator.generate(template, "ObservationResult", semanticModel);
 
         assertTrue(result.fsh().contains("Parent: http://fhir.ehdsi.eu/laboratory/StructureDefinition/Observation-resultslab-lab-myhealtheu"));
         assertTrue(result.fsh().contains("* category.coding.code = #laboratory"));
@@ -92,6 +98,43 @@ class ObservationIrToFhirFshGeneratorTest {
         assertFalse(result.diagnostics().stream().anyMatch(message -> message.contains("author")));
         assertFalse(result.diagnostics().stream().anyMatch(message -> message.contains("entryRelationship.typeCode")));
         assertFalse(result.diagnostics().stream().anyMatch(message -> message.contains("entryRelationship.inversionInd")));
+
+        String fullTrace = new SemanticMappingFshTraceRenderer().render("FullRules", "Observation", "test", semanticModel);
+        String usedTrace = new SemanticMappingFshTraceRenderer().render("UsedRules", "Observation", "test", result.usedMappingModel());
+        assertTrue(usedTrace.contains("// id -> identifier"));
+        assertTrue(usedTrace.contains("// effectiveTime -> effective"));
+        assertFalse(usedTrace.contains("GLOBAL -> subject"));
+        assertTrue(fullTrace.contains("GLOBAL -> subject"));
+    }
+
+    @Test
+    void builtInCoreMappingProjectsRelatedObservationEntryRelationshipToHasMember() throws Exception {
+        IRTemplate template = new IRTemplate(
+                "obs-template",
+                "Observation Result",
+                "Observation Result",
+                "Observation Result",
+                "Observation",
+                List.of(
+                        new IRElementConstraint("entryRelationship.observation", new IRCardinality(0, "*"), null, null, null, List.of(), "Prior results"),
+                        new IRElementConstraint("entryRelationship.observation.statusCode", new IRCardinality(1, "1"), null, null, null, List.of(), null),
+                        new IRElementConstraint("entryRelationship.observation.effectiveTime", new IRCardinality(1, "1"), null, null, null, List.of(), null)
+                ),
+                List.of(),
+                List.of()
+        );
+
+        SemanticMappingModel semanticModel = new BuiltInMappingModelProvider().resolve("Observation", "observation-hl7-core-v1");
+
+        ObservationFhirConversionResult result = new ObservationIrToFhirFshGenerator()
+                .generate(template, "ObservationResult", semanticModel);
+
+        assertTrue(result.fsh().contains("* hasMember 0..*"));
+        assertFalse(result.diagnostics().stream().anyMatch(message -> message.contains("path 'entryRelationship.observation' is not emitted as a standalone")));
+        assertTrue(result.diagnostics().stream().anyMatch(message -> message.contains("entryRelationship.observation.statusCode") && message.contains("runtime relationship construction")));
+
+        String usedTrace = new SemanticMappingFshTraceRenderer().render("UsedRules", "Observation", "test", result.usedMappingModel());
+        assertTrue(usedTrace.contains("entryRelationship.observation -> hasMember"));
     }
 
     private String readFixture(String path) throws Exception {

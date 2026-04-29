@@ -169,6 +169,67 @@ type Slide22Text = {
   validateWithSushi: string;
 };
 
+type Slide23Text = {
+  title: string;
+  subtitle: string;
+  why: {
+    title: string;
+    description: string;
+  };
+  flow: {
+    title: string;
+    bbrToIr: string;
+    mappingRules: string;
+    fhirProjection: string;
+    fshOutput: string;
+  };
+  poc: string;
+};
+
+type Slide24Text = {
+  title: string;
+  subtitle: string;
+  generic: {
+    title: string;
+    description: string;
+  };
+  ehdsi: {
+    title: string;
+    description: string;
+  };
+  custom: {
+    title: string;
+    description: string;
+  };
+  compileNote: string;
+};
+
+type Slide25Text = {
+  title: string;
+  subtitle: string;
+  v1: {
+    title: string;
+    observation: string;
+    safety: string;
+    business: string;
+  };
+  community: {
+    title: string;
+    reusablePacks: string;
+    moreRoots: string;
+    sharedGovernance: string;
+  };
+};
+
+type Slide26Text = {
+  title: string;
+  subtitle: string;
+  principle: string;
+  ownership: string;
+  prefixes: string;
+  outcome: string;
+};
+
 type PresentationTranslation = {
   slide1: {
     title: string;
@@ -188,6 +249,10 @@ type PresentationTranslation = {
   slide20: Slide20Text;
   slide21: Slide21Text;
   slide22: Slide22Text;
+  slide23: Slide23Text;
+  slide24: Slide24Text;
+  slide25: Slide25Text;
+  slide26: Slide26Text;
 };
 
 export const slideTranslations: Record<Language, PresentationTranslation> = {
@@ -227,7 +292,7 @@ export const slideTranslations: Record<Language, PresentationTranslation> = {
       profiles: '→ FSH-CDA profiles',
       invariants: '→ Invariants (FSH)',
       terminologies: '→ ValueSets / CodeSystems',
-      fhirProfiles: '→ FHIR FSH from Observation IR + StructureMap',
+      fhirProfiles: '→ FHIR FSH from Observation IR + built-in or custom mapping rules',
       cliOptions: 'CLI options',
       irInfo: 'The IR (Intermediate Representation) can be exported as JSON for audit and debugging',
     },
@@ -271,7 +336,7 @@ export const slideTranslations: Record<Language, PresentationTranslation> = {
         },
         ownershipFilter: {
           condition: 'projectPlusRequiredIncludes enabled',
-          result: 'Keep project-owned templates, expand includes, then tag PROJECT / REQUIRED_INCLUDE while preserving OTHER for directly selected non-owned templates',
+          result: 'Keep project-related templates in the visible result while still resolving internal includes in the pipeline',
         },
       },
       includeCallout: 'Owned repository prefixes can be configured explicitly, for example BBR- and BIO-CR-BIO- for CR-BIO',
@@ -371,6 +436,63 @@ export const slideTranslations: Record<Language, PresentationTranslation> = {
       analyzeFsh: 'Analyze the generated FSH profiles',
       validateWithSushi: 'Validate with SUSHI and generate FHIR FSH from an Observation profile',
     },
+    slide23: {
+      title: 'FHIR FSH transformation',
+      subtitle: 'From CDA IR to FHIR-oriented rules',
+      why: {
+        title: 'What we are prototyping',
+        description: 'A true CDA to FHIR rule-mapping flow: BBR is normalized into a CDA IR, mapping rules are applied, a FHIR-oriented projection is computed, and FHIR FSH is emitted as the final artifact.',
+      },
+      flow: {
+        title: 'Pipeline',
+        bbrToIr: 'BBR export → CDA IR with normalized paths, datatypes and constraints',
+        mappingRules: 'Built-in or custom mapping rules decide how CDA branches project into FHIR semantics',
+        fhirProjection: 'FHIR-oriented intermediate projection keeps parent, cardinalities, bindings and fixed values explicit',
+        fshOutput: 'Generated FHIR FSH stays traceable to the selected Observation IR template',
+      },
+      poc: 'This is a PoC for generalized CDA to FHIR transformation rules rather than a one-off profile generator.',
+    },
+    slide24: {
+      title: 'Built-in and custom mappings',
+      subtitle: 'How the WS exposes transformation choices',
+      generic: {
+        title: 'Generic HL7 R4 Observation',
+        description: 'Default built-in preset. Targets pure HL7 R4 Observation when no IG-specific parent is required.',
+      },
+      ehdsi: {
+        title: 'eHDSI Laboratory Observation',
+        description: 'Shipped out of the box for projects that need the specialized laboratory Observation parent profile.',
+      },
+      custom: {
+        title: 'Custom StructureMap override',
+        description: 'A project can still upload its own StructureMap JSON and replace the shipped mapping semantics for that run.',
+      },
+      compileNote: 'SUSHI compilation remains a separate step, with package selection driven by the generated parent profile.',
+    },
+    slide25: {
+      title: 'Observation-first PoC',
+      subtitle: 'V1 scope and community direction',
+      v1: {
+        title: 'Why Observation first',
+        observation: 'Observation gives a realistic CDA to FHIR business case with constrained scope.',
+        safety: 'It lets us validate the mapping engine, diagnostics and compile loop without pretending full CDA coverage.',
+        business: 'It already demonstrates both generic HL7 output and domain-specific specialization.',
+      },
+      community: {
+        title: 'Where this goes next',
+        reusablePacks: 'Turn mapping rules into reusable packs that can be contributed and reviewed.',
+        moreRoots: 'Extend the same abstraction to additional CDA roots beyond Observation.',
+        sharedGovernance: 'Let the community enrich the rule library while preserving override capability for local projects.',
+      },
+    },
+    slide26: {
+      title: 'Ownership filtering',
+      subtitle: 'Keep the visible output project-focused',
+      principle: 'When ownership filtering is enabled, the selection logic becomes repository-aware instead of showing every technically reachable template.',
+      ownership: 'Ownership is inferred from project OID roots, TM base roots, project prefixes, scenario references and configured repository prefixes.',
+      prefixes: 'This is useful for projects like CR-BIO where authored content may live under prefixes such as BBR- or BIO-CR-BIO-.',
+      outcome: 'The WS/UI then expose only the project-related profiles, while the generation pipeline can still resolve internal dependencies behind the scenes.',
+    },
   },
   fr: {
     slide1: {
@@ -408,7 +530,7 @@ export const slideTranslations: Record<Language, PresentationTranslation> = {
       profiles: '→ Profils FSH-CDA',
       invariants: '→ Invariants (FSH)',
       terminologies: '→ ValueSets / CodeSystems',
-      fhirProfiles: '→ FHIR FSH depuis un IR Observation + StructureMap',
+      fhirProfiles: '→ FHIR FSH depuis un IR Observation + règles de mapping intégrées ou custom',
       cliOptions: 'Options CLI',
       irInfo: "L'IR (Intermediate Representation) peut être exporté en JSON pour audit et debugging",
     },
@@ -452,7 +574,7 @@ export const slideTranslations: Record<Language, PresentationTranslation> = {
         },
         ownershipFilter: {
           condition: 'projectPlusRequiredIncludes activé',
-          result: 'Conserver tous les templates du projet, puis étendre les includes et tagger PROJECT / REQUIRED_INCLUDE',
+          result: 'Conserver les templates liés au projet dans la sortie visible tout en résolvant les includes internes dans la pipeline',
         },
       },
       includeCallout: "Les prefixes de repository du projet peuvent être configurés explicitement, par exemple BBR- et BIO-CR-BIO- pour CR-BIO",
@@ -551,6 +673,63 @@ export const slideTranslations: Record<Language, PresentationTranslation> = {
       inspectIr: "Inspection de l'IR généré",
       analyzeFsh: 'Analyse des profils FSH produits',
       validateWithSushi: 'Validation avec SUSHI et génération FHIR FSH depuis un profil Observation',
+    },
+    slide23: {
+      title: 'Transformation FHIR FSH',
+      subtitle: "De l'IR CDA vers des règles orientées FHIR",
+      why: {
+        title: 'Ce que nous prototypons',
+        description: "Un vrai flux de mapping CDA vers FHIR : le BBR est normalisé en IR CDA, des règles de mapping sont appliquées, une projection orientée FHIR est calculée, puis le FHIR FSH est émis comme artefact final.",
+      },
+      flow: {
+        title: 'Pipeline',
+        bbrToIr: 'Export BBR → IR CDA avec normalisation des chemins, datatypes et contraintes',
+        mappingRules: 'Des règles de mapping intégrées ou custom décident comment les branches CDA se projettent dans la sémantique FHIR',
+        fhirProjection: 'La projection intermédiaire orientée FHIR garde explicites le parent, les cardinalités, les bindings et les fixed values',
+        fshOutput: "Le FHIR FSH généré reste traçable jusqu'au template IR Observation sélectionné",
+      },
+      poc: "C'est une PoC de règles de transformation CDA vers FHIR généralisables, pas seulement un générateur de profils ponctuel.",
+    },
+    slide24: {
+      title: 'Mappings intégrés et personnalisés',
+      subtitle: 'Comment la WS expose les choix de transformation',
+      generic: {
+        title: 'Observation HL7 R4 générique',
+        description: "Preset intégré par défaut. Cible l'Observation HL7 R4 pure lorsqu'aucun parent spécifique à un IG n'est requis.",
+      },
+      ehdsi: {
+        title: 'Observation laboratoire eHDSI',
+        description: "Fourni nativement pour les projets qui ont besoin du parent Observation spécialisé laboratoire.",
+      },
+      custom: {
+        title: 'Surcharge StructureMap personnalisée',
+        description: 'Un projet peut toujours téléverser son propre StructureMap JSON et remplacer la sémantique de mapping fournie pour cette exécution.',
+      },
+      compileNote: 'La compilation SUSHI reste une étape séparée, avec sélection du package selon le parent généré.',
+    },
+    slide25: {
+      title: 'PoC centrée sur Observation',
+      subtitle: 'Périmètre V1 et ouverture communautaire',
+      v1: {
+        title: 'Pourquoi commencer par Observation',
+        observation: 'Observation fournit un cas métier réaliste CDA vers FHIR avec un périmètre maîtrisé.',
+        safety: "Cela permet de valider le moteur de mapping, les diagnostics et la boucle de compilation sans prétendre couvrir tout CDA.",
+        business: 'Cela démontre déjà à la fois une sortie HL7 générique et une spécialisation métier.',
+      },
+      community: {
+        title: 'La suite visée',
+        reusablePacks: 'Transformer les règles de mapping en packs réutilisables, contributifs et revus collectivement.',
+        moreRoots: "Étendre la même abstraction à d'autres racines CDA au-delà d'Observation.",
+        sharedGovernance: "Permettre à la communauté d'enrichir la librairie de règles tout en conservant la possibilité de surcharge projet.",
+      },
+    },
+    slide26: {
+      title: 'Filtrage ownership',
+      subtitle: 'Garder la sortie visible centrée projet',
+      principle: "Quand le filtrage ownership est activé, la sélection devient repository-aware au lieu d'afficher tous les templates techniquement atteignables.",
+      ownership: "L'ownership est inféré à partir des racines OID projet, des racines de base TM, des préfixes projet, des références de scénario et des préfixes de repository configurés.",
+      prefixes: "C'est utile pour des projets comme CR-BIO où du contenu métier peut vivre sous des préfixes comme BBR- ou BIO-CR-BIO-.",
+      outcome: "La WS/UI n'exposent alors que les profils liés au projet, tout en laissant la pipeline résoudre les dépendances internes en arrière-plan.",
     },
   },
 };

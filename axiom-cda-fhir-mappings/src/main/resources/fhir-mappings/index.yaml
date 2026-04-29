@@ -1,0 +1,19 @@
+packs:
+  - id: observation-hl7-core-v1
+    label: Generic HL7 Observation
+    description: Pure HL7 R4 Observation mapping without any specific profiling.
+    rootCdaType: Observation
+    fhirVersion: 4.0.1
+    family: hl7-core
+    version: 1.0.0
+    status: active
+    resource: fhir-mappings/observation/observation-core-v1.yaml
+  - id: observation-ehdsi-lab-v1
+    label: eHDSI Laboratory Observation
+    description: Observation mapping specialized for the eHDSI laboratory parent profile.
+    rootCdaType: Observation
+    fhirVersion: 4.0.1
+    family: ehdsi-laboratory
+    version: 1.0.0
+    status: active
+    resource: fhir-mappings/observation/observation-ehdsi-lab-v1.yaml

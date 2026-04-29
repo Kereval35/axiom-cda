@@ -82,6 +82,19 @@ export interface GenerationOptions {
 export interface FhirConversionResult {
     profiles: FshProfile[];
     diagnostics: string[];
+    mappingRulesName: string | null;
+    mappingRulesFsh: string | null;
+    usedMappingRulesName: string | null;
+    usedMappingRulesFsh: string | null;
+}
+
+export interface FhirBuiltInMappingPreset {
+    id: string;
+    label: string;
+    description: string | null;
+    rootCdaType: string;
+    family: string;
+    defaultSelected: boolean;
 }
 
 export interface SushiCompileResult {

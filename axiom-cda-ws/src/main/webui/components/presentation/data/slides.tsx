@@ -1073,6 +1073,155 @@ Expression: "participant.count() >= 1"`}
     stepsCount: 4,
   },
 
+  {
+    id: 'slide-23',
+    title: t.slide23.title,
+    subtitle: t.slide23.subtitle,
+    content: [],
+    fragments: [
+      {
+        step: 1,
+        type: 'decision',
+        content: (
+          <DecisionCard title={t.slide23.why.title}>
+            {t.slide23.why.description}
+          </DecisionCard>
+        ),
+      },
+      {
+        step: 2,
+        type: 'text',
+        content: (
+          <div className="space-y-3">
+            <h3 className="text-xl font-semibold">{t.slide23.flow.title}</h3>
+            <ul className="list-disc list-inside space-y-2 text-lg text-slate-700 dark:text-slate-300">
+              <li>{t.slide23.flow.bbrToIr}</li>
+              <li>{t.slide23.flow.mappingRules}</li>
+              <li>{t.slide23.flow.fhirProjection}</li>
+              <li>{t.slide23.flow.fshOutput}</li>
+            </ul>
+          </div>
+        ),
+      },
+      {
+        step: 3,
+        type: 'callout',
+        content: (
+          <Callout variant="info">
+            {t.slide23.poc}
+          </Callout>
+        ),
+      },
+    ],
+    stepsCount: 3,
+  },
+
+  {
+    id: 'slide-24',
+    title: t.slide24.title,
+    subtitle: t.slide24.subtitle,
+    content: [],
+    fragments: [
+      {
+        step: 1,
+        type: 'decision',
+        content: (
+          <DecisionCard title={t.slide24.generic.title}>
+            {t.slide24.generic.description}
+          </DecisionCard>
+        ),
+      },
+      {
+        step: 2,
+        type: 'decision',
+        content: (
+          <DecisionCard title={t.slide24.ehdsi.title}>
+            {t.slide24.ehdsi.description}
+          </DecisionCard>
+        ),
+      },
+      {
+        step: 3,
+        type: 'decision',
+        content: (
+          <DecisionCard title={t.slide24.custom.title}>
+            {t.slide24.custom.description}
+          </DecisionCard>
+        ),
+      },
+      {
+        step: 4,
+        type: 'callout',
+        content: (
+          <Callout variant="success">
+            {t.slide24.compileNote}
+          </Callout>
+        ),
+      },
+    ],
+    stepsCount: 4,
+  },
+
+  {
+    id: 'slide-25',
+    title: t.slide25.title,
+    subtitle: t.slide25.subtitle,
+    content: [],
+    fragments: [
+      {
+        step: 1,
+        type: 'text',
+        content: (
+          <div className="grid grid-cols-2 gap-8">
+            <div className="space-y-3">
+              <h3 className="text-xl font-semibold">{t.slide25.v1.title}</h3>
+              <ul className="list-disc list-inside space-y-2 text-lg text-slate-700 dark:text-slate-300">
+                <li>{t.slide25.v1.observation}</li>
+                <li>{t.slide25.v1.safety}</li>
+                <li>{t.slide25.v1.business}</li>
+              </ul>
+            </div>
+            <div className="space-y-3">
+              <h3 className="text-xl font-semibold">{t.slide25.community.title}</h3>
+              <ul className="list-disc list-inside space-y-2 text-lg text-slate-700 dark:text-slate-300">
+                <li>{t.slide25.community.reusablePacks}</li>
+                <li>{t.slide25.community.moreRoots}</li>
+                <li>{t.slide25.community.sharedGovernance}</li>
+              </ul>
+            </div>
+          </div>
+        ),
+      },
+    ],
+    stepsCount: 1,
+  },
+
+  {
+    id: 'slide-26',
+    title: t.slide26.title,
+    subtitle: t.slide26.subtitle,
+    content: [],
+    fragments: [
+      {
+        step: 1,
+        type: 'text',
+        content: (
+          <div className="space-y-4">
+            <p className="text-xl text-slate-700 dark:text-slate-300">{t.slide26.principle}</p>
+            <RuleCard
+              condition={t.slide26.ownership}
+              result={t.slide26.outcome}
+            />
+            <Callout variant="info">
+              {t.slide26.prefixes}
+            </Callout>
+          </div>
+        ),
+      },
+    ],
+    stepsCount: 1,
+  },
+
   // Slide 19 - Limitations
   {
     id: 'slide-19',

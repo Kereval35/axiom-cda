@@ -32,6 +32,11 @@
             <artifactId>axiom-cda-engine</artifactId>
             <version>${project.version}</version>
         </dependency>
+        <dependency>
+            <groupId>net.ihe.gazelle</groupId>
+            <artifactId>axiom-cda-fhir-mappings</artifactId>
+            <version>${project.version}</version>
+        </dependency>
 
         <!-- Quarkus runtime -->
         <dependency>

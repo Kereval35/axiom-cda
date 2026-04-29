@@ -83,10 +83,148 @@ class FhirConversionResourceTest {
         assertFalse(convertedProfiles.isEmpty());
 
         String content = String.valueOf(convertedProfiles.get(0).get("content"));
+        String mappingRulesFsh = conversion.getString("mappingRulesFsh");
+        String usedMappingRulesFsh = conversion.getString("usedMappingRulesFsh");
         assertTrue(content.contains("Parent: http://fhir.ehdsi.eu/laboratory/StructureDefinition/Observation-resultslab-lab-myhealtheu"));
         assertTrue(content.contains("* category.coding.code = #laboratory"));
         assertTrue(content.contains("* code"));
         assertTrue(content.contains("* status"));
+        assertTrue(mappingRulesFsh.contains("RuleSet:"));
+        assertTrue(mappingRulesFsh.contains("* metadata.mappingSource = \"uploaded StructureMap override\""));
+        assertTrue(mappingRulesFsh.contains("id -> identifier"));
+        assertTrue(usedMappingRulesFsh.contains("id -> identifier"));
+    }
+
+    @Test
+    void convertsObservationProfileFromBuiltInMappingWhenNoStructureMapIsUploaded() throws Exception {
+        String bbr = readFixture("observation/bio.xml");
+        Map<String, Object> generationRequest = new HashMap<>();
+        generationRequest.put("bbr", bbr);
+        generationRequest.put("sushiRepo", false);
+        generationRequest.put("emitIr", false);
+        generationRequest.put("emitLogs", true);
+        generationRequest.put("yamlConfig", null);
+
+        JsonPath generation = given()
+                .contentType(ContentType.JSON)
+                .body(generationRequest)
+                .when()
+                .post("/api/generate")
+                .then()
+                .statusCode(200)
+                .extract()
+                .jsonPath();
+
+        List<Map<String, Object>> profiles = generation.getList("profiles");
+        List<Map<String, Object>> irTemplates = generation.getList("irTemplates");
+        assertNotNull(profiles);
+        assertNotNull(irTemplates);
+
+        Map<String, Object> eligibleProfile = profiles.stream()
+                .filter(profile -> Boolean.TRUE.equals(profile.get("fhirTransformEligible")))
+                .findFirst()
+                .orElseThrow(() -> new AssertionError("Expected an Observation profile eligible for FHIR conversion"));
+
+        String templateId = String.valueOf(eligibleProfile.get("templateId"));
+        Map<String, Object> template = irTemplates.stream()
+                .filter(item -> templateId.equals(item.get("id")))
+                .findFirst()
+                .orElseThrow(() -> new AssertionError("Expected a matching IR template for eligible profile"));
+
+        Map<String, Object> conversionRequest = new HashMap<>();
+        conversionRequest.put("sourceProfileName", eligibleProfile.get("name"));
+        conversionRequest.put("template", template);
+        conversionRequest.put("structureMap", null);
+        conversionRequest.put("builtInMappingId", null);
+
+        JsonPath conversion = given()
+                .contentType(ContentType.JSON)
+                .body(conversionRequest)
+                .when()
+                .post("/api/convert/fhir")
+                .then()
+                .statusCode(200)
+                .extract()
+                .jsonPath();
+
+        List<Map<String, Object>> convertedProfiles = conversion.getList("profiles");
+        assertNotNull(convertedProfiles);
+        assertFalse(convertedProfiles.isEmpty());
+
+        String content = String.valueOf(convertedProfiles.get(0).get("content"));
+        String mappingRulesFsh = conversion.getString("mappingRulesFsh");
+        String usedMappingRulesFsh = conversion.getString("usedMappingRulesFsh");
+        assertTrue(content.contains("Parent: http://hl7.org/fhir/StructureDefinition/Observation"));
+        assertTrue(content.contains("* category.coding.code = #laboratory"));
+        assertEquals(String.valueOf(convertedProfiles.get(0).get("name")) + "MappingRules", conversion.getString("mappingRulesName"));
+        assertEquals(String.valueOf(convertedProfiles.get(0).get("name")) + "UsedMappingRules", conversion.getString("usedMappingRulesName"));
+        assertTrue(mappingRulesFsh.contains("* metadata.mappingSource = \"built-in:default\""));
+        assertTrue(mappingRulesFsh.contains("// id -> identifier"));
+        assertTrue(usedMappingRulesFsh.contains("// id -> identifier"));
+        assertFalse(usedMappingRulesFsh.contains("GLOBAL -> subject"));
+    }
+
+    @Test
+    void convertsObservationProfileFromSelectedEhdsiBuiltInMapping() throws Exception {
+        String bbr = readFixture("observation/bio.xml");
+        Map<String, Object> generationRequest = new HashMap<>();
+        generationRequest.put("bbr", bbr);
+        generationRequest.put("sushiRepo", false);
+        generationRequest.put("emitIr", false);
+        generationRequest.put("emitLogs", true);
+        generationRequest.put("yamlConfig", null);
+
+        JsonPath generation = given()
+                .contentType(ContentType.JSON)
+                .body(generationRequest)
+                .when()
+                .post("/api/generate")
+                .then()
+                .statusCode(200)
+                .extract()
+                .jsonPath();
+
+        List<Map<String, Object>> profiles = generation.getList("profiles");
+        List<Map<String, Object>> irTemplates = generation.getList("irTemplates");
+        assertNotNull(profiles);
+        assertNotNull(irTemplates);
+
+        Map<String, Object> eligibleProfile = profiles.stream()
+                .filter(profile -> Boolean.TRUE.equals(profile.get("fhirTransformEligible")))
+                .findFirst()
+                .orElseThrow(() -> new AssertionError("Expected an Observation profile eligible for FHIR conversion"));
+
+        String templateId = String.valueOf(eligibleProfile.get("templateId"));
+        Map<String, Object> template = irTemplates.stream()
+                .filter(item -> templateId.equals(item.get("id")))
+                .findFirst()
+                .orElseThrow(() -> new AssertionError("Expected a matching IR template for eligible profile"));
+
+        Map<String, Object> conversionRequest = new HashMap<>();
+        conversionRequest.put("sourceProfileName", eligibleProfile.get("name"));
+        conversionRequest.put("template", template);
+        conversionRequest.put("structureMap", null);
+        conversionRequest.put("builtInMappingId", "observation-ehdsi-lab-v1");
+
+        JsonPath conversion = given()
+                .contentType(ContentType.JSON)
+                .body(conversionRequest)
+                .when()
+                .post("/api/convert/fhir")
+                .then()
+                .statusCode(200)
+                .extract()
+                .jsonPath();
+
+        List<Map<String, Object>> convertedProfiles = conversion.getList("profiles");
+        assertNotNull(convertedProfiles);
+        assertFalse(convertedProfiles.isEmpty());
+
+        String content = String.valueOf(convertedProfiles.get(0).get("content"));
+        String mappingRulesFsh = conversion.getString("mappingRulesFsh");
+        assertTrue(content.contains("Parent: http://fhir.ehdsi.eu/laboratory/StructureDefinition/Observation-resultslab-lab-myhealtheu"));
+        assertTrue(content.contains("* category.coding.code = #laboratory"));
+        assertTrue(mappingRulesFsh.contains("* metadata.mappingSource = \"built-in:observation-ehdsi-lab-v1\""));
     }
 
     @Test

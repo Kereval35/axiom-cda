@@ -15,6 +15,12 @@ import java.util.List;
 public class FhirPackagePresetService {
 
     private static final Path DEFAULT_CONFIG_PATH = Path.of("/opt", "axiom-cda", "config.json");
+    private static final FhirPackagePreset GENERIC_CORE_PRESET = new FhirPackagePreset(
+            "HL7 FHIR R4 Core",
+            "hl7.fhir.r4.core",
+            "4.0.1",
+            "Generic HL7 FHIR R4 core package for profiles that only depend on the base specification."
+    );
     private final ObjectMapper mapper = new ObjectMapper();
 
     public List<FhirPackagePreset> getPresets() {
@@ -23,7 +29,7 @@ public class FhirPackagePresetService {
 
     List<FhirPackagePreset> getPresets(Path configPath) {
         if (configPath == null || !Files.isRegularFile(configPath)) {
-            return List.of();
+            return List.of(GENERIC_CORE_PRESET);
         }
         try {
             JsonNode root = mapper.readTree(configPath.toFile());
@@ -35,7 +41,7 @@ public class FhirPackagePresetService {
                 presets = root.path("sushi").path("fhirPackagePresets");
             }
             if (!presets.isArray()) {
-                return List.of();
+                return List.of(GENERIC_CORE_PRESET);
             }
 
             List<FhirPackagePreset> result = new ArrayList<>();
@@ -51,9 +57,20 @@ public class FhirPackagePresetService {
                 }
                 result.add(new FhirPackagePreset(label, packageId, version, text(item, "description")));
             }
+            appendGenericCorePreset(result);
             return List.copyOf(result);
         } catch (IOException e) {
-            return List.of();
+            return List.of(GENERIC_CORE_PRESET);
+        }
+    }
+
+    private void appendGenericCorePreset(List<FhirPackagePreset> presets) {
+        boolean alreadyPresent = presets.stream().anyMatch(preset ->
+                GENERIC_CORE_PRESET.packageId().equals(preset.packageId())
+                        && GENERIC_CORE_PRESET.version().equals(preset.version())
+        );
+        if (!alreadyPresent) {
+            presets.add(0, GENERIC_CORE_PRESET);
         }
     }
 

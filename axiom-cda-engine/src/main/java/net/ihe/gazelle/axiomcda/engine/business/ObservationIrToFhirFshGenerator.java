@@ -4,6 +4,8 @@ import net.ihe.gazelle.axiomcda.api.ir.IRTemplate;
 import net.ihe.gazelle.axiomcda.api.ir.IRCardinality;
 import net.ihe.gazelle.axiomcda.engine.util.FshUtil;
 import net.ihe.gazelle.axiomcda.engine.util.NameUtil;
+import net.ihe.gazelle.axiomcda.fhirmappings.api.SemanticMappingModelFilter;
+import net.ihe.gazelle.axiomcda.fhirmappings.api.SemanticMappingModel;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -16,16 +18,13 @@ public class ObservationIrToFhirFshGenerator {
 
     public ObservationFhirConversionResult generate(IRTemplate template,
                                                     String sourceProfileName,
-                                                    String structureMapJson) throws IOException {
+                                                    SemanticMappingModel semanticModel) throws IOException {
         if (template == null) {
             throw new IllegalArgumentException("template must be set");
         }
         if (!"Observation".equals(template.rootCdaType())) {
             throw new IllegalArgumentException("Only Observation templates are supported in this PoC");
         }
-
-        StructureMapSemanticAnalyzer analyzer = new StructureMapSemanticAnalyzer();
-        StructureMapSemanticAnalyzer.StructureMapSemanticModel semanticModel = analyzer.analyze(structureMapJson);
 
         BranchInferenceEngine inferenceEngine = new BranchInferenceEngine();
         List<BranchInferenceEngine.BranchInference> inferences = inferenceEngine.infer(semanticModel);
@@ -54,7 +53,12 @@ public class ObservationIrToFhirFshGenerator {
                 .map(ObservationSemanticInterpreter.ProjectionDiagnostic::message)
                 .toList();
 
-        return new ObservationFhirConversionResult(profileName, String.join("\n", lines) + "\n", diagnostics);
+        return new ObservationFhirConversionResult(
+                profileName,
+                String.join("\n", lines) + "\n",
+                diagnostics,
+                SemanticMappingModelFilter.filterByIdentity(semanticModel, projection.usedRules())
+        );
     }
 
     private List<ObservationSemanticInterpreter.ProjectionCandidate> normalizeCandidates(
