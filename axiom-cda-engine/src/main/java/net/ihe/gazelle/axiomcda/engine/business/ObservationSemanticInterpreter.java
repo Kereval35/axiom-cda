@@ -22,6 +22,24 @@ class ObservationSemanticInterpreter {
             "languageCode",
             "derivationExpr"
     );
+    private static final Set<String> IGNORED_ENTRY_RELATIONSHIP_EXACT_PATHS = Set.of(
+            "entryRelationship.typeCode",
+            "entryRelationship.inversionInd",
+            "entryRelationship.act.classCode",
+            "entryRelationship.act.moodCode",
+            "entryRelationship.observation.classCode",
+            "entryRelationship.observation.moodCode"
+    );
+    private static final List<String> IGNORED_ENTRY_RELATIONSHIP_PREFIXES = List.of(
+            "entryRelationship.act.templateId",
+            "entryRelationship.observation.templateId"
+    );
+    private enum EntryRelationshipFlavor {
+        NOTE,
+        HAS_MEMBER,
+        AMBIGUOUS,
+        NONE
+    }
 
     ObservationProjectionResult interpret(IRTemplate template,
                                           SemanticMappingModel model,
@@ -37,6 +55,7 @@ class ObservationSemanticInterpreter {
 
         seedGlobalConstants(model, candidates, usedRules);
         markParentRuleUsed(model, usedRules, parent);
+        EntryRelationshipFlavor entryRelationshipFlavor = deriveEntryRelationshipFlavor(template, model);
 
         Set<String> reportedDiagnosticKeys = new HashSet<>();
         for (IRElementConstraint element : template.elements()) {
@@ -88,7 +107,7 @@ class ObservationSemanticInterpreter {
                 }
                 case "entryRelationship" -> {
                     markRulesUsedForEntryRelationship(model, usedRules, element);
-                    emitEntryRelationshipBranch(element, inference, model, candidates, diagnostics, reportedDiagnosticKeys);
+                    emitEntryRelationshipBranch(element, inference, model, entryRelationshipFlavor, candidates, diagnostics, reportedDiagnosticKeys);
                 }
                 case "reference" -> {
                     markRulesUsedForBranch(model, usedRules, "reference", Set.of("derivedFrom", "hasMember", "partOf", "note"), element);
@@ -185,7 +204,7 @@ class ObservationSemanticInterpreter {
     private void markRulesUsedForEntryRelationship(SemanticMappingModel model,
                                                    Set<SemanticRule> usedRules,
                                                    IRElementConstraint element) {
-        String targetRoot = entryRelationshipTargetRoot(element.path(), model);
+        String targetRoot = entryRelationshipTargetRoot(element.path(), model, EntryRelationshipFlavor.NONE);
         if (targetRoot == null) {
             return;
         }
@@ -509,14 +528,15 @@ class ObservationSemanticInterpreter {
     private void emitEntryRelationshipBranch(IRElementConstraint element,
                                              BranchInferenceEngine.BranchInference inference,
                                              SemanticMappingModel model,
+                                             EntryRelationshipFlavor flavor,
                                              Set<ProjectionCandidate> candidates,
                                              List<ProjectionDiagnostic> diagnostics,
                                              Set<String> reportedDiagnosticKeys) {
-        String targetRoot = entryRelationshipTargetRoot(element.path(), model);
+        if (isIgnoredEntryRelationshipPath(element.path())) {
+            return;
+        }
+        String targetRoot = entryRelationshipTargetRoot(element.path(), model, flavor);
         if (targetRoot == null) {
-            if ("entryRelationship.typeCode".equals(element.path()) || "entryRelationship.inversionInd".equals(element.path())) {
-                return;
-            }
             recordDiagnostic("entryRelationship", element.path(), "mapping_policy_required",
                     "CDA branch 'entryRelationship' mixes multiple relationship flavors. Choose a specific child mapping such as act -> note or observation -> hasMember.",
                     inference != null ? inference.confidence() : BranchInferenceEngine.BranchConfidence.UNSAFE,
@@ -536,6 +556,16 @@ class ObservationSemanticInterpreter {
             emitGenericRules(element, targetRoot, candidates);
             return;
         }
+        if ("note".equals(targetRoot) && "entryRelationship.act.text".equals(element.path())) {
+            emitGenericRules(element, "note.text", candidates);
+            return;
+        }
+        if ("hasMember".equals(targetRoot) && element.path().startsWith("entryRelationship.observation.")) {
+            return;
+        }
+        if ("note".equals(targetRoot) && element.path().startsWith("entryRelationship.act.")) {
+            return;
+        }
         recordDiagnostic("entryRelationship", element.path(), "runtime_only_reference_creation",
                 "CDA branch 'entryRelationship' maps to FHIR Observation." + targetRoot + ", but path '" + element.path() + "' is handled during runtime relationship construction.",
                 inference.confidence(),
@@ -543,7 +573,7 @@ class ObservationSemanticInterpreter {
                 reportedDiagnosticKeys);
     }
 
-    private String entryRelationshipTargetRoot(String sourcePath, SemanticMappingModel model) {
+    private String entryRelationshipTargetRoot(String sourcePath, SemanticMappingModel model, EntryRelationshipFlavor flavor) {
         if (sourcePath == null || sourcePath.isBlank()) {
             return null;
         }
@@ -557,15 +587,11 @@ class ObservationSemanticInterpreter {
             return hasTargetForSourcePath(model, "entryRelationship.observation", "hasMember") ? "hasMember" : null;
         }
         if ("entryRelationship".equals(sourcePath)) {
-            boolean note = hasTargetForSourcePath(model, "entryRelationship.act", "note");
-            boolean hasMember = hasTargetForSourcePath(model, "entryRelationship.observation", "hasMember");
-            if (note && !hasMember) {
-                return "note";
-            }
-            if (hasMember && !note) {
-                return "hasMember";
-            }
-            return null;
+            return switch (flavor) {
+                case NOTE -> "note";
+                case HAS_MEMBER -> "hasMember";
+                default -> null;
+            };
         }
         return null;
     }
@@ -578,6 +604,49 @@ class ObservationSemanticInterpreter {
                 continue;
             }
             if (matchesTargetRoots(rule, Set.of(targetRoot))) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    private EntryRelationshipFlavor deriveEntryRelationshipFlavor(IRTemplate template, SemanticMappingModel model) {
+        boolean hasAct = false;
+        boolean hasObservation = false;
+        for (IRElementConstraint element : template.elements()) {
+            String path = element.path();
+            if (path == null || path.isBlank()) {
+                continue;
+            }
+            if (path.startsWith("entryRelationship.act")) {
+                hasAct = true;
+            } else if (path.startsWith("entryRelationship.observation")) {
+                hasObservation = true;
+            }
+        }
+        boolean supportsNote = hasTargetForSourcePath(model, "entryRelationship.act", "note");
+        boolean supportsHasMember = hasTargetForSourcePath(model, "entryRelationship.observation", "hasMember");
+        if (hasAct && !hasObservation && supportsNote) {
+            return EntryRelationshipFlavor.NOTE;
+        }
+        if (hasObservation && !hasAct && supportsHasMember) {
+            return EntryRelationshipFlavor.HAS_MEMBER;
+        }
+        if (hasAct && hasObservation && supportsNote && supportsHasMember) {
+            return EntryRelationshipFlavor.AMBIGUOUS;
+        }
+        return EntryRelationshipFlavor.NONE;
+    }
+
+    private boolean isIgnoredEntryRelationshipPath(String path) {
+        if (path == null || path.isBlank()) {
+            return false;
+        }
+        if (IGNORED_ENTRY_RELATIONSHIP_EXACT_PATHS.contains(path)) {
+            return true;
+        }
+        for (String prefix : IGNORED_ENTRY_RELATIONSHIP_PREFIXES) {
+            if (path.startsWith(prefix)) {
                 return true;
             }
         }
