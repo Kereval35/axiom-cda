@@ -23,8 +23,8 @@ class SemanticMappingFshTraceRendererTest {
         assertTrue(rendered.contains("RuleSet: ObservationMappingRules"));
         assertTrue(rendered.contains("* metadata.rootCdaType = \"Observation\""));
         assertTrue(rendered.contains("// id -> identifier"));
-        assertTrue(rendered.contains("* groupName = \"CdaLaboratoryObservationToFhirObservation\""));
-        assertTrue(rendered.contains("* ruleName = \"id\""));
+        assertTrue(rendered.contains("* groupName = \"CdaObservationToFhirObservation\""));
+        assertTrue(rendered.contains("* ruleName = \"IdSelf\""));
         assertTrue(rendered.contains("* from = \"id\""));
         assertTrue(rendered.contains("* to = \"identifier\""));
         assertTrue(rendered.contains("* mappingKind = #DIRECT_PATH"));

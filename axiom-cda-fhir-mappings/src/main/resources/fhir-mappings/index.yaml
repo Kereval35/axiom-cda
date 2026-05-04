@@ -7,7 +7,7 @@ packs:
     family: hl7-core
     version: 1.0.0
     status: active
-    resource: fhir-mappings/observation/observation-core-v1.yaml
+    resource: fhir-mappings/observation/observation-core-v2.yaml
   - id: observation-ehdsi-lab-v1
     label: eHDSI Laboratory Observation
     description: Observation mapping specialized for the eHDSI laboratory parent profile.
@@ -16,4 +16,4 @@ packs:
     family: ehdsi-laboratory
     version: 1.0.0
     status: active
-    resource: fhir-mappings/observation/observation-ehdsi-lab-v1.yaml
+    resource: fhir-mappings/observation/observation-ehdsi-lab-v2.yaml

@@ -1,0 +1,181 @@
+kind: observation-mapping
+id: observation-hl7-core-v2
+label: Generic HL7 Observation
+description: >
+  Contributor-friendly primary authoring format for generic CDA Observation to
+  FHIR Observation mapping.
+rootCdaType: Observation
+fhirRoot: Observation
+parent: http://hl7.org/fhir/StructureDefinition/Observation
+
+branches:
+  id:
+    target: identifier
+    cardinalityFrom: self
+    notes:
+      - Map CDA observation ids to FHIR identifiers on the parent Observation.
+
+  code:
+    target: code
+    fields:
+      self: code
+      code: coding.code
+      codeSystem: coding.system
+      displayName: coding.display
+      originalText: text
+      translation: coding
+      translation.code: coding.code
+      translation.codeSystem: coding.system
+      translation.displayName: coding.display
+    notes:
+      - Map the primary CDA code and available translations to Observation.code.
+
+  statusCode:
+    target: status
+    transform: translate
+    terminologyMap: act-status-2-observation-status
+    fields:
+      code: self
+    notes:
+      - Use the CDA statusCode to derive FHIR Observation.status.
+
+  effectiveTime:
+    target: effective[x]
+    onlyType: dateTime
+    cardinalityFrom: self
+    notes:
+      - Generic core treats effectiveTime as a dateTime projection.
+
+  text:
+    target: note
+    fields:
+      self: note
+      value: text
+    notes:
+      - Free text can be surfaced as Observation.note.text.
+
+  value:
+    target: value[x]
+    cardinalityFrom: self
+    typeMap:
+      CD: CodeableConcept
+      CE: CodeableConcept
+      CV: CodeableConcept
+      CO: CodeableConcept
+      CS: CodeableConcept
+      PQ: Quantity
+      IVL_PQ: Quantity
+      RTO_PQ_PQ: Quantity
+      ST: string
+      ED: string
+      SC: string
+      TS: dateTime
+      IVL_TS: dateTime
+      SXCM_TS: dateTime
+      SXPR_TS: dateTime
+      PIVL_TS: dateTime
+      EIVL_TS: dateTime
+      BL: boolean
+      INT: integer
+      INT_POS: integer
+      REAL: decimal
+    notes:
+      - >
+        The compact compiler should expand these datatype mappings into semantic
+        rules equivalent to the current value[x] inference used by the runtime.
+
+  interpretationCode:
+    target: interpretation
+    fields:
+      self: interpretation
+      code: coding.code
+      codeSystem: coding.system
+      displayName: coding.display
+    notes:
+      - Map interpretationCode into Observation.interpretation.
+
+  methodCode:
+    target: method
+    fields:
+      self: method
+      code: coding.code
+      codeSystem: coding.system
+      displayName: coding.display
+    notes:
+      - Map methodCode into Observation.method.
+
+  participant:
+    target: performer
+    projection: relationship-only
+    relationship:
+      kind: reference
+      createdType: Reference
+    notes:
+      - Participant is treated as a performer-style relationship on the parent Observation.
+
+  performer:
+    target: performer
+    projection: relationship-only
+    relationship:
+      kind: reference
+      createdType: Reference
+    notes:
+      - Performer is treated as a direct FHIR Observation.performer relationship.
+
+  reference:
+    target: derivedFrom
+    projection: relationship-only
+    relationship:
+      kind: reference
+      createdType: Reference
+    notes:
+      - Generic core routes CDA reference links to Observation.derivedFrom.
+
+  entryRelationship:
+    notes:
+      - >
+        EntryRelationship is split by flavor. The compiler should emit enough
+        metadata for the interpreter to distinguish note-style relationships from
+        nested member Observations.
+    flavors:
+      act:
+        target: note
+        projection: direct
+        fields:
+          self: note
+          text: note.text
+        ignore:
+          - classCode
+          - moodCode
+          - templateId
+          - typeCode
+          - inversionInd
+        notes:
+          - Use act children as note/annotation content when the source branch is act.
+      observation:
+        target: hasMember
+        projection: relationship-only
+        relationship:
+          kind: reference
+          createdType: Reference
+        ignore:
+          - classCode
+          - moodCode
+          - templateId
+          - typeCode
+          - inversionInd
+        notes:
+          - >
+            Nested entryRelationship observations indicate linked/member
+            observations. Child observation internals belong to the related
+            profile, not to the parent Observation profile.
+
+  referenceRange:
+    target: referenceRange
+    fields:
+      self: referenceRange
+      observationRange.value.low: low
+      observationRange.value.high: high
+      observationRange.interpretationCode: type
+    notes:
+      - Map common CDA observationRange paths into Observation.referenceRange.

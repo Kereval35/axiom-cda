@@ -24,6 +24,10 @@ class BuiltInMappingCatalogTest {
         assertTrue(builtIn.allRules().stream()
                 .flatMap(rule -> rule.targets().stream())
                 .anyMatch(target -> "meta.profile".equals(target.path())));
+        assertTrue(builtIn.allRules().stream()
+                .flatMap(rule -> rule.targets().stream())
+                .anyMatch(target -> "category.coding.code".equals(target.path())
+                        && "laboratory".equals(target.constantValue())));
         assertTrue(uploaded.allRules().stream()
                 .flatMap(rule -> rule.targets().stream())
                 .anyMatch(target -> "note".equals(target.path())));
@@ -39,13 +43,16 @@ class BuiltInMappingCatalogTest {
     void genericObservationPackDoesNotForceEhdsiParentProfile() {
         SemanticMappingModel builtIn = new BuiltInMappingModelProvider().resolve("Observation", "observation-hl7-core-v1");
 
+        assertTrue(builtIn.allRules().stream()
+                .flatMap(rule -> rule.targets().stream())
+                .anyMatch(target -> "meta.profile".equals(target.path())
+                        && "http://hl7.org/fhir/StructureDefinition/Observation".equals(target.constantValue())));
         assertFalse(builtIn.allRules().stream()
                 .flatMap(rule -> rule.targets().stream())
-                .anyMatch(target -> "meta.profile".equals(target.path())));
+                .anyMatch(target -> "meta.profile".equals(target.path())
+                        && target.constantValue() != null
+                        && target.constantValue().contains("eHDSI")));
         assertTrue(builtIn.allRules().stream().allMatch(rule -> rule.mappingKind() != null));
-        assertTrue(builtIn.allRules().stream()
-                .filter(rule -> "FhirObservationCategoryCoding".equals(rule.name()))
-                .allMatch(rule -> "GLOBAL".equals(rule.displaySourceLabel())));
         assertTrue(builtIn.allRules().stream()
                 .anyMatch(rule -> "entryRelationship.observation".equals(rule.primarySourcePath())
                         && rule.targets().stream().anyMatch(target -> "hasMember".equals(target.path()))));

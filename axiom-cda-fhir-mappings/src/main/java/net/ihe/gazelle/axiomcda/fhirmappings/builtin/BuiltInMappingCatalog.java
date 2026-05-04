@@ -1,12 +1,15 @@
 package net.ihe.gazelle.axiomcda.fhirmappings.builtin;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
 import net.ihe.gazelle.axiomcda.fhirmappings.api.MappingCatalog;
 import net.ihe.gazelle.axiomcda.fhirmappings.api.MappingRulePack;
 import net.ihe.gazelle.axiomcda.fhirmappings.api.SemanticMappingModel;
 import net.ihe.gazelle.axiomcda.fhirmappings.api.SemanticMappingModelEnricher;
+import net.ihe.gazelle.axiomcda.fhirmappings.compact.ObservationMapping;
+import net.ihe.gazelle.axiomcda.fhirmappings.compact.ObservationMappingCompiler;
 
 import java.io.InputStream;
 import java.util.ArrayList;
@@ -83,7 +86,16 @@ public class BuiltInMappingCatalog implements MappingCatalog {
             if (stream == null) {
                 throw new IllegalStateException("Missing mapping resource: " + resource);
             }
-            return SemanticMappingModelEnricher.enrich(YAML_MAPPER.readValue(stream, SemanticMappingModel.class));
+            JsonNode root = YAML_MAPPER.readTree(stream);
+            if (root == null || root.isMissingNode() || root.isNull()) {
+                return new SemanticMappingModel(List.of());
+            }
+            String kind = root.path("kind").asText("");
+            if ("observation-mapping".equals(kind)) {
+                ObservationMapping mapping = YAML_MAPPER.treeToValue(root, ObservationMapping.class);
+                return new ObservationMappingCompiler().compile(mapping);
+            }
+            return SemanticMappingModelEnricher.enrich(YAML_MAPPER.treeToValue(root, SemanticMappingModel.class));
         }
     }
 
