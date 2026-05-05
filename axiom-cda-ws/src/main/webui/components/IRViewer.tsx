@@ -8,6 +8,7 @@ interface IRViewerProps {
 }
 
 export const IRViewer: React.FC<IRViewerProps> = ({ templates }) => {
+    const [isCollapsed, setIsCollapsed] = useState(true);
     const [selectedTemplate, setSelectedTemplate] = useState<IRTemplate | null>(
         templates.length > 0 ? templates[0] : null
     );
@@ -51,16 +52,38 @@ export const IRViewer: React.FC<IRViewerProps> = ({ templates }) => {
 
     return (
         <div className="glass rounded-2xl p-6 shadow-2xl">
-            <div className="mb-4">
-                <h2 className="text-xl font-semibold !text-[#18181b] dark:!text-zinc-100 mb-2">
-                    Intermediate Representation (IR)
-                </h2>
-                <p className="text-sm text-zinc-600 dark:text-zinc-400">
-                    {templates.length} template{templates.length !== 1 ? "s" : ""} generated
-                </p>
+            <div
+                className={`${isCollapsed ? "" : "mb-4"} flex cursor-pointer items-center justify-between gap-4`}
+                onClick={() => setIsCollapsed((collapsed) => !collapsed)}
+                role="button"
+                tabIndex={0}
+                onKeyDown={(event) => {
+                    if (event.key === "Enter" || event.key === " ") {
+                        event.preventDefault();
+                        setIsCollapsed((collapsed) => !collapsed);
+                    }
+                }}
+            >
+                <div>
+                    <h2 className="text-xl font-semibold !text-[#18181b] dark:!text-zinc-100 mb-2">
+                        Intermediate Representation (IR)
+                    </h2>
+                    <p className="text-sm text-zinc-600 dark:text-zinc-400">
+                        {templates.length} template{templates.length !== 1 ? "s" : ""} generated
+                    </p>
+                </div>
+                <svg
+                    className={`h-5 w-5 text-zinc-500 transition-transform dark:text-zinc-400 ${isCollapsed ? "-rotate-90" : ""}`}
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                    aria-hidden="true"
+                >
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7" />
+                </svg>
             </div>
 
-            <div className="grid grid-cols-1 lg:grid-cols-12 gap-4">
+            {!isCollapsed && <div className="grid grid-cols-1 lg:grid-cols-12 gap-4">
                 {/* Template List */}
                 <div className="lg:col-span-4 space-y-3">
                     {/* Search */}
@@ -234,7 +257,7 @@ export const IRViewer: React.FC<IRViewerProps> = ({ templates }) => {
                         </div>
                     )}
                 </div>
-            </div>
+            </div>}
         </div>
     );
 };

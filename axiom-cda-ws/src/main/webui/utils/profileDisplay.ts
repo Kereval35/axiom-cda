@@ -4,6 +4,11 @@ import { FshProfile } from "../types/generation";
 
 export function sortProfilesForDisplay(profiles: FshProfile[]): FshProfile[] {
   return [...profiles].sort((left, right) => {
+    const leftObservation = left.fhirTransformKind === "observation";
+    const rightObservation = right.fhirTransformKind === "observation";
+    if (leftObservation !== rightObservation) {
+      return leftObservation ? -1 : 1;
+    }
     if (left.fhirTransformEligible !== right.fhirTransformEligible) {
       return left.fhirTransformEligible ? -1 : 1;
     }

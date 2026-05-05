@@ -14,7 +14,7 @@ The generator converts an ART-DECOR BBR (Building Block Repository) export into:
 - FSH profiles that specialize HL7 CDA logical models from the `hl7.cda.uv.core` package
 - FSH `ValueSet` and `CodeSystem` definitions extracted from the BBR `terminology` section
 - a SUSHI-ready repository with `sushi-config.yaml` and `input/fsh`
-- FHIR Observation FSH generated from selected CDA Observation IR plus a StructureMap JSON
+- FHIR FSH generated from selected CDA IR plus a semantic mapping: built-in Observation mappings or an uploaded StructureMap JSON
 
 The conversion pipeline is:
 
@@ -28,9 +28,9 @@ The conversion pipeline is:
    - Emit FSH CDA profiles from the IR
    - Emit ValueSets and CodeSystems from the terminology section
 4. **Optional FHIR conversion**
-   - Select an Observation-root IR template
-   - Apply a StructureMap JSON
-   - Generate FHIR Observation FSH and optionally compile it with SUSHI
+   - Select a CDA IR template
+   - Use a built-in Observation mapping or upload a StructureMap JSON
+   - Generate best-effort FHIR FSH and optionally compile it with SUSHI
 
 ## Project Structure
 

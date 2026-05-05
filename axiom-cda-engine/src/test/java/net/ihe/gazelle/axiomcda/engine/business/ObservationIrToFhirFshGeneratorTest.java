@@ -131,7 +131,7 @@ class ObservationIrToFhirFshGeneratorTest {
 
         assertTrue(result.fsh().contains("* hasMember 0..*"));
         assertFalse(result.diagnostics().stream().anyMatch(message -> message.contains("path 'entryRelationship.observation' is not emitted as a standalone")));
-        assertTrue(result.diagnostics().stream().anyMatch(message -> message.contains("entryRelationship.observation.statusCode") && message.contains("runtime relationship construction")));
+        assertFalse(result.diagnostics().stream().anyMatch(message -> message.contains("entryRelationship.observation.statusCode") && message.contains("runtime relationship construction")));
 
         String usedTrace = new SemanticMappingFshTraceRenderer().render("UsedRules", "Observation", "test", result.usedMappingModel());
         assertTrue(usedTrace.contains("entryRelationship.observation -> hasMember"));

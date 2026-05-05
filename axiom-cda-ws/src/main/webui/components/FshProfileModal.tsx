@@ -72,10 +72,10 @@ export const FshProfileModal: React.FC<FshProfileModalProps> = ({
                 <div className="px-6 py-4 border-b border-zinc-200 dark:border-zinc-700 flex items-center justify-between bg-zinc-50 dark:bg-zinc-800">
                     <div>
                         <h3 className="text-lg font-bold text-zinc-800 dark:text-zinc-100 font-mono">{modalTitle}</h3>
-                        {profile.fhirTransformEligible && (
+                        {profile.fhirTransformKind === "observation" && (
                             <div className="mt-2 flex items-center gap-2">
                                 <span className="inline-flex items-center rounded-full bg-cyan-100 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-cyan-700 dark:bg-cyan-950/40 dark:text-cyan-300">
-                                    FHIR
+                                    FHIR Ready
                                 </span>
                                 <span className="text-xs text-zinc-600 dark:text-zinc-300">
                                     {profile.fhirTransformNotice ?? t.dashboard.fhirEligible}
@@ -121,12 +121,19 @@ export const FshProfileModal: React.FC<FshProfileModalProps> = ({
 
                 <div className="px-6 py-4 border-t border-zinc-200 dark:border-zinc-700 bg-zinc-50 dark:bg-zinc-800 flex justify-end gap-3">
                     {profile.fhirTransformEligible && onConvert && (
-                        <button
-                            onClick={onConvert}
-                            className="flex items-center gap-2 px-4 py-2 bg-cyan-600 hover:bg-cyan-500 text-white rounded-lg font-medium transition-colors shadow-lg shadow-cyan-600/20"
-                        >
-                            {convertLabelOverride ?? t.dashboard.convertToFhir}
-                        </button>
+                        <div className="flex flex-wrap items-center justify-end gap-3">
+                            {profile.fhirTransformKind === "observation" && (
+                                <span className="max-w-xs text-right text-xs text-zinc-500 dark:text-zinc-400">
+                                    BETA: This profiles could be directly converted to FHIR using builting mapper
+                                </span>
+                            )}
+                            <button
+                                onClick={onConvert}
+                                className="flex items-center gap-2 px-4 py-2 bg-cyan-600 hover:bg-cyan-500 text-white rounded-lg font-medium transition-colors shadow-lg shadow-cyan-600/20"
+                            >
+                                {convertLabelOverride ?? t.dashboard.convertToFhir}
+                            </button>
+                        </div>
                     )}
                     <button
                         onClick={copyToClipboard}

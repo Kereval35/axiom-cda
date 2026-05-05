@@ -19,8 +19,8 @@ Output:
   - `Resources/<ProfileName>.fsh` files
   - `Invariants/<InvariantName>.fsh` files (when enabled)
 - Optional SUSHI repository layout (`sushi-config.yaml` + `input/fsh`)
-- In the web service, optional FHIR Observation FSH generated from Observation IR
-  plus a StructureMap JSON
+- In the web service, optional FHIR FSH generated from CDA IR plus either a
+  built-in Observation mapping or an uploaded StructureMap JSON
 
 The CLI can remap `Resources/` and `Invariants/` to different folders
 (`--resources-dir`, `--invariants-dir`) and can emit a SUSHI repo layout
@@ -119,18 +119,18 @@ When `--sushi-repo` is enabled, the generator writes:
 The web service uses the same layout to support SUSHI compilation flows for generated
 FHIR FSH.
 
-### 8) Observation IR to FHIR FSH
+### 8) CDA IR to FHIR FSH
 
-The web service exposes a second generation path for Observation templates:
+The web service exposes a second generation path for FHIR profiles:
 
 1. Generate CDA IR from the BBR.
-2. Select an Observation-root IR template.
-3. Upload a StructureMap JSON.
-4. Build a FHIR Observation profile from the IR plus the semantic mapping.
+2. Select a CDA IR template.
+3. Use a built-in Observation mapping or upload a StructureMap JSON.
+4. Build a FHIR profile from the IR plus the semantic mapping.
 5. Optionally compile the generated FSH with SUSHI.
 
-This path is implemented separately from the CDA FSH generator and is intended for the
-current Observation-focused FML/StructureMap workstream.
+Observation keeps a specialized projection path. Other CDA root types use a generic
+best-effort projection and require an uploaded StructureMap.
 
 ## Example mapping
 
@@ -178,5 +178,5 @@ Notes:
 ## Related web service endpoints
 
 - `POST /api/generate`: CDA FSH generation from BBR
-- `POST /api/convert/fhir`: FHIR FSH generation from Observation IR + StructureMap
+- `POST /api/convert/fhir`: FHIR FSH generation from CDA IR + semantic mapping
 - `POST /api/convert/fhir/sushi`: SUSHI compilation of generated FHIR FSH

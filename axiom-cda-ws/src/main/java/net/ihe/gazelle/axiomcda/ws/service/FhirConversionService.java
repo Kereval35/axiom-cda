@@ -2,6 +2,7 @@ package net.ihe.gazelle.axiomcda.ws.service;
 
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.ws.rs.BadRequestException;
+import net.ihe.gazelle.axiomcda.engine.business.GenericIrToFhirFshGenerator;
 import net.ihe.gazelle.axiomcda.engine.business.ObservationFhirConversionResult;
 import net.ihe.gazelle.axiomcda.engine.business.ObservationIrToFhirFshGenerator;
 import net.ihe.gazelle.axiomcda.fhirmappings.api.MappingModelProvider;
@@ -40,19 +41,32 @@ public class FhirConversionService {
         if (request == null || request.template() == null) {
             throw new IllegalArgumentException("A selected IR template is required for FHIR conversion");
         }
+        boolean observationTemplate = "Observation".equals(request.template().rootCdaType());
+        boolean uploadedStructureMap = request.structureMap() != null && !request.structureMap().isBlank();
+        if (!observationTemplate && !uploadedStructureMap) {
+            throw new BadRequestException("An uploaded StructureMap JSON is required for non-Observation FHIR conversion");
+        }
+        if (!observationTemplate && request.builtInMappingId() != null && !request.builtInMappingId().isBlank()) {
+            throw new BadRequestException("Built-in FHIR mapping presets are only available for Observation templates");
+        }
 
-        MappingModelProvider provider = request.structureMap() == null || request.structureMap().isBlank()
+        MappingModelProvider provider = !uploadedStructureMap
                 ? new BuiltInMappingModelProvider()
                 : new StructureMapUploadModelProvider(request.structureMap());
         SemanticMappingModel mappingModel = provider instanceof BuiltInMappingModelProvider builtInProvider
                 ? builtInProvider.resolve(request.template().rootCdaType(), request.builtInMappingId())
                 : provider.resolve(request.template().rootCdaType());
-        ObservationIrToFhirFshGenerator generator = new ObservationIrToFhirFshGenerator();
-        ObservationFhirConversionResult conversion = generator.generate(
-                request.template(),
-                request.sourceProfileName(),
-                mappingModel
-        );
+        ObservationFhirConversionResult conversion = observationTemplate
+                ? new ObservationIrToFhirFshGenerator().generate(
+                        request.template(),
+                        request.sourceProfileName(),
+                        mappingModel
+                )
+                : new GenericIrToFhirFshGenerator().generate(
+                        request.template(),
+                        request.sourceProfileName(),
+                        mappingModel
+                );
         String mappingRulesName = conversion.profileName() + "MappingRules";
         String mappingRulesFsh = new SemanticMappingFshTraceRenderer().render(
                 mappingRulesName,

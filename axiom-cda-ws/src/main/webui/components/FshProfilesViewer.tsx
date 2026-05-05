@@ -96,9 +96,9 @@ export const FshProfilesViewer: React.FC<FshProfilesViewerProps> = ({ profiles, 
                                         <div className="text-xs text-zinc-500 dark:text-zinc-400 transition-colors group-hover:text-indigo-500/70 dark:group-hover:text-indigo-400/70">
                                             {profile.content.split('\n').length} lines
                                         </div>
-                                        {profile.fhirTransformEligible && (
+                                        {profile.fhirTransformKind === "observation" && (
                                             <span className="inline-flex items-center rounded-full bg-cyan-100 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-cyan-700 dark:bg-cyan-950/40 dark:text-cyan-300">
-                                                FHIR
+                                                FHIR Ready
                                             </span>
                                         )}
                                     </div>

@@ -45,6 +45,7 @@ export default function FhirConversionPage() {
     const [sushiError, setSushiError] = React.useState<string | null>(null);
     const [sushiLogsOpen, setSushiLogsOpen] = React.useState(false);
     const [structureDefinitionCopied, setStructureDefinitionCopied] = React.useState(false);
+    const isObservationTemplate = selectedTemplate?.rootCdaType === "Observation";
 
     React.useEffect(() => {
         const session = loadFhirConversionSession();
@@ -54,6 +55,12 @@ export default function FhirConversionPage() {
         setSelectedTemplate(session.irTemplates.find((template) => template.id === session.selectedTemplateId) ?? null);
         setSelectedProfile(session.profiles.find((profile) => profile.name === session.selectedProfileName) ?? null);
     }, []);
+
+    React.useEffect(() => {
+        if (selectedTemplate && selectedTemplate.rootCdaType !== "Observation") {
+            setUseGenericMapping(false);
+        }
+    }, [selectedTemplate]);
 
     React.useEffect(() => {
         getFhirBuiltInMappingPresetsAction()
@@ -114,11 +121,12 @@ export default function FhirConversionPage() {
         setSushiLogsOpen(false);
         setStructureDefinitionCopied(false);
         try {
+            const useBuiltInMapping = selectedTemplate.rootCdaType === "Observation" && useGenericMapping;
             const response = await convertFhirAction({
                 sourceProfileName: selectedProfile.name,
                 template: selectedTemplate,
-                structureMap: useGenericMapping ? null : structureMap,
-                builtInMappingId: useGenericMapping ? selectedBuiltInMappingId || null : null,
+                structureMap: useBuiltInMapping ? null : structureMap,
+                builtInMappingId: useBuiltInMapping ? selectedBuiltInMappingId || null : null,
             });
             setDiagnostics(response.diagnostics);
             setResult(response.profiles[0] ?? null);
@@ -314,17 +322,22 @@ export default function FhirConversionPage() {
                     <label className="flex items-start gap-3 rounded-xl border border-zinc-300 bg-zinc-50/60 p-4 dark:border-zinc-700 dark:bg-zinc-900/40">
                         <input
                             type="checkbox"
-                            checked={useGenericMapping}
+                            checked={isObservationTemplate && useGenericMapping}
+                            disabled={!isObservationTemplate}
                             onChange={(event) => setUseGenericMapping(event.target.checked)}
                             className="mt-0.5 h-5 w-5 rounded border-zinc-300 bg-zinc-50 text-indigo-600 focus:ring-indigo-500/50 focus:ring-offset-0 accent-indigo-600 dark:border-zinc-700 dark:bg-zinc-900"
                         />
                         <div className="min-w-0">
                             <div className="text-sm font-medium text-zinc-900 dark:text-zinc-100">{t.dashboard.useGenericMapping}</div>
-                            <div className="mt-1 text-xs text-zinc-500 dark:text-zinc-400">{t.dashboard.useGenericMappingHint}</div>
+                            <div className="mt-1 text-xs text-zinc-500 dark:text-zinc-400">
+                                {isObservationTemplate
+                                    ? t.dashboard.useGenericMappingHint
+                                    : "Built-in mapping is available only for Observation. Upload a StructureMap JSON for this CDA element."}
+                            </div>
                         </div>
                     </label>
 
-                    {!useGenericMapping && (
+                    {(!isObservationTemplate || !useGenericMapping) && (
                         <div className="space-y-2">
                             <label className="text-sm font-medium text-zinc-900 dark:text-zinc-100">{t.dashboard.structureMapLabel}</label>
                             <label className="flex h-44 cursor-pointer flex-col items-center justify-center rounded-xl border-2 border-dashed border-zinc-300 bg-zinc-50/50 text-center transition-all hover:bg-zinc-100 dark:border-zinc-700 dark:bg-zinc-900/50 dark:hover:bg-zinc-800/50">
@@ -337,7 +350,7 @@ export default function FhirConversionPage() {
                         </div>
                     )}
 
-                    {useGenericMapping && (
+                    {isObservationTemplate && useGenericMapping && (
                         <div className="space-y-2">
                             <label className="text-sm font-medium text-zinc-900 dark:text-zinc-100">{t.dashboard.builtInMappingLabel}</label>
                             <select
@@ -365,7 +378,7 @@ export default function FhirConversionPage() {
                 <div className="flex justify-end">
                     <button
                         onClick={generate}
-                        disabled={loading || (useGenericMapping && !selectedBuiltInMappingId) || (!useGenericMapping && !structureMap)}
+                        disabled={loading || (isObservationTemplate && useGenericMapping && !selectedBuiltInMappingId) || ((!isObservationTemplate || !useGenericMapping) && !structureMap)}
                         className="inline-flex items-center rounded-xl bg-gradient-to-r from-cyan-600 to-indigo-600 px-6 py-3 font-semibold text-white transition-all hover:shadow-[0_0_20px_rgba(8,145,178,0.35)] disabled:cursor-not-allowed disabled:opacity-50"
                     >
                         {loading ? t.dashboard.generatingFhir : t.dashboard.generateFhir}

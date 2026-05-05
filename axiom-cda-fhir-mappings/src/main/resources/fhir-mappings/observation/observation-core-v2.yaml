@@ -8,6 +8,14 @@ rootCdaType: Observation
 fhirRoot: Observation
 parent: http://hl7.org/fhir/StructureDefinition/Observation
 
+fixedTargets:
+  - target: category.coding.system
+    value: http://terminology.hl7.org/CodeSystem/observation-category
+    transform: copy
+  - target: category.coding.code
+    value: laboratory
+    transform: copy
+
 branches:
   id:
     target: identifier

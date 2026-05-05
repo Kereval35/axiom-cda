@@ -24,7 +24,7 @@ import java.util.Set;
 public class StructureMapSemanticAnalyzer {
 
     private static final ObjectMapper MAPPER = new ObjectMapper();
-    private static final List<String> ROOT_GROUPS = List.of(
+    private static final List<String> PREFERRED_ROOT_GROUPS = List.of(
             "CdaLaboratoryObservationToFhirObservation",
             "CdaLaboratoryObservationValueToFhirObservationValue"
     );
@@ -41,7 +41,7 @@ public class StructureMapSemanticAnalyzer {
 
         List<SemanticGroup> groups = new ArrayList<>();
         Set<String> visitedRoots = new LinkedHashSet<>();
-        for (String groupName : ROOT_GROUPS) {
+        for (String groupName : resolveRootGroups(groupsByName)) {
             JsonNode group = groupsByName.get(groupName);
             if (group == null || !visitedRoots.add(groupName)) {
                 continue;
@@ -53,15 +53,66 @@ public class StructureMapSemanticAnalyzer {
         return SemanticMappingModelEnricher.enrich(new SemanticMappingModel(groups));
     }
 
+    private List<String> resolveRootGroups(Map<String, JsonNode> groupsByName) {
+        List<String> preferredRoots = PREFERRED_ROOT_GROUPS.stream()
+                .filter(groupsByName::containsKey)
+                .toList();
+        if (!preferredRoots.isEmpty()) {
+            return preferredRoots;
+        }
+
+        Set<String> dependentGroups = new LinkedHashSet<>();
+        for (JsonNode group : groupsByName.values()) {
+            collectDependentGroups(group.path("rule"), dependentGroups);
+        }
+
+        List<String> roots = new ArrayList<>();
+        for (Map.Entry<String, JsonNode> entry : groupsByName.entrySet()) {
+            if (!dependentGroups.contains(entry.getKey()) && hasSourceAndTargetInput(entry.getValue())) {
+                roots.add(entry.getKey());
+            }
+        }
+        return roots.isEmpty() ? List.copyOf(groupsByName.keySet()) : roots;
+    }
+
+    private void collectDependentGroups(JsonNode rulesNode, Set<String> dependentGroups) {
+        if (!rulesNode.isArray()) {
+            return;
+        }
+        for (JsonNode rule : iterable(rulesNode)) {
+            for (JsonNode dependent : iterable(rule.path("dependent"))) {
+                String name = text(dependent, "name");
+                if (name != null && !name.isBlank()) {
+                    dependentGroups.add(name);
+                }
+            }
+            collectDependentGroups(rule.path("rule"), dependentGroups);
+        }
+    }
+
+    private boolean hasSourceAndTargetInput(JsonNode group) {
+        boolean hasSource = false;
+        boolean hasTarget = false;
+        for (GroupInput input : parseInputs(group.path("input"))) {
+            if ("source".equals(input.mode())) {
+                hasSource = true;
+            } else if ("target".equals(input.mode())) {
+                hasTarget = true;
+            }
+        }
+        return hasSource && hasTarget;
+    }
+
     private AnalysisContext initializeContext(JsonNode group) {
         Map<String, String> sourceVars = new LinkedHashMap<>();
         Map<String, String> targetVars = new LinkedHashMap<>();
         List<GroupInput> inputs = parseInputs(group.path("input"));
+        String primaryTarget = primaryTargetInput(inputs);
         for (GroupInput input : inputs) {
             if ("source".equals(input.mode())) {
                 sourceVars.put(input.name(), initialSourceRoot(input.name()));
             } else if ("target".equals(input.mode())) {
-                targetVars.put(input.name(), initialTargetRoot(input.name()));
+                targetVars.put(input.name(), initialTargetRoot(input.name(), input.type(), input.name().equals(primaryTarget)));
             }
         }
         return new AnalysisContext(sourceVars, targetVars, null, List.of());
@@ -72,11 +123,30 @@ public class StructureMapSemanticAnalyzer {
         for (JsonNode input : iterable(inputs)) {
             String name = text(input, "name");
             String mode = text(input, "mode");
+            String type = text(input, "type");
             if (name != null && mode != null) {
-                result.add(new GroupInput(name, mode));
+                result.add(new GroupInput(name, mode, type));
             }
         }
         return result;
+    }
+
+    private String primaryTargetInput(List<GroupInput> inputs) {
+        String firstTarget = null;
+        for (GroupInput input : inputs) {
+            if (!"target".equals(input.mode())) {
+                continue;
+            }
+            if (firstTarget == null) {
+                firstTarget = input.name();
+            }
+            String type = input.type() == null ? "" : input.type();
+            String name = input.name() == null ? "" : input.name();
+            if (!"Bundle".equalsIgnoreCase(type) && !"bundle".equalsIgnoreCase(name)) {
+                return input.name();
+            }
+        }
+        return firstTarget;
     }
 
     private List<SemanticRule> analyzeRules(String groupName,
@@ -228,7 +298,7 @@ public class StructureMapSemanticAnalyzer {
             if ("source".equals(input.mode())) {
                 sourceVars.put(input.name(), resolved == null ? initialSourceRoot(input.name()) : resolved);
             } else if ("target".equals(input.mode())) {
-                targetVars.put(input.name(), resolved == null ? initialTargetRoot(input.name()) : resolved);
+                targetVars.put(input.name(), resolved == null ? initialTargetRoot(input.name(), input.type(), false) : resolved);
             }
         }
         return new AnalysisContext(sourceVars, targetVars, currentSourcePath, lineage);
@@ -307,7 +377,10 @@ public class StructureMapSemanticAnalyzer {
         return "";
     }
 
-    private String initialTargetRoot(String name) {
+    private String initialTargetRoot(String name, String type, boolean primaryTarget) {
+        if (primaryTarget) {
+            return "";
+        }
         if (name == null || name.isBlank()) {
             return "";
         }
@@ -372,7 +445,7 @@ public class StructureMapSemanticAnalyzer {
         return node::elements;
     }
 
-    private record GroupInput(String name, String mode) {
+    private record GroupInput(String name, String mode, String type) {
     }
 
     private record AnalysisContext(Map<String, String> sourceVars,
