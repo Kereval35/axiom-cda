@@ -24,7 +24,8 @@ final class CdaPathNormalizer {
             return trimmed;
         }
         String[] segments = trimmed.split("\\.");
-        String currentType = cdaDefinition.name();
+        CdaStructureDefinition currentDefinition = cdaDefinition;
+        String currentPathPrefix = cdaDefinition.name();
         List<String> normalizedSegments = new ArrayList<>();
         for (int i = 0; i < segments.length; i++) {
             String segment = normalizeSegment(segments[i]);
@@ -35,30 +36,42 @@ final class CdaPathNormalizer {
                 String nextSegment = normalizeSegment(segments[i + 1]);
                 if (!nextSegment.isEmpty()) {
                     String combined = "item." + nextSegment;
-                    PathSegmentResolution combinedResolution = resolveSegment(currentType, combined, cdaRepository);
+                    PathSegmentResolution combinedResolution = resolveSegment(currentDefinition,
+                            currentPathPrefix,
+                            combined,
+                            cdaRepository);
                     if (combinedResolution != null) {
                         normalizedSegments.add(combinedResolution.segment());
                         if (i + 1 < segments.length - 1) {
-                            if (combinedResolution.nextType() == null) {
+                            CurrentContext nextContext = advanceContext(currentDefinition,
+                                    combinedResolution,
+                                    cdaRepository);
+                            if (nextContext == null) {
                                 return null;
                             }
-                            currentType = combinedResolution.nextType();
+                            currentDefinition = nextContext.definition();
+                            currentPathPrefix = nextContext.pathPrefix();
                         }
                         i++;
                         continue;
                     }
                 }
             }
-            PathSegmentResolution resolution = resolveSegment(currentType, segment, cdaRepository);
+            PathSegmentResolution resolution = resolveSegment(currentDefinition,
+                    currentPathPrefix,
+                    segment,
+                    cdaRepository);
             if (resolution == null) {
                 return null;
             }
             normalizedSegments.add(resolution.segment());
             if (i < segments.length - 1) {
-                if (resolution.nextType() == null) {
+                CurrentContext nextContext = advanceContext(currentDefinition, resolution, cdaRepository);
+                if (nextContext == null) {
                     return null;
                 }
-                currentType = resolution.nextType();
+                currentDefinition = nextContext.definition();
+                currentPathPrefix = nextContext.pathPrefix();
             }
         }
         return String.join(".", normalizedSegments);
@@ -72,20 +85,20 @@ final class CdaPathNormalizer {
         return cleaned;
     }
 
-    private static PathSegmentResolution resolveSegment(String currentType,
+    private static PathSegmentResolution resolveSegment(CdaStructureDefinition currentDefinition,
+                                                        String currentPathPrefix,
                                                         String segment,
                                                         CdaModelRepository cdaRepository) {
-        Optional<CdaStructureDefinition> currentDefinition = cdaRepository.findByName(currentType);
-        if (currentDefinition.isEmpty()) {
+        if (currentDefinition == null || currentPathPrefix == null || currentPathPrefix.isBlank()) {
             return null;
         }
-        Map<String, CdaElementDefinition> elements = currentDefinition.get().elementsByPath();
-        String path = currentType + "." + segment;
+        Map<String, CdaElementDefinition> elements = currentDefinition.elementsByPath();
+        String path = currentPathPrefix + "." + segment;
         CdaElementDefinition element = elements.get(path);
         String normalizedSegment = segment;
         if (element == null) {
             String itemSegment = "item." + segment;
-            element = elements.get(currentType + "." + itemSegment);
+            element = elements.get(currentPathPrefix + "." + itemSegment);
             if (element != null) {
                 normalizedSegment = itemSegment;
             }
@@ -94,7 +107,28 @@ final class CdaPathNormalizer {
             return null;
         }
         String nextType = resolveTypeName(element.typeCodes(), cdaRepository);
-        return new PathSegmentResolution(normalizedSegment, nextType);
+        return new PathSegmentResolution(normalizedSegment, nextType, element.path());
+    }
+
+    private static CurrentContext advanceContext(CdaStructureDefinition currentDefinition,
+                                                 PathSegmentResolution resolution,
+                                                 CdaModelRepository cdaRepository) {
+        if (hasDescendants(currentDefinition, resolution.resolvedPath())) {
+            return new CurrentContext(currentDefinition, resolution.resolvedPath());
+        }
+        if (resolution.nextType() == null) {
+            return null;
+        }
+        Optional<CdaStructureDefinition> nextDefinition = cdaRepository.findByName(resolution.nextType());
+        if (nextDefinition.isEmpty()) {
+            return null;
+        }
+        return new CurrentContext(nextDefinition.get(), resolution.nextType());
+    }
+
+    private static boolean hasDescendants(CdaStructureDefinition definition, String pathPrefix) {
+        String nestedPrefix = pathPrefix + ".";
+        return definition.elementsByPath().keySet().stream().anyMatch(path -> path.startsWith(nestedPrefix));
     }
 
     private static String resolveTypeName(List<String> typeCodes, CdaModelRepository cdaRepository) {
@@ -135,5 +169,8 @@ final class CdaPathNormalizer {
             }
         }
         return null;
+    }
+
+    private record CurrentContext(CdaStructureDefinition definition, String pathPrefix) {
     }
 }

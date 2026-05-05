@@ -82,7 +82,6 @@ final class TemplateBuildContext {
             return mapped;
         }
         if (config.valueSetPolicy().useOidAsCanonical()) {
-            addDiagnostic(IRDiagnosticSeverity.WARNING, null, "Unmapped ValueSet OID: " + oid);
             return "urn:oid:" + oid;
         }
         return null;
