@@ -14,6 +14,8 @@ public final class SemanticMappingModelEnricher {
         return new SemanticMappingModel(model.groups().stream()
                 .map(group -> new SemanticGroup(
                         group.name(),
+                        group.sourceType(),
+                        group.targetType(),
                         group.rules().stream().map(SemanticMappingModelEnricher::enrichRule).toList()
                 ))
                 .toList());

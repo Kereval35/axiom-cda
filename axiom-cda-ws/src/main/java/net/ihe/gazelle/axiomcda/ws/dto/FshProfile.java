@@ -7,9 +7,6 @@ public record FshProfile(
         String rootCdaType,
         String templateOrigin,
         String ownershipStatus,
-        String selectionReason,
-        boolean fhirTransformEligible,
-        String fhirTransformKind,
-        String fhirTransformNotice
+        String selectionReason
 ) {
 }

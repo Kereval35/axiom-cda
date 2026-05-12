@@ -45,9 +45,6 @@ export interface FshProfile {
     templateOrigin: string;
     ownershipStatus: string;
     selectionReason: string;
-    fhirTransformEligible: boolean;
-    fhirTransformKind: string | null;
-    fhirTransformNotice: string | null;
 }
 
 export interface IRTemplate {

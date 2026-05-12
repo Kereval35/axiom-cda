@@ -2,8 +2,6 @@ package net.ihe.gazelle.axiomcda.engine.business;
 
 import net.ihe.gazelle.axiomcda.api.ir.IRTemplate;
 import net.ihe.gazelle.axiomcda.api.ir.IRCardinality;
-import net.ihe.gazelle.axiomcda.engine.util.FshUtil;
-import net.ihe.gazelle.axiomcda.engine.util.NameUtil;
 import net.ihe.gazelle.axiomcda.fhirmappings.api.SemanticMappingModelFilter;
 import net.ihe.gazelle.axiomcda.fhirmappings.api.SemanticMappingModel;
 
@@ -14,8 +12,9 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 
-public class ObservationIrToFhirFshGenerator {
+public class ObservationIrToFhirFshGenerator implements IrToFhirFshGenerator {
 
+    @Override
     public ObservationFhirConversionResult generate(IRTemplate template,
                                                     String sourceProfileName,
                                                     SemanticMappingModel semanticModel) throws IOException {
@@ -32,19 +31,12 @@ public class ObservationIrToFhirFshGenerator {
         ObservationSemanticInterpreter interpreter = new ObservationSemanticInterpreter();
         ObservationSemanticInterpreter.ObservationProjectionResult projection = interpreter.interpret(template, semanticModel, inferences);
 
-        String profileName = buildProfileName(sourceProfileName, template);
-        String profileId = NameUtil.toKebabCase(profileName);
+        String profileName = FhirProfileSupport.buildProfileName(sourceProfileName, template, "Observation");
         String description = template.description() == null || template.description().isBlank()
                 ? "FHIR Observation profile generated from CDA IR and StructureMap PoC."
                 : template.description();
 
-        LinkedHashSet<String> lines = new LinkedHashSet<>();
-        lines.add("Profile: " + profileName);
-        lines.add("Parent: " + projection.parent());
-        lines.add("Id: " + profileId);
-        lines.add("Title: \"" + FshUtil.escape(profileName) + "\"");
-        lines.add("Description: \"" + FshUtil.escape(description) + "\"");
-        lines.add("* ^status = #draft");
+        LinkedHashSet<String> lines = FhirProfileSupport.initializeProfileLines(profileName, projection.parent(), description);
         normalizeCandidates(projection.candidates()).stream()
                 .map(ObservationSemanticInterpreter.ProjectionCandidate::toFshLine)
                 .forEach(lines::add);
@@ -112,13 +104,5 @@ public class ObservationIrToFhirFshGenerator {
             return first;
         }
         return String.valueOf(Math.min(Integer.parseInt(first), Integer.parseInt(second)));
-    }
-
-    private String buildProfileName(String sourceProfileName, IRTemplate template) {
-        String base = (sourceProfileName == null || sourceProfileName.isBlank())
-                ? template.rootCdaType()
-                : sourceProfileName;
-        String sanitized = base.replaceAll("[^A-Za-z0-9]", "");
-        return sanitized + "FhirObservation";
     }
 }

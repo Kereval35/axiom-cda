@@ -18,6 +18,7 @@ final class TemplateBuildContext {
     private final CdaModelRepository cdaRepository;
     private final Map<String, TemplateDefinition> templateById;
     private final List<IRDiagnostic> diagnostics;
+    private final BbrTerminologyCanonicalResolver canonicalResolver;
     private CdaStructureDefinition cdaDefinition;
 
     TemplateBuildContext(TemplateDefinition template,
@@ -26,12 +27,33 @@ final class TemplateBuildContext {
                          CdaModelRepository cdaRepository,
                          Map<String, TemplateDefinition> templateById,
                          List<IRDiagnostic> diagnostics) {
+        this(
+                template,
+                preferredLanguage,
+                config,
+                cdaRepository,
+                templateById,
+                diagnostics,
+                BbrTerminologyCanonicalResolver.fromDecor(null)
+        );
+    }
+
+    TemplateBuildContext(TemplateDefinition template,
+                         String preferredLanguage,
+                         GenerationConfig config,
+                         CdaModelRepository cdaRepository,
+                         Map<String, TemplateDefinition> templateById,
+                         List<IRDiagnostic> diagnostics,
+                         BbrTerminologyCanonicalResolver canonicalResolver) {
         this.template = template;
         this.preferredLanguage = preferredLanguage;
         this.config = config;
         this.cdaRepository = cdaRepository;
         this.templateById = templateById;
         this.diagnostics = diagnostics;
+        this.canonicalResolver = canonicalResolver == null
+                ? BbrTerminologyCanonicalResolver.fromDecor(null)
+                : canonicalResolver;
     }
 
     TemplateDefinition template() {
@@ -71,20 +93,11 @@ final class TemplateBuildContext {
     }
 
     String resolveValueSet(String oid) {
-        if (oid == null || oid.isBlank()) {
-            return null;
-        }
-        if (oid.startsWith("http") || oid.startsWith("urn:")) {
-            return oid;
-        }
-        String mapped = config.valueSetPolicy().oidToCanonical().get(oid);
-        if (mapped != null) {
-            return mapped;
-        }
-        if (config.valueSetPolicy().useOidAsCanonical()) {
-            return "urn:oid:" + oid;
-        }
-        return null;
+        return canonicalResolver.resolveValueSet(oid, config);
+    }
+
+    String resolveCodeSystem(String oid) {
+        return canonicalResolver.resolveCodeSystem(oid, config);
     }
 
     IRBindingStrength defaultBindingStrength() {

@@ -28,7 +28,7 @@ public final class ObservationMappingCompiler {
         for (Map.Entry<String, ObservationMappingBranch> entry : mapping.branches().entrySet()) {
             compileBranch(groupName, entry.getKey(), entry.getValue(), rules);
         }
-        return SemanticMappingModelEnricher.enrich(new SemanticMappingModel(List.of(new SemanticGroup(groupName, rules))));
+        return SemanticMappingModelEnricher.enrich(new SemanticMappingModel(List.of(new SemanticGroup(groupName, "Observation", "Observation", rules))));
     }
 
     private void compileBranch(String groupName,

@@ -1,0 +1,115 @@
+{
+  "resourceType" : "StructureMap",
+  "id" : "CDARecordTargetToPatient",
+  "text" : {
+    "status" : "additional",
+    "div" : "<div xmlns=\"http://www.w3.org/1999/xhtml\"><pre>map &quot;http://example.org/StructureMap/CDARecordTargetToPatient&quot; = &quot;CDARecordTargetToPatient&quot;\r\n\r\n// Declare source and target models\r\nuses &quot;http://hl7.org/cda/stds/core/StructureDefinition/RecordTarget&quot; alias CDA as source\r\nuses &quot;http://hl7.org/fhir/StructureDefinition/Patient&quot; alias FHIR as target\r\n\r\ngroup RecordTargetToPatient(source src : CDA, target tgt : FHIR) {\r\n\r\nsrc.patientRole as pr then {\r\n    // Identifier\r\n    pr.id as id -&gt;\r\n      tgt.identifier as ident then {\r\n        id.root as root -&gt; ident.system = ('urn:oid:' + root);\r\n        id.extension as ext -&gt; ident.value = ext;\r\n      };\r\n\t  \r\n\t  };\r\n\t  \r\n\t  \r\n\t patientRole.patient as pt then {\r\n\t \r\n\t pt.administrativeGenderCode as admg -&gt; tgt.gender = admg;\r\n\t };\r\n\t \r\n\t  \r\n\r\n}</pre></div>"
+  },
+  "url" : "http://example.org/StructureMap/CDARecordTargetToPatient",
+  "name" : "CDARecordTargetToPatient",
+  "structure" : [{
+    "url" : "http://hl7.org/cda/stds/core/StructureDefinition/RecordTarget",
+    "mode" : "source",
+    "alias" : "CDA"
+  },
+  {
+    "url" : "http://hl7.org/fhir/StructureDefinition/Patient",
+    "mode" : "target",
+    "alias" : "FHIR"
+  }],
+  "group" : [{
+    "name" : "RecordTargetToPatient",
+    "typeMode" : "none",
+    "input" : [{
+      "name" : "src",
+      "type" : "CDA",
+      "mode" : "source"
+    },
+    {
+      "name" : "tgt",
+      "type" : "FHIR",
+      "mode" : "target"
+    }],
+    "rule" : [{
+      "name" : "patientRole",
+      "source" : [{
+        "context" : "src",
+        "element" : "patientRole",
+        "variable" : "pr"
+      }],
+      "rule" : [{
+        "name" : "id",
+        "source" : [{
+          "context" : "pr",
+          "element" : "id",
+          "variable" : "id"
+        }],
+        "target" : [{
+          "context" : "tgt",
+          "contextType" : "variable",
+          "element" : "identifier",
+          "variable" : "ident"
+        }],
+        "rule" : [{
+          "name" : "root",
+          "source" : [{
+            "context" : "id",
+            "element" : "root",
+            "variable" : "root"
+          }],
+          "target" : [{
+            "context" : "ident",
+            "contextType" : "variable",
+            "element" : "system",
+            "transform" : "evaluate",
+            "parameter" : [{
+              "valueString" : "'urn:oid:' + root"
+            }]
+          }]
+        },
+        {
+          "name" : "extension",
+          "source" : [{
+            "context" : "id",
+            "element" : "extension",
+            "variable" : "ext"
+          }],
+          "target" : [{
+            "context" : "ident",
+            "contextType" : "variable",
+            "element" : "value",
+            "transform" : "copy",
+            "parameter" : [{
+              "valueId" : "ext"
+            }]
+          }]
+        }]
+      }]
+    },
+    {
+      "name" : "patient",
+      "source" : [{
+        "context" : "patientRole",
+        "element" : "patient",
+        "variable" : "pt"
+      }],
+      "rule" : [{
+        "name" : "administrativeGenderCode",
+        "source" : [{
+          "context" : "pt",
+          "element" : "administrativeGenderCode",
+          "variable" : "admg"
+        }],
+        "target" : [{
+          "context" : "tgt",
+          "contextType" : "variable",
+          "element" : "gender",
+          "transform" : "copy",
+          "parameter" : [{
+            "valueId" : "admg"
+          }]
+        }]
+      }]
+    }]
+  }]
+}

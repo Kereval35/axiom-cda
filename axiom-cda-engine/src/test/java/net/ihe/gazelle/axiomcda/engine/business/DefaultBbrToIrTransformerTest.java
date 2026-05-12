@@ -132,6 +132,41 @@ class DefaultBbrToIrTransformerTest {
     }
 
     @Test
+    void resolvesVocabularyValueSetToSourceCodeSystemCanonicalWhenAvailable() throws Exception {
+        Path bbrPath = Path.of("..", "ignored", "demo17-20260429T094232-en-US-decor-compiled.xml").normalize();
+        Decor decor = new JaxbBbrLoader().load(bbrPath);
+        CdaModelRepository cdaRepository = new JsonCdaModelRepository(ResourcePaths.getResourcePath("package"));
+
+        GenerationConfig defaults = GenerationConfig.defaults();
+        GenerationConfig config = new GenerationConfig(
+                defaults.naming(),
+                defaults.nullFlavorPolicy(),
+                defaults.valueSetPolicy(),
+                new TemplateSelection(List.of(), List.of("2.16.840.1.113883.3.1937.99.60.17.10.4001"), true),
+                defaults.emitInvariants(),
+                defaults.emitIrSnapshot()
+        );
+
+        var result = new DefaultBbrToIrTransformer().transform(decor, config, cdaRepository);
+
+        IRTemplate heartRate = result.templates().stream()
+                .filter(template -> "2.16.840.1.113883.3.1937.99.60.17.10.4001".equals(template.id()))
+                .findFirst()
+                .orElseThrow();
+
+        List<String> valueSetRefs = heartRate.elements().stream()
+                .flatMap(element -> element.bindings().stream())
+                .map(binding -> binding.valueSetRef())
+                .toList();
+
+        assertTrue(valueSetRefs.stream()
+                .anyMatch("http://loinc.org"::equals), valueSetRefs::toString);
+        assertTrue(valueSetRefs
+                .stream()
+                .noneMatch("urn:oid:2.16.840.1.113883.3.1937.99.60.17.11.7"::equals), valueSetRefs::toString);
+    }
+
+    @Test
     void reclassifiesSelectedButNotOwnedTemplatesAsRequiredIncludesInProjectMode() throws Exception {
         Path bbrPath = ResourcePaths.getResourcePath("head.xml");
         Decor decor = new JaxbBbrLoader().load(bbrPath);

@@ -42,10 +42,10 @@ class FhirConversionResourceTest {
         assertNotNull(profiles);
         assertNotNull(irTemplates);
         assertFalse(irTemplates.isEmpty());
-        assertTrue(profiles.stream().filter(profile -> Boolean.TRUE.equals(profile.get("fhirTransformEligible"))).count() > 1);
+        assertTrue(profiles.stream().filter(profile -> "Observation".equals(String.valueOf(profile.get("rootCdaType")))).count() > 1);
 
-        Map<String, Object> eligibleProfile = profiles.stream()
-                .filter(profile -> Boolean.TRUE.equals(profile.get("fhirTransformEligible")))
+        Map<String, Object> observationProfile = profiles.stream()
+                .filter(profile -> "Observation".equals(String.valueOf(profile.get("rootCdaType"))))
                 .filter(profile -> {
                     String templateId = String.valueOf(profile.get("templateId"));
                     return irTemplates.stream()
@@ -54,17 +54,17 @@ class FhirConversionResourceTest {
                             .anyMatch(name -> name.contains("biologie") || name.contains("Resultat"));
                 })
                 .findFirst()
-                .orElseThrow(() -> new AssertionError("Expected a laboratory Observation profile to be FHIR-eligible"));
+                .orElseThrow(() -> new AssertionError("Expected a laboratory Observation profile"));
 
-        String templateId = String.valueOf(eligibleProfile.get("templateId"));
+        String templateId = String.valueOf(observationProfile.get("templateId"));
         Map<String, Object> template = irTemplates.stream()
                 .filter(item -> templateId.equals(item.get("id")))
                 .findFirst()
-                .orElseThrow(() -> new AssertionError("Expected a matching IR template for eligible profile"));
+                .orElseThrow(() -> new AssertionError("Expected a matching IR template for Observation profile"));
 
         String structureMap = readFixture("observation/clean-observation-structuremap.json");
         Map<String, Object> conversionRequest = new HashMap<>();
-        conversionRequest.put("sourceProfileName", eligibleProfile.get("name"));
+        conversionRequest.put("sourceProfileName", observationProfile.get("name"));
         conversionRequest.put("template", template);
         conversionRequest.put("structureMap", structureMap);
 
@@ -120,19 +120,19 @@ class FhirConversionResourceTest {
         assertNotNull(profiles);
         assertNotNull(irTemplates);
 
-        Map<String, Object> eligibleProfile = profiles.stream()
-                .filter(profile -> Boolean.TRUE.equals(profile.get("fhirTransformEligible")))
+        Map<String, Object> observationProfile = profiles.stream()
+                .filter(profile -> "Observation".equals(String.valueOf(profile.get("rootCdaType"))))
                 .findFirst()
-                .orElseThrow(() -> new AssertionError("Expected an Observation profile eligible for FHIR conversion"));
+                .orElseThrow(() -> new AssertionError("Expected an Observation profile for FHIR conversion"));
 
-        String templateId = String.valueOf(eligibleProfile.get("templateId"));
+        String templateId = String.valueOf(observationProfile.get("templateId"));
         Map<String, Object> template = irTemplates.stream()
                 .filter(item -> templateId.equals(item.get("id")))
                 .findFirst()
-                .orElseThrow(() -> new AssertionError("Expected a matching IR template for eligible profile"));
+                .orElseThrow(() -> new AssertionError("Expected a matching IR template for Observation profile"));
 
         Map<String, Object> conversionRequest = new HashMap<>();
-        conversionRequest.put("sourceProfileName", eligibleProfile.get("name"));
+        conversionRequest.put("sourceProfileName", observationProfile.get("name"));
         conversionRequest.put("template", template);
         conversionRequest.put("structureMap", null);
         conversionRequest.put("builtInMappingId", null);
@@ -189,19 +189,19 @@ class FhirConversionResourceTest {
         assertNotNull(profiles);
         assertNotNull(irTemplates);
 
-        Map<String, Object> eligibleProfile = profiles.stream()
-                .filter(profile -> Boolean.TRUE.equals(profile.get("fhirTransformEligible")))
+        Map<String, Object> observationProfile = profiles.stream()
+                .filter(profile -> "Observation".equals(String.valueOf(profile.get("rootCdaType"))))
                 .findFirst()
-                .orElseThrow(() -> new AssertionError("Expected an Observation profile eligible for FHIR conversion"));
+                .orElseThrow(() -> new AssertionError("Expected an Observation profile for FHIR conversion"));
 
-        String templateId = String.valueOf(eligibleProfile.get("templateId"));
+        String templateId = String.valueOf(observationProfile.get("templateId"));
         Map<String, Object> template = irTemplates.stream()
                 .filter(item -> templateId.equals(item.get("id")))
                 .findFirst()
-                .orElseThrow(() -> new AssertionError("Expected a matching IR template for eligible profile"));
+                .orElseThrow(() -> new AssertionError("Expected a matching IR template for Observation profile"));
 
         Map<String, Object> conversionRequest = new HashMap<>();
-        conversionRequest.put("sourceProfileName", eligibleProfile.get("name"));
+        conversionRequest.put("sourceProfileName", observationProfile.get("name"));
         conversionRequest.put("template", template);
         conversionRequest.put("structureMap", null);
         conversionRequest.put("builtInMappingId", "observation-ehdsi-lab-v1");

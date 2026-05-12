@@ -1,11 +1,20 @@
 import React from "react";
 import { GenerationReport as IReport } from "../types/generation";
+import { useLanguage } from "./LanguageProvider";
 
 interface ReportDisplayProps {
     report: IReport;
 }
 
 export const ReportDisplay: React.FC<ReportDisplayProps> = ({ report }) => {
+    const { t } = useLanguage();
+    const [diagnosticsCollapsed, setDiagnosticsCollapsed] = React.useState(true);
+    const hasDiagnostics = report.errors.length > 0 || report.warnings.length > 0;
+
+    React.useEffect(() => {
+        setDiagnosticsCollapsed(true);
+    }, [report]);
+
     return (
         <div className="glass rounded-2xl overflow-hidden transition-all duration-300">
             <div className="px-6 py-4 border-b border-card-border bg-zinc-50 dark:bg-zinc-900/50 flex items-center justify-between">
@@ -36,23 +45,46 @@ export const ReportDisplay: React.FC<ReportDisplayProps> = ({ report }) => {
                     ))}
                 </div>
 
-                {(report.errors.length > 0 || report.warnings.length > 0) && (
+                {hasDiagnostics && (
                     <div className="space-y-4">
-                        <h4 className="text-sm font-semibold text-zinc-600 dark:text-zinc-400 uppercase tracking-widest px-1">Diagnostics</h4>
-                        <div className="max-h-96 overflow-y-auto bg-zinc-50 dark:bg-zinc-950 rounded-xl p-4 font-mono text-xs border border-card-border space-y-2">
-                            {report.errors.map((msg, i) => (
-                                <div key={`err-${i}`} className="text-rose-600 dark:text-rose-400 flex gap-3">
-                                    <span className="shrink-0 font-bold opacity-50 uppercase">Error</span>
-                                    <span>{msg}</span>
-                                </div>
-                            ))}
-                            {report.warnings.map((msg, i) => (
-                                <div key={`warn-${i}`} className="text-amber-600 dark:text-amber-400 flex gap-3">
-                                    <span className="shrink-0 font-bold opacity-50 uppercase">Warn</span>
-                                    <span>{msg}</span>
-                                </div>
-                            ))}
-                        </div>
+                        <button
+                            type="button"
+                            onClick={() => setDiagnosticsCollapsed((collapsed) => !collapsed)}
+                            className="flex w-full items-center justify-between rounded-xl bg-zinc-50 px-4 py-3 text-left dark:bg-zinc-950"
+                        >
+                            <span className="text-sm font-semibold uppercase tracking-widest text-zinc-600 dark:text-zinc-400">
+                                {t.dashboard.generationDiagnostics}
+                            </span>
+                            <span className="flex items-center gap-3 text-xs font-medium text-zinc-500 dark:text-zinc-400">
+                                <span>
+                                    {diagnosticsCollapsed ? t.dashboard.showDiagnostics : t.dashboard.hideDiagnostics}
+                                </span>
+                                <svg
+                                    className={`h-4 w-4 transition-transform ${diagnosticsCollapsed ? "" : "rotate-180"}`}
+                                    fill="none"
+                                    stroke="currentColor"
+                                    viewBox="0 0 24 24"
+                                >
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="m19 9-7 7-7-7" />
+                                </svg>
+                            </span>
+                        </button>
+                        {!diagnosticsCollapsed && (
+                            <div className="max-h-96 overflow-y-auto bg-zinc-50 dark:bg-zinc-950 rounded-xl p-4 font-mono text-xs border border-card-border space-y-2">
+                                {report.errors.map((msg, i) => (
+                                    <div key={`err-${i}`} className="text-rose-600 dark:text-rose-400 flex gap-3">
+                                        <span className="shrink-0 font-bold opacity-50 uppercase">Error</span>
+                                        <span>{msg}</span>
+                                    </div>
+                                ))}
+                                {report.warnings.map((msg, i) => (
+                                    <div key={`warn-${i}`} className="text-amber-600 dark:text-amber-400 flex gap-3">
+                                        <span className="shrink-0 font-bold opacity-50 uppercase">Warn</span>
+                                        <span>{msg}</span>
+                                    </div>
+                                ))}
+                            </div>
+                        )}
                     </div>
                 )}
             </div>

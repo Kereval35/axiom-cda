@@ -15,7 +15,7 @@ export default function FhirConversionPage() {
     const { t } = useLanguage();
     const [selectedTemplate, setSelectedTemplate] = React.useState<IRTemplate | null>(null);
     const [selectedProfile, setSelectedProfile] = React.useState<FshProfile | null>(null);
-    const [useGenericMapping, setUseGenericMapping] = React.useState(true);
+    const [useGenericMapping, setUseGenericMapping] = React.useState(false);
     const [structureMap, setStructureMap] = React.useState("");
     const [uploadedFileName, setUploadedFileName] = React.useState<string | null>(null);
     const [result, setResult] = React.useState<FshProfile | null>(null);
@@ -45,7 +45,7 @@ export default function FhirConversionPage() {
     const [sushiError, setSushiError] = React.useState<string | null>(null);
     const [sushiLogsOpen, setSushiLogsOpen] = React.useState(false);
     const [structureDefinitionCopied, setStructureDefinitionCopied] = React.useState(false);
-    const isObservationTemplate = selectedTemplate?.rootCdaType === "Observation";
+    const supportsBuiltInPresets = selectedTemplate?.rootCdaType === "Observation";
 
     React.useEffect(() => {
         const session = loadFhirConversionSession();
@@ -57,10 +57,8 @@ export default function FhirConversionPage() {
     }, []);
 
     React.useEffect(() => {
-        if (selectedTemplate && selectedTemplate.rootCdaType !== "Observation") {
-            setUseGenericMapping(false);
-        }
-    }, [selectedTemplate]);
+        setUseGenericMapping(Boolean(supportsBuiltInPresets));
+    }, [supportsBuiltInPresets, selectedTemplate?.id]);
 
     React.useEffect(() => {
         getFhirBuiltInMappingPresetsAction()
@@ -121,7 +119,7 @@ export default function FhirConversionPage() {
         setSushiLogsOpen(false);
         setStructureDefinitionCopied(false);
         try {
-            const useBuiltInMapping = selectedTemplate.rootCdaType === "Observation" && useGenericMapping;
+            const useBuiltInMapping = supportsBuiltInPresets && useGenericMapping;
             const response = await convertFhirAction({
                 sourceProfileName: selectedProfile.name,
                 template: selectedTemplate,
@@ -275,7 +273,6 @@ export default function FhirConversionPage() {
             ...selectedProfile,
             name: `${selectedTemplate.displayName || selectedTemplate.name || selectedTemplate.id}-ir`,
             content: irDisplayContent,
-            fhirTransformEligible: false,
         }
         : selectedProfile;
 
@@ -319,25 +316,24 @@ export default function FhirConversionPage() {
                 </div>
 
                 <div className="space-y-3">
-                    <label className="flex items-start gap-3 rounded-xl border border-zinc-300 bg-zinc-50/60 p-4 dark:border-zinc-700 dark:bg-zinc-900/40">
-                        <input
-                            type="checkbox"
-                            checked={isObservationTemplate && useGenericMapping}
-                            disabled={!isObservationTemplate}
-                            onChange={(event) => setUseGenericMapping(event.target.checked)}
-                            className="mt-0.5 h-5 w-5 rounded border-zinc-300 bg-zinc-50 text-indigo-600 focus:ring-indigo-500/50 focus:ring-offset-0 accent-indigo-600 dark:border-zinc-700 dark:bg-zinc-900"
-                        />
-                        <div className="min-w-0">
-                            <div className="text-sm font-medium text-zinc-900 dark:text-zinc-100">{t.dashboard.useGenericMapping}</div>
-                            <div className="mt-1 text-xs text-zinc-500 dark:text-zinc-400">
-                                {isObservationTemplate
-                                    ? t.dashboard.useGenericMappingHint
-                                    : "Built-in mapping is available only for Observation. Upload a StructureMap JSON for this CDA element."}
+                    {supportsBuiltInPresets && (
+                        <label className="flex items-start gap-3 rounded-xl border border-zinc-300 bg-zinc-50/60 p-4 dark:border-zinc-700 dark:bg-zinc-900/40">
+                            <input
+                                type="checkbox"
+                                checked={useGenericMapping}
+                                onChange={(event) => setUseGenericMapping(event.target.checked)}
+                                className="mt-0.5 h-5 w-5 rounded border-zinc-300 bg-zinc-50 text-indigo-600 focus:ring-indigo-500/50 focus:ring-offset-0 accent-indigo-600 dark:border-zinc-700 dark:bg-zinc-900"
+                            />
+                            <div className="min-w-0">
+                                <div className="text-sm font-medium text-zinc-900 dark:text-zinc-100">{t.dashboard.useGenericMapping}</div>
+                                <div className="mt-1 text-xs text-zinc-500 dark:text-zinc-400">
+                                    {t.dashboard.useGenericMappingHint}
+                                </div>
                             </div>
-                        </div>
-                    </label>
+                        </label>
+                    )}
 
-                    {(!isObservationTemplate || !useGenericMapping) && (
+                    {(!supportsBuiltInPresets || !useGenericMapping) && (
                         <div className="space-y-2">
                             <label className="text-sm font-medium text-zinc-900 dark:text-zinc-100">{t.dashboard.structureMapLabel}</label>
                             <label className="flex h-44 cursor-pointer flex-col items-center justify-center rounded-xl border-2 border-dashed border-zinc-300 bg-zinc-50/50 text-center transition-all hover:bg-zinc-100 dark:border-zinc-700 dark:bg-zinc-900/50 dark:hover:bg-zinc-800/50">
@@ -350,7 +346,7 @@ export default function FhirConversionPage() {
                         </div>
                     )}
 
-                    {isObservationTemplate && useGenericMapping && (
+                    {supportsBuiltInPresets && useGenericMapping && (
                         <div className="space-y-2">
                             <label className="text-sm font-medium text-zinc-900 dark:text-zinc-100">{t.dashboard.builtInMappingLabel}</label>
                             <select
@@ -378,7 +374,7 @@ export default function FhirConversionPage() {
                 <div className="flex justify-end">
                     <button
                         onClick={generate}
-                        disabled={loading || (isObservationTemplate && useGenericMapping && !selectedBuiltInMappingId) || ((!isObservationTemplate || !useGenericMapping) && !structureMap)}
+                        disabled={loading || (supportsBuiltInPresets && useGenericMapping && !selectedBuiltInMappingId) || ((!supportsBuiltInPresets || !useGenericMapping) && !structureMap)}
                         className="inline-flex items-center rounded-xl bg-gradient-to-r from-cyan-600 to-indigo-600 px-6 py-3 font-semibold text-white transition-all hover:shadow-[0_0_20px_rgba(8,145,178,0.35)] disabled:cursor-not-allowed disabled:opacity-50"
                     >
                         {loading ? t.dashboard.generatingFhir : t.dashboard.generateFhir}
@@ -668,9 +664,6 @@ export default function FhirConversionPage() {
                         templateOrigin: "PROJECT",
                         ownershipStatus: "PROJECT",
                         selectionReason: "DIRECT",
-                        fhirTransformEligible: false,
-                        fhirTransformKind: null,
-                        fhirTransformNotice: null,
                     }}
                     contentOverride={mappingRulesFsh}
                     titleOverride={`${mappingRulesName}.fsh`}
@@ -689,9 +682,6 @@ export default function FhirConversionPage() {
                         templateOrigin: "PROJECT",
                         ownershipStatus: "PROJECT",
                         selectionReason: "DIRECT",
-                        fhirTransformEligible: false,
-                        fhirTransformKind: null,
-                        fhirTransformNotice: null,
                     }}
                     contentOverride={usedMappingRulesFsh}
                     titleOverride={`${usedMappingRulesName}.fsh`}

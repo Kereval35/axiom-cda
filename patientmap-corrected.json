@@ -1,0 +1,459 @@
+{
+  "resourceType": "StructureMap",
+  "id": "CDARecordTargetToPatientExplicit",
+  "url": "http://example.org/StructureMap/CDARecordTargetToPatientExplicit",
+  "name": "CDARecordTargetToPatientExplicit",
+  "status": "draft",
+  "structure": [
+    {
+      "url": "http://hl7.org/cda/stds/core/StructureDefinition/RecordTarget",
+      "mode": "source",
+      "alias": "RecordTargetModel"
+    },
+    {
+      "url": "http://hl7.org/fhir/StructureDefinition/Patient",
+      "mode": "target",
+      "alias": "PatientModel"
+    }
+  ],
+  "group": [
+    {
+      "name": "RecordTargetToPatient",
+      "typeMode": "none",
+      "input": [
+        {
+          "name": "src",
+          "type": "RecordTargetModel",
+          "mode": "source"
+        },
+        {
+          "name": "patient",
+          "type": "PatientModel",
+          "mode": "target"
+        }
+      ],
+      "rule": [
+        {
+          "name": "targetProfile",
+          "target": [
+            {
+              "context": "patient",
+              "contextType": "variable",
+              "element": "meta.profile",
+              "transform": "copy",
+              "parameter": [
+                {
+                  "valueString": "http://hl7.org/fhir/StructureDefinition/Patient"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "name": "identifierRoot",
+          "source": [
+            {
+              "context": "src",
+              "element": "patientRole.id.root",
+              "variable": "idRoot"
+            }
+          ],
+          "target": [
+            {
+              "context": "patient",
+              "contextType": "variable",
+              "element": "identifier.system",
+              "transform": "evaluate",
+              "parameter": [
+                {
+                  "valueString": "'urn:oid:' + idRoot"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "name": "identifierExtension",
+          "source": [
+            {
+              "context": "src",
+              "element": "patientRole.id.extension",
+              "variable": "idExtension"
+            }
+          ],
+          "target": [
+            {
+              "context": "patient",
+              "contextType": "variable",
+              "element": "identifier.value",
+              "transform": "copy",
+              "parameter": [
+                {
+                  "valueId": "idExtension"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "name": "administrativeGenderCode",
+          "source": [
+            {
+              "context": "src",
+              "element": "patientRole.patient.administrativeGenderCode",
+              "variable": "genderCode"
+            }
+          ],
+          "target": [
+            {
+              "context": "patient",
+              "contextType": "variable",
+              "element": "gender",
+              "transform": "copy",
+              "parameter": [
+                {
+                  "valueId": "genderCode"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "name": "birthTime",
+          "source": [
+            {
+              "context": "src",
+              "element": "patientRole.patient.birthTime",
+              "variable": "birthTime"
+            }
+          ],
+          "target": [
+            {
+              "context": "patient",
+              "contextType": "variable",
+              "element": "birthDate",
+              "transform": "copy",
+              "parameter": [
+                {
+                  "valueId": "birthTime"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "name": "patientNameRoot",
+          "source": [
+            {
+              "context": "src",
+              "element": "patientRole.patient.name",
+              "variable": "patientName"
+            }
+          ],
+          "target": [
+            {
+              "context": "patient",
+              "contextType": "variable",
+              "element": "name",
+              "variable": "name"
+            }
+          ]
+        },
+        {
+          "name": "nameFamily",
+          "source": [
+            {
+              "context": "src",
+              "element": "patientRole.patient.name.item.family",
+              "variable": "family"
+            }
+          ],
+          "target": [
+            {
+              "context": "patient",
+              "contextType": "variable",
+              "element": "name.family",
+              "transform": "copy",
+              "parameter": [
+                {
+                  "valueId": "family"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "name": "nameGiven",
+          "source": [
+            {
+              "context": "src",
+              "element": "patientRole.patient.name.item.given",
+              "variable": "given"
+            }
+          ],
+          "target": [
+            {
+              "context": "patient",
+              "contextType": "variable",
+              "element": "name.given",
+              "transform": "copy",
+              "parameter": [
+                {
+                  "valueId": "given"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "name": "namePrefix",
+          "source": [
+            {
+              "context": "src",
+              "element": "patientRole.patient.name.item.prefix",
+              "variable": "prefix"
+            }
+          ],
+          "target": [
+            {
+              "context": "patient",
+              "contextType": "variable",
+              "element": "name.prefix",
+              "transform": "copy",
+              "parameter": [
+                {
+                  "valueId": "prefix"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "name": "nameSuffix",
+          "source": [
+            {
+              "context": "src",
+              "element": "patientRole.patient.name.item.suffix",
+              "variable": "suffix"
+            }
+          ],
+          "target": [
+            {
+              "context": "patient",
+              "contextType": "variable",
+              "element": "name.suffix",
+              "transform": "copy",
+              "parameter": [
+                {
+                  "valueId": "suffix"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "name": "patientAddressRoot",
+          "source": [
+            {
+              "context": "src",
+              "element": "patientRole.addr",
+              "variable": "patientAddress"
+            }
+          ],
+          "target": [
+            {
+              "context": "patient",
+              "contextType": "variable",
+              "element": "address",
+              "variable": "address"
+            }
+          ]
+        },
+        {
+          "name": "addressStreetName",
+          "source": [
+            {
+              "context": "src",
+              "element": "patientRole.addr.streetName",
+              "variable": "streetName"
+            }
+          ],
+          "target": [
+            {
+              "context": "patient",
+              "contextType": "variable",
+              "element": "address.line",
+              "transform": "copy",
+              "parameter": [
+                {
+                  "valueId": "streetName"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "name": "addressAdditionalLocator",
+          "source": [
+            {
+              "context": "src",
+              "element": "patientRole.addr.additionalLocator",
+              "variable": "additionalLocator"
+            }
+          ],
+          "target": [
+            {
+              "context": "patient",
+              "contextType": "variable",
+              "element": "address.line",
+              "transform": "copy",
+              "parameter": [
+                {
+                  "valueId": "additionalLocator"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "name": "addressHouseNumber",
+          "source": [
+            {
+              "context": "src",
+              "element": "patientRole.addr.houseNumber",
+              "variable": "houseNumber"
+            }
+          ],
+          "target": [
+            {
+              "context": "patient",
+              "contextType": "variable",
+              "element": "address.line",
+              "transform": "copy",
+              "parameter": [
+                {
+                  "valueId": "houseNumber"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "name": "addressCity",
+          "source": [
+            {
+              "context": "src",
+              "element": "patientRole.addr.city",
+              "variable": "city"
+            }
+          ],
+          "target": [
+            {
+              "context": "patient",
+              "contextType": "variable",
+              "element": "address.city",
+              "transform": "copy",
+              "parameter": [
+                {
+                  "valueId": "city"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "name": "addressPostalCode",
+          "source": [
+            {
+              "context": "src",
+              "element": "patientRole.addr.postalCode",
+              "variable": "postalCode"
+            }
+          ],
+          "target": [
+            {
+              "context": "patient",
+              "contextType": "variable",
+              "element": "address.postalCode",
+              "transform": "copy",
+              "parameter": [
+                {
+                  "valueId": "postalCode"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "name": "addressState",
+          "source": [
+            {
+              "context": "src",
+              "element": "patientRole.addr.state",
+              "variable": "state"
+            }
+          ],
+          "target": [
+            {
+              "context": "patient",
+              "contextType": "variable",
+              "element": "address.state",
+              "transform": "copy",
+              "parameter": [
+                {
+                  "valueId": "state"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "name": "addressCountry",
+          "source": [
+            {
+              "context": "src",
+              "element": "patientRole.addr.country",
+              "variable": "country"
+            }
+          ],
+          "target": [
+            {
+              "context": "patient",
+              "contextType": "variable",
+              "element": "address.country",
+              "transform": "copy",
+              "parameter": [
+                {
+                  "valueId": "country"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "name": "telecomRoot",
+          "source": [
+            {
+              "context": "src",
+              "element": "patientRole.telecom",
+              "variable": "telecom"
+            }
+          ],
+          "target": [
+            {
+              "context": "patient",
+              "contextType": "variable",
+              "element": "telecom",
+              "transform": "copy",
+              "parameter": [
+                {
+                  "valueId": "telecom"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

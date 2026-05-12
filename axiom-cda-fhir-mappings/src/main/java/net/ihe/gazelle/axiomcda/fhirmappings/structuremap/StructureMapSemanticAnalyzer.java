@@ -31,6 +31,7 @@ public class StructureMapSemanticAnalyzer {
 
     public SemanticMappingModel analyze(String structureMapJson) throws IOException {
         JsonNode root = MAPPER.readTree(structureMapJson);
+        Map<String, StructureRef> structuresByAlias = parseStructures(root.path("structure"));
         Map<String, JsonNode> groupsByName = new LinkedHashMap<>();
         for (JsonNode group : iterable(root.path("group"))) {
             String name = text(group, "name");
@@ -46,9 +47,10 @@ public class StructureMapSemanticAnalyzer {
             if (group == null || !visitedRoots.add(groupName)) {
                 continue;
             }
-            AnalysisContext context = initializeContext(group);
+            List<GroupInput> inputs = parseInputs(group.path("input"), structuresByAlias);
+            AnalysisContext context = initializeContext(inputs);
             List<SemanticRule> rules = analyzeRules(groupName, groupsByName, group.path("rule"), context, false, 0, new LinkedHashSet<>());
-            groups.add(new SemanticGroup(groupName, rules));
+            groups.add(new SemanticGroup(groupName, primarySourceType(inputs), primaryTargetType(inputs), rules));
         }
         return SemanticMappingModelEnricher.enrich(new SemanticMappingModel(groups));
     }
@@ -93,7 +95,7 @@ public class StructureMapSemanticAnalyzer {
     private boolean hasSourceAndTargetInput(JsonNode group) {
         boolean hasSource = false;
         boolean hasTarget = false;
-        for (GroupInput input : parseInputs(group.path("input"))) {
+        for (GroupInput input : parseInputs(group.path("input"), Map.of())) {
             if ("source".equals(input.mode())) {
                 hasSource = true;
             } else if ("target".equals(input.mode())) {
@@ -103,10 +105,9 @@ public class StructureMapSemanticAnalyzer {
         return hasSource && hasTarget;
     }
 
-    private AnalysisContext initializeContext(JsonNode group) {
+    private AnalysisContext initializeContext(List<GroupInput> inputs) {
         Map<String, String> sourceVars = new LinkedHashMap<>();
         Map<String, String> targetVars = new LinkedHashMap<>();
-        List<GroupInput> inputs = parseInputs(group.path("input"));
         String primaryTarget = primaryTargetInput(inputs);
         for (GroupInput input : inputs) {
             if ("source".equals(input.mode())) {
@@ -118,12 +119,12 @@ public class StructureMapSemanticAnalyzer {
         return new AnalysisContext(sourceVars, targetVars, null, List.of());
     }
 
-    private List<GroupInput> parseInputs(JsonNode inputs) {
+    private List<GroupInput> parseInputs(JsonNode inputs, Map<String, StructureRef> structuresByAlias) {
         List<GroupInput> result = new ArrayList<>();
         for (JsonNode input : iterable(inputs)) {
             String name = text(input, "name");
             String mode = text(input, "mode");
-            String type = text(input, "type");
+            String type = resolveInputType(text(input, "type"), structuresByAlias);
             if (name != null && mode != null) {
                 result.add(new GroupInput(name, mode, type));
             }
@@ -147,6 +148,28 @@ public class StructureMapSemanticAnalyzer {
             }
         }
         return firstTarget;
+    }
+
+    private String primarySourceType(List<GroupInput> inputs) {
+        for (GroupInput input : inputs) {
+            if ("source".equals(input.mode()) && input.type() != null && !input.type().isBlank()) {
+                return input.type();
+            }
+        }
+        return null;
+    }
+
+    private String primaryTargetType(List<GroupInput> inputs) {
+        String primaryTarget = primaryTargetInput(inputs);
+        for (GroupInput input : inputs) {
+            if (!"target".equals(input.mode())) {
+                continue;
+            }
+            if (input.name().equals(primaryTarget) && input.type() != null && !input.type().isBlank()) {
+                return input.type();
+            }
+        }
+        return null;
     }
 
     private List<SemanticRule> analyzeRules(String groupName,
@@ -282,7 +305,7 @@ public class StructureMapSemanticAnalyzer {
                                                 List<String> lineage) {
         Map<String, String> sourceVars = new LinkedHashMap<>();
         Map<String, String> targetVars = new LinkedHashMap<>();
-        List<GroupInput> inputs = parseInputs(group.path("input"));
+        List<GroupInput> inputs = parseInputs(group.path("input"), Map.of());
         for (int i = 0; i < inputs.size(); i++) {
             GroupInput input = inputs.get(i);
             String argument = i < arguments.size() ? arguments.get(i) : null;
@@ -306,7 +329,7 @@ public class StructureMapSemanticAnalyzer {
 
     private String resolveSourcePath(Map<String, String> sourceVars, JsonNode source) {
         String context = text(source, "context");
-        String base = context == null ? "" : sourceVars.getOrDefault(context, "");
+        String base = resolveContextBase(sourceVars, context);
         String element = text(source, "element");
         if (element == null || element.isBlank()) {
             return base;
@@ -316,12 +339,58 @@ public class StructureMapSemanticAnalyzer {
 
     private String resolveTargetPath(Map<String, String> targetVars, JsonNode target) {
         String context = text(target, "context");
-        String base = context == null ? "" : targetVars.getOrDefault(context, "");
+        String base = resolveContextBase(targetVars, context);
         String element = text(target, "element");
         if (element == null || element.isBlank()) {
             return base;
         }
         return join(base, element);
+    }
+
+    private String resolveContextBase(Map<String, String> variables, String context) {
+        if (context == null || context.isBlank()) {
+            return "";
+        }
+        if (variables.containsKey(context)) {
+            return variables.getOrDefault(context, "");
+        }
+        return context;
+    }
+
+    private Map<String, StructureRef> parseStructures(JsonNode structures) {
+        Map<String, StructureRef> byAlias = new LinkedHashMap<>();
+        for (JsonNode structure : iterable(structures)) {
+            String alias = text(structure, "alias");
+            String url = text(structure, "url");
+            String mode = text(structure, "mode");
+            if (alias == null || alias.isBlank() || url == null || url.isBlank()) {
+                continue;
+            }
+            byAlias.put(alias, new StructureRef(alias, mode, url, structureTypeFromUrl(url)));
+        }
+        return byAlias;
+    }
+
+    private String resolveInputType(String rawType, Map<String, StructureRef> structuresByAlias) {
+        if (rawType == null || rawType.isBlank()) {
+            return rawType;
+        }
+        StructureRef structure = structuresByAlias.get(rawType);
+        if (structure != null && structure.type() != null && !structure.type().isBlank()) {
+            return structure.type();
+        }
+        return rawType;
+    }
+
+    private String structureTypeFromUrl(String url) {
+        if (url == null || url.isBlank()) {
+            return null;
+        }
+        int slash = url.lastIndexOf('/');
+        if (slash >= 0 && slash + 1 < url.length()) {
+            return url.substring(slash + 1);
+        }
+        return url;
     }
 
     private List<TargetParameter> extractParameters(JsonNode parameters) {
@@ -446,6 +515,9 @@ public class StructureMapSemanticAnalyzer {
     }
 
     private record GroupInput(String name, String mode, String type) {
+    }
+
+    private record StructureRef(String alias, String mode, String url, String type) {
     }
 
     private record AnalysisContext(Map<String, String> sourceVars,

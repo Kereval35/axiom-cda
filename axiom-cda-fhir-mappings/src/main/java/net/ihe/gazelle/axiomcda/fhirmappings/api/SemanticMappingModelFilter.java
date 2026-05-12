@@ -18,6 +18,8 @@ public final class SemanticMappingModelFilter {
         return new SemanticMappingModel(model.groups().stream()
                 .map(group -> new SemanticGroup(
                         group.name(),
+                        group.sourceType(),
+                        group.targetType(),
                         group.rules().stream()
                                 .map(rule -> filterRule(rule, identitySet))
                                 .filter(filtered -> filtered != null)

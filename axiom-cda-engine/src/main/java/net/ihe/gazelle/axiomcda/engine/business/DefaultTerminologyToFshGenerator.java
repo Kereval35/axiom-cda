@@ -19,12 +19,13 @@ public class DefaultTerminologyToFshGenerator {
         }
         Terminology terminology = decor.getTerminology();
         String preferredLanguage = decor.getProject() != null ? decor.getProject().getDefaultLanguage() : decor.getLanguage();
+        BbrTerminologyCanonicalResolver canonicalResolver = BbrTerminologyCanonicalResolver.fromDecor(decor);
 
         Map<String, String> files = new LinkedHashMap<>();
         NameRegistry registry = new NameRegistry();
 
         for (CodeSystem codeSystem : terminology.getCodeSystem()) {
-            String fsh = buildCodeSystem(codeSystem, preferredLanguage, config, registry);
+            String fsh = buildCodeSystem(codeSystem, preferredLanguage, config, canonicalResolver, registry);
             if (fsh == null) {
                 continue;
             }
@@ -33,7 +34,7 @@ public class DefaultTerminologyToFshGenerator {
         }
 
         for (ValueSet valueSet : terminology.getValueSet()) {
-            String fsh = buildValueSet(valueSet, preferredLanguage, config, registry);
+            String fsh = buildValueSet(valueSet, preferredLanguage, config, canonicalResolver, registry);
             if (fsh == null) {
                 continue;
             }
@@ -47,6 +48,7 @@ public class DefaultTerminologyToFshGenerator {
     private String buildCodeSystem(CodeSystem codeSystem,
                                    String preferredLanguage,
                                    GenerationConfig config,
+                                   BbrTerminologyCanonicalResolver canonicalResolver,
                                    NameRegistry registry) {
         if (codeSystem == null) {
             return null;
@@ -62,7 +64,7 @@ public class DefaultTerminologyToFshGenerator {
 
         String title = firstNonBlank(codeSystem.getDisplayName(), codeSystem.getName(), rawName);
         String description = TextUtil.selectDescription(codeSystem.getDesc(), preferredLanguage);
-        String canonical = canonicalFromOid(firstNonBlank(codeSystem.getId(), codeSystem.getRef()), config);
+        String canonical = canonicalResolver.resolveCodeSystem(firstNonBlank(codeSystem.getId(), codeSystem.getRef()), config);
         String status = mapStatus(codeSystem.getStatusCode());
         String version = codeSystem.getVersionLabel();
 
@@ -109,6 +111,7 @@ public class DefaultTerminologyToFshGenerator {
     private String buildValueSet(ValueSet valueSet,
                                  String preferredLanguage,
                                  GenerationConfig config,
+                                 BbrTerminologyCanonicalResolver canonicalResolver,
                                  NameRegistry registry) {
         if (valueSet == null) {
             return null;
@@ -124,7 +127,7 @@ public class DefaultTerminologyToFshGenerator {
 
         String title = firstNonBlank(valueSet.getDisplayName(), valueSet.getName(), rawName);
         String description = TextUtil.selectDescription(valueSet.getDesc(), preferredLanguage);
-        String canonical = canonicalFromOid(firstNonBlank(valueSet.getId(), valueSet.getRef()), config);
+        String canonical = canonicalResolver.resolveValueSet(firstNonBlank(valueSet.getId(), valueSet.getRef()), config);
         String status = mapStatus(valueSet.getStatusCode());
         String version = valueSet.getVersionLabel();
 
@@ -145,7 +148,7 @@ public class DefaultTerminologyToFshGenerator {
 
         Set<String> emitted = new HashSet<>();
         for (CodeSystemReference systemRef : valueSet.getCompleteCodeSystem()) {
-            String system = canonicalFromOid(systemRef.getCodeSystem(), config);
+            String system = canonicalResolver.resolveCodeSystem(systemRef.getCodeSystem(), config);
             if (system != null && emitted.add("include|system|" + system)) {
                 builder.append("* include codes from system ").append(system).append("\n");
             }
@@ -155,13 +158,13 @@ public class DefaultTerminologyToFshGenerator {
         if (conceptList != null) {
             for (Object entry : conceptList.getConceptOrInclude()) {
                 if (entry instanceof ValueSetConcept concept) {
-                    appendValueSetConcept(builder, concept, config, preferredLanguage, "include", emitted);
+                    appendValueSetConcept(builder, concept, config, canonicalResolver, preferredLanguage, "include", emitted);
                 } else if (entry instanceof ValueSetRef ref) {
-                    appendValueSetReference(builder, ref, config, emitted);
+                    appendValueSetReference(builder, ref, config, canonicalResolver, emitted);
                 }
             }
             for (ValueSetConcept exception : conceptList.getException()) {
-                appendValueSetConcept(builder, exception, config, preferredLanguage, "exclude", emitted);
+                appendValueSetConcept(builder, exception, config, canonicalResolver, preferredLanguage, "exclude", emitted);
             }
         }
 
@@ -171,11 +174,12 @@ public class DefaultTerminologyToFshGenerator {
     private void appendValueSetReference(StringBuilder builder,
                                          ValueSetRef ref,
                                          GenerationConfig config,
+                                         BbrTerminologyCanonicalResolver canonicalResolver,
                                          Set<String> emitted) {
         if (ref == null || ref.getRef() == null || ref.getRef().isBlank()) {
             return;
         }
-        String canonical = canonicalFromOid(ref.getRef(), config);
+        String canonical = canonicalResolver.resolveValueSet(ref.getRef(), config);
         if (canonical == null) {
             return;
         }
@@ -189,13 +193,14 @@ public class DefaultTerminologyToFshGenerator {
     private void appendValueSetConcept(StringBuilder builder,
                                        ValueSetConcept concept,
                                        GenerationConfig config,
+                                       BbrTerminologyCanonicalResolver canonicalResolver,
                                        String preferredLanguage,
                                        String verb,
                                        Set<String> emitted) {
         if (concept == null || concept.getCode() == null || concept.getCode().isBlank()) {
             return;
         }
-        String system = canonicalFromOid(concept.getCodeSystem(), config);
+        String system = canonicalResolver.resolveCodeSystem(concept.getCodeSystem(), config);
         if (system == null) {
             return;
         }
@@ -212,20 +217,6 @@ public class DefaultTerminologyToFshGenerator {
             builder.append(" \"").append(FshUtil.escape(display)).append("\"");
         }
         builder.append("\n");
-    }
-
-    private String canonicalFromOid(String oid, GenerationConfig config) {
-        if (oid == null || oid.isBlank()) {
-            return null;
-        }
-        if (oid.startsWith("http") || oid.startsWith("urn:")) {
-            return oid;
-        }
-        String mapped = config != null ? config.valueSetPolicy().oidToCanonical().get(oid) : null;
-        if (mapped != null && !mapped.isBlank()) {
-            return mapped;
-        }
-        return "urn:oid:" + oid;
     }
 
     private String mapStatus(ItemStatusCodeLifeCycle status) {

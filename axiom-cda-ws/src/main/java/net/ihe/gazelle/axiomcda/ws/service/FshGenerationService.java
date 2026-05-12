@@ -297,8 +297,6 @@ public class FshGenerationService {
                     continue;
                 }
                 IRTemplate template = templateByProfileName.get(profileName);
-                boolean eligible = template != null;
-                boolean observation = template != null && "Observation".equals(template.rootCdaType());
                 String templateOrigin = template != null ? template.origin().name() : IRTemplateOrigin.OTHER.name();
                 profiles.add(new FshProfile(
                         profileName,
@@ -307,21 +305,11 @@ public class FshGenerationService {
                         template != null ? template.rootCdaType() : null,
                         templateOrigin,
                         ownershipStatusFromOrigin(templateOrigin),
-                        selectionReasonFromOrigin(templateOrigin),
-                        eligible,
-                        eligible ? (observation ? "observation" : "generic") : null,
-                        eligible
-                                ? (observation
-                                ? "FHIR Ready"
-                                : null)
-                                : null
+                        selectionReasonFromOrigin(templateOrigin)
                 ));
             }
         }
-        profiles.sort(Comparator
-                .comparing((FshProfile profile) -> "observation".equals(profile.fhirTransformKind()) ? 0 : 1)
-                .thenComparing(FshProfile::fhirTransformEligible, Comparator.reverseOrder())
-                .thenComparing(FshProfile::name));
+        profiles.sort(Comparator.comparing(FshProfile::name));
         return profiles;
     }
 

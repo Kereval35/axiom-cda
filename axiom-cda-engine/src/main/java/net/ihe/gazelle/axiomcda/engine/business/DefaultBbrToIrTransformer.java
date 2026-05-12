@@ -46,6 +46,7 @@ public class DefaultBbrToIrTransformer implements BbrToIrTransformer {
 
         Map<String, TemplateDefinition> latestById = new HashMap<>();
         selectionService.selectLatestById(rules).forEach(latestById::put);
+        BbrTerminologyCanonicalResolver canonicalResolver = BbrTerminologyCanonicalResolver.fromDecor(decor);
 
         String preferredLanguage = decor.getProject() != null ? decor.getProject().getDefaultLanguage() : null;
         OwnershipContext ownershipContext = selectionService.ownershipContextFromDecor(decor);
@@ -76,7 +77,8 @@ public class DefaultBbrToIrTransformer implements BbrToIrTransformer {
                     cdaRepository,
                     latestById,
                     diagnostics,
-                    originByTemplateId.getOrDefault(templateId, IRTemplateOrigin.OTHER)
+                    originByTemplateId.getOrDefault(templateId, IRTemplateOrigin.OTHER),
+                    canonicalResolver
             );
             if (irTemplate != null) {
                 templates.add(irTemplate);

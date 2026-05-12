@@ -2,9 +2,10 @@ package net.ihe.gazelle.axiomcda.ws.service;
 
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.ws.rs.BadRequestException;
-import net.ihe.gazelle.axiomcda.engine.business.GenericIrToFhirFshGenerator;
+import net.ihe.gazelle.axiomcda.engine.business.FshGeneratorContext;
+import net.ihe.gazelle.axiomcda.engine.business.IrToFhirFshGenerator;
 import net.ihe.gazelle.axiomcda.engine.business.ObservationFhirConversionResult;
-import net.ihe.gazelle.axiomcda.engine.business.ObservationIrToFhirFshGenerator;
+import net.ihe.gazelle.axiomcda.engine.business.SPIFshGeneratorProvider;
 import net.ihe.gazelle.axiomcda.fhirmappings.api.MappingModelProvider;
 import net.ihe.gazelle.axiomcda.fhirmappings.api.SemanticMappingModel;
 import net.ihe.gazelle.axiomcda.fhirmappings.builtin.BuiltInMappingModelProvider;
@@ -36,6 +37,15 @@ public class FhirConversionService {
     private static final String BASE_OBSERVATION_URL = "http://hl7.org/fhir/StructureDefinition/Observation";
     private static final String R4_CORE_PACKAGE_ID = "hl7.fhir.r4.core";
     private static final String R4_CORE_VERSION = "4.0.1";
+    private final SPIFshGeneratorProvider generatorProvider;
+
+    public FhirConversionService() {
+        this(new SPIFshGeneratorProvider());
+    }
+
+    FhirConversionService(SPIFshGeneratorProvider generatorProvider) {
+        this.generatorProvider = generatorProvider;
+    }
 
     public FhirConversionResult convertObservation(FhirConversionRequest request) throws Exception {
         if (request == null || request.template() == null) {
@@ -56,17 +66,14 @@ public class FhirConversionService {
         SemanticMappingModel mappingModel = provider instanceof BuiltInMappingModelProvider builtInProvider
                 ? builtInProvider.resolve(request.template().rootCdaType(), request.builtInMappingId())
                 : provider.resolve(request.template().rootCdaType());
-        ObservationFhirConversionResult conversion = observationTemplate
-                ? new ObservationIrToFhirFshGenerator().generate(
-                        request.template(),
-                        request.sourceProfileName(),
-                        mappingModel
-                )
-                : new GenericIrToFhirFshGenerator().generate(
-                        request.template(),
-                        request.sourceProfileName(),
-                        mappingModel
-                );
+        IrToFhirFshGenerator generator = generatorProvider.resolveFactory(
+                new FshGeneratorContext(request.template(), mappingModel)
+        ).create();
+        ObservationFhirConversionResult conversion = generator.generate(
+                request.template(),
+                request.sourceProfileName(),
+                mappingModel
+        );
         String mappingRulesName = conversion.profileName() + "MappingRules";
         String mappingRulesFsh = new SemanticMappingFshTraceRenderer().render(
                 mappingRulesName,
@@ -90,10 +97,7 @@ public class FhirConversionService {
                         request.template().rootCdaType(),
                         request.template().origin().name(),
                         "PROJECT".equals(request.template().origin().name()) ? "PROJECT" : "EXTERNAL",
-                        "REQUIRED_INCLUDE".equals(request.template().origin().name()) ? "REQUIRED_INCLUDE" : "DIRECT",
-                        false,
-                        null,
-                        null
+                        "REQUIRED_INCLUDE".equals(request.template().origin().name()) ? "REQUIRED_INCLUDE" : "DIRECT"
                 )),
                 conversion.diagnostics(),
                 mappingRulesName,

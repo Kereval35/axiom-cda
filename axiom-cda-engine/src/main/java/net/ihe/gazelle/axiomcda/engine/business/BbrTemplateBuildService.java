@@ -35,7 +35,43 @@ class BbrTemplateBuildService {
                              Map<String, TemplateDefinition> templateById,
                              List<IRDiagnostic> diagnostics,
                              IRTemplateOrigin origin) {
-        TemplateBuildContext context = new TemplateBuildContext(template, preferredLanguage, config, cdaRepository, templateById, diagnostics);
+        TemplateBuildContext context = new TemplateBuildContext(
+                template,
+                preferredLanguage,
+                config,
+                cdaRepository,
+                templateById,
+                diagnostics,
+                BbrTerminologyCanonicalResolver.fromDecor(null)
+        );
+        return buildTemplate(template, context, cdaRepository, config, origin);
+    }
+
+    IRTemplate buildTemplate(TemplateDefinition template,
+                             String preferredLanguage,
+                             GenerationConfig config,
+                             CdaModelRepository cdaRepository,
+                             Map<String, TemplateDefinition> templateById,
+                             List<IRDiagnostic> diagnostics,
+                             IRTemplateOrigin origin,
+                             BbrTerminologyCanonicalResolver canonicalResolver) {
+        TemplateBuildContext context = new TemplateBuildContext(
+                template,
+                preferredLanguage,
+                config,
+                cdaRepository,
+                templateById,
+                diagnostics,
+                canonicalResolver
+        );
+        return buildTemplate(template, context, cdaRepository, config, origin);
+    }
+
+    private IRTemplate buildTemplate(TemplateDefinition template,
+                                     TemplateBuildContext context,
+                                     CdaModelRepository cdaRepository,
+                                     GenerationConfig config,
+                                     IRTemplateOrigin origin) {
         RuleDefinition rootRule = findRootRule(template, cdaRepository);
         if (rootRule == null || rootRule.getName() == null) {
             context.addDiagnostic(IRDiagnosticSeverity.WARNING, null, "No root element found");
@@ -64,7 +100,7 @@ class BbrTemplateBuildService {
         List<IRTemplateInclude> includes = new ArrayList<>();
         List<IRInvariant> invariants = new ArrayList<>();
 
-        String templateDescription = TextUtil.selectDescription(template.getDesc(), preferredLanguage);
+        String templateDescription = TextUtil.selectDescription(template.getDesc(), context.preferredLanguage());
 
         processAttributes(rootRule, "", context, builders);
         processNested(rootRule, "", context, builders, includes, invariants, config);
@@ -344,7 +380,7 @@ class BbrTemplateBuildService {
             }
             IRBindingStrength bindingStrength = mapStrength(strength, context);
             if (canonical != null) {
-                bindings.add(new IRBinding(bindingStrength, canonical, vocab.getCodeSystem()));
+                bindings.add(new IRBinding(bindingStrength, canonical, context.resolveCodeSystem(vocab.getCodeSystem())));
             }
         }
         return bindings;
