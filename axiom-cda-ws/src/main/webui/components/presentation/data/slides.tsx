@@ -1251,7 +1251,7 @@ Expression: "participant.count() >= 1"`}
             <ul className="list-disc list-inside space-y-2 text-lg">
               <li>Tout est tracé dans les diagnostics</li>
               <li>Warnings explicites sur les éléments ignorés</li>
-              <li>Permet déjà de couvrir 80% des cas réels</li>
+              <li>Les cas courants sont couverts sans masquer les limites restantes</li>
             </ul>
           </div>
         ),

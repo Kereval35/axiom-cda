@@ -3,6 +3,7 @@
 import React from "react";
 import { formatFsh } from "../utils/fshFormatter";
 import { FshHighlighter } from "./FshHighlighter";
+import { JsonHighlighter } from "./JsonHighlighter";
 import { FshProfile } from "../types/generation";
 
 interface FshProfileModalProps {
@@ -39,7 +40,8 @@ export const FshProfileModal: React.FC<FshProfileModalProps> = ({
     const rawContent = contentOverride ?? profile.content;
     const modalTitle = titleOverride ?? `${profile.name}.fsh`;
     const downloadFileName = fileNameOverride ?? `${profile.name}.fsh`;
-    const displayContent = formatted ? formatFsh(rawContent) : rawContent;
+    const isJsonContent = downloadFileName.toLowerCase().endsWith(".json") || modalTitle.toLowerCase().endsWith(".json");
+    const displayContent = formatted ? formatContent(rawContent, isJsonContent) : rawContent;
 
     const copyToClipboard = () => {
         navigator.clipboard.writeText(displayContent);
@@ -97,7 +99,9 @@ export const FshProfileModal: React.FC<FshProfileModalProps> = ({
                 </div>
 
                 <div className="p-6 overflow-y-auto max-h-[60vh]">
-                    {formatted ? (
+                    {formatted && isJsonContent ? (
+                        <JsonHighlighter json={displayContent} />
+                    ) : formatted ? (
                         <FshHighlighter code={displayContent} />
                     ) : (
                         <pre className="bg-zinc-50 dark:bg-zinc-950 rounded-lg overflow-x-auto p-4 font-mono text-sm text-zinc-800 dark:text-zinc-300 whitespace-pre">
@@ -139,4 +143,16 @@ export const FshProfileModal: React.FC<FshProfileModalProps> = ({
             </div>
         </div>
     );
+};
+
+const formatContent = (content: string, isJsonContent: boolean): string => {
+    if (!isJsonContent) {
+        return formatFsh(content);
+    }
+
+    try {
+        return JSON.stringify(JSON.parse(content), null, 2);
+    } catch {
+        return content;
+    }
 };

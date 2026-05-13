@@ -36,17 +36,17 @@ export const translations = {
       ownedRepositoryPrefixesPlaceholder: "Example: BBR-, BIO-CR-BIO-",
       ownedRepositoryPrefixesHint: "Comma-separated ART-DECOR idents. The project prefix and BBR- are included by default.",
       includeIr: "Include Intermediate Representation (IR)",
-      fhirEligible: "Eligible for FHIR transformation",
+      fhirEligible: "Available for FHIR conversion",
       convertToFhir: "Convert to FHIR",
       fhirConversionTitle: "FHIR Conversion",
-      fhirConversionSubtitle: "Generate FHIR FSH from the selected CDA IR template using a built-in mapping preset or an uploaded StructureMap JSON override.",
+      fhirConversionSubtitle: "Generate FHIR FSH from the selected profile and CDA IR template using a shipped mapping preset when available, or an uploaded StructureMap JSON override.",
       useGenericMapping: "Use built-in mapping preset",
-      useGenericMappingHint: "Recommended when a shipped mapping preset already fits your target. Turn this off to provide your own StructureMap JSON.",
+      useGenericMappingHint: "Shown only when this root has shipped presets. Turn it off to provide your own StructureMap JSON.",
       builtInMappingLabel: "Built-in mapping preset",
       structureMapLabel: "StructureMap JSON Override",
       uploadStructureMap: "Click to upload a custom StructureMap JSON override",
       acceptsJson: "Accepts .json files",
-      conversionMissingState: "No eligible IR context was found. Generate CDA FSH first and start conversion from an eligible profile.",
+      conversionMissingState: "No selected profile and IR context was found. Generate CDA FSH first, then start conversion from a generated profile popup.",
       selectedTemplate: "Selected IR Template",
       conversionDiagnostics: "Conversion diagnostics",
       generationDiagnostics: "Diagnostics",
@@ -59,7 +59,7 @@ export const translations = {
       viewUsedMappingRules: "View Used Rules",
       generateFhir: "Generate FHIR FSH",
       generatingFhir: "Generating FHIR FSH...",
-      backToDashboard: "Back to dashboard",
+      backToDashboard: "Back",
       yamlConfig: "YAML Configuration (Optional)",
       yamlPlaceholder: "profilePrefix: MyIG...",
       secureBackend: "All generation happens securely on our high-performance backend.",
@@ -89,12 +89,12 @@ export const translations = {
         features: {
           title: "Key Features",
           pipeline: {
-            title: "Two-Stage Pipeline",
+            title: "BBR to IR to FSH Pipeline",
             description: "BBR → IR → FSH with intermediate validation"
           },
           validation: {
-            title: "Automated Validation",
-            description: "Ensures generated profiles are FHIR-compliant"
+            title: "Diagnostics and Safety Checks",
+            description: "Reports skipped constructs, unresolved mappings, and unsafe constraints"
           },
           binding: {
             title: "Smart Binding Resolution",
@@ -179,7 +179,7 @@ export const translations = {
           choice: "Choice elements ignored",
           mapping: "Mapping may be incomplete depending on the BBR structure"
         },
-        note: "Diagnostics capture every ignored element and we already cover roughly 80% of real-world templates; warnings are emitted when something is skipped.",
+        note: "Diagnostics capture ignored or unresolved elements; warnings are emitted when something is skipped instead of silently generating unsafe FSH.",
         roadmapTitle: "What’s next?",
         roadmapDetail: "Add slicing support, extend invariant coverage, and improve mapping heuristics."
       },
@@ -263,17 +263,17 @@ export const translations = {
       ownedRepositoryPrefixesPlaceholder: "Exemple : BBR-, BIO-CR-BIO-",
       ownedRepositoryPrefixesHint: "Identifiants ART-DECOR separes par des virgules. Le prefixe du projet et BBR- sont inclus par defaut.",
       includeIr: "Inclure la représentation intermédiaire (IR)",
-      fhirEligible: "Éligible à la transformation FHIR",
+      fhirEligible: "Disponible pour la conversion FHIR",
       convertToFhir: "Convertir en FHIR",
       fhirConversionTitle: "Conversion FHIR",
-      fhirConversionSubtitle: "Générez du FHIR FSH à partir du template IR CDA sélectionné en utilisant un preset de mapping intégré ou une StructureMap JSON de surcharge.",
+      fhirConversionSubtitle: "Générez du FHIR FSH à partir du profil et du template IR CDA sélectionnés avec un preset fourni quand il existe, ou avec une StructureMap JSON de surcharge.",
       useGenericMapping: "Utiliser un preset de mapping intégré",
-      useGenericMappingHint: "Recommandé lorsqu'un preset fourni correspond déjà à votre cible. Désactivez ceci pour fournir votre propre StructureMap JSON.",
+      useGenericMappingHint: "Affiché uniquement quand cette racine dispose de presets fournis. Désactivez-le pour fournir votre propre StructureMap JSON.",
       builtInMappingLabel: "Preset de mapping intégré",
       structureMapLabel: "Surcharge StructureMap JSON (Optionnel)",
       uploadStructureMap: "Cliquez pour téléverser une StructureMap JSON personnalisée",
       acceptsJson: "Accepte les fichiers .json",
-      conversionMissingState: "Aucun contexte IR éligible n’a été trouvé. Générez d’abord le FSH CDA puis lancez la conversion depuis un profil éligible.",
+      conversionMissingState: "Aucun profil et contexte IR sélectionné n’a été trouvé. Générez d’abord le FSH CDA, puis lancez la conversion depuis le popup d’un profil généré.",
       selectedTemplate: "Template IR sélectionné",
       conversionDiagnostics: "Diagnostics de conversion",
       generationDiagnostics: "Diagnostics",
@@ -286,7 +286,7 @@ export const translations = {
       viewUsedMappingRules: "Voir les règles utilisées",
       generateFhir: "Générer le FHIR FSH",
       generatingFhir: "Génération du FHIR FSH...",
-      backToDashboard: "Retour au tableau de bord",
+      backToDashboard: "Retour",
       yamlConfig: "Configuration YAML (Optionnel)",
       yamlPlaceholder: "profilePrefix: MonIG...",
       secureBackend: "Toute la génération se passe en toute sécurité sur notre backend haute performance.",
@@ -316,12 +316,12 @@ export const translations = {
         features: {
           title: "Fonctionnalités clés",
           pipeline: {
-            title: "Pipeline en deux étapes",
+            title: "Pipeline BBR vers IR vers FSH",
             description: "BBR → IR → FSH avec validation intermédiaire"
           },
           validation: {
-            title: "Validation automatisée",
-            description: "Garantit que les profils générés sont conformes FHIR"
+            title: "Diagnostics et contrôles de sécurité",
+            description: "Signale les composants ignorés, les mappings non résolus et les contraintes non sûres"
           },
           binding: {
             title: "Résolution intelligente des liaisons",
@@ -406,7 +406,7 @@ export const translations = {
           choice: "Éléments Choice ignorés",
           mapping: "Mappage potentiellement incomplet selon la structure BBR"
         },
-        note: "Chaque élément ignoré est tracé dans les diagnostics; on couvre déjà environ 80 % des cas réels et des warnings accompagnent les omissions.",
+        note: "Chaque élément ignoré ou non résolu est tracé dans les diagnostics; des warnings accompagnent les omissions au lieu de générer du FSH non sûr.",
         roadmapTitle: "Prochaine étape ?",
         roadmapDetail: "Support du slicing, couverture plus large des invariants et meilleures heuristiques de mappage."
       },

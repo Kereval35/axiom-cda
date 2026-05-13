@@ -145,7 +145,7 @@ class BbrTemplateBuildService {
                     invariant.ifPresent(invariants::add);
                 }
             } else if (entry instanceof ChoiceDefinition) {
-                context.addDiagnostic(IRDiagnosticSeverity.WARNING, parentPath, "Choice elements are not supported in v0");
+                context.addDiagnostic(IRDiagnosticSeverity.WARNING, parentPath, "Choice elements are not supported in v1");
             }
         }
     }

@@ -534,7 +534,7 @@ Expression: "recordTarget.patientRole.id.count() >= 1"`}
                                             axiom-cda now prototypes a true CDA to FHIR rule-mapping pipeline on top of the CDA IR. The flow starts from the BBR, produces a normalized CDA Intermediate Representation, applies a dedicated mapping rule set, projects a FHIR-oriented intermediate view, and finally emits FHIR Shorthand as the concrete output.
                                         </p>
                                         <p className="!text-zinc-700 dark:!text-zinc-300 text-sm">
-                                            In this V1, the proof of concept focuses on Observation-root templates. Users can transform those profiles with the built-in pure HL7 R4 Observation mapping, switch to the bundled eHDSI Laboratory mapping rules, or provide their own mapping logic through an uploaded StructureMap JSON override. The objective is to establish a generic community-extensible foundation for CDA to FHIR transformation rules, while keeping project-specific mappings possible when needed.
+                                            In this V1, the application exposes a generic FHIR conversion page for selected CDA profiles. Observation-root templates can use shipped built-in presets, currently the generic HL7 R4 Observation mapping or the eHDSI Laboratory mapping. Other roots do not get a built-in preset selector: users must upload a StructureMap JSON override, which is handled by the SPI-selected generator path. The objective is to establish a community-extensible foundation for CDA to FHIR transformation rules, while keeping project-specific mappings possible when needed.
                                         </p>
                                     </div>
                                     <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -565,16 +565,16 @@ Expression: "recordTarget.patientRole.id.count() >= 1"`}
                                     </div>
                                     <div className="bg-zinc-50 dark:bg-zinc-900 border border-zinc-300 dark:border-zinc-700 rounded-lg p-4 overflow-x-auto">
                                         <pre className="text-sm !text-zinc-700 dark:!text-zinc-300 whitespace-pre-wrap">
-{`1. Generate CDA FSH and inspect the selected IR template in the dashboard
-2. Select an Observation profile marked as FHIR-convertible
-3. Choose a built-in mapping preset (Generic HL7 R4 or eHDSI Laboratory), or upload a StructureMap override
-4. Apply the mapping rules to project the Observation CDA IR into FHIR-oriented FSH
-5. Optionally compile the generated FHIR FSH with SUSHI`}
+{`1. Generate CDA FSH and open a generated profile from the dashboard
+2. Use the popup Convert to FHIR action to carry the selected profile and IR template to the conversion page
+3. For Observation roots, keep the built-in preset enabled and choose a shipped mapping, or turn it off to upload a StructureMap JSON override
+4. For non-Observation roots, upload a StructureMap JSON override; built-in presets are intentionally not shown
+5. Review diagnostics, generated FHIR FSH, mapping-rule traces, and optionally compile the generated FHIR FSH with SUSHI`}
                                         </pre>
                                     </div>
                                     <div className="bg-cyan-500/5 border border-cyan-500/20 rounded-lg p-4">
                                         <p className="!text-zinc-700 dark:!text-zinc-300 text-sm">
-                                            This is intentionally positioned as a PoC for generalized CDA to FHIR transformation. Observation is the first supported root because it provides a realistic business case and a manageable validation surface, while the long-term aim is to let the community contribute additional rule packs and extend the approach to more CDA structures.
+                                            This is intentionally positioned as a PoC for generalized CDA to FHIR transformation. Observation is the first root with shipped built-in presets because it provides a realistic business case and a manageable validation surface. The UI no longer marks profiles as &quot;FHIR-ready&quot;; it lets users attempt conversion from a selected profile, while the conversion page makes the supported mapping choice explicit.
                                         </p>
                                     </div>
                                 </div>
@@ -587,7 +587,7 @@ Expression: "recordTarget.patientRole.id.count() >= 1"`}
                             </h2>
                             <div className="prose prose-zinc dark:prose-invert max-w-none">
                                 <p className="!text-zinc-700 dark:!text-zinc-300 text-lg leading-relaxed">
-                                    The FHIR conversion PoC is backed by a dedicated built-in mapping library. Instead of hardwiring a single uploaded <code>StructureMap</code> into the conversion path, axiom-cda now exposes a reusable mapping catalog that can serve shipped presets, keep custom override support, and evolve toward community-contributed CDA to FHIR rule packs.
+                                    The FHIR conversion PoC is backed by a dedicated built-in mapping library. Instead of hardwiring a single uploaded <code>StructureMap</code> into the conversion path, axiom-cda now exposes a reusable mapping catalog for shipped Observation presets, keeps custom override support for project-specific mappings, and can evolve toward community-contributed CDA to FHIR rule packs.
                                 </p>
 
                                 <h3 className="!text-[#18181b] dark:!text-zinc-100 text-xl font-semibold mt-8 mb-4">
@@ -596,9 +596,9 @@ Expression: "recordTarget.patientRole.id.count() >= 1"`}
                                 <div className="bg-zinc-100/50 dark:bg-zinc-800/50 rounded-lg p-4 my-4">
                                     <ol className="!text-zinc-700 dark:!text-zinc-300 space-y-2">
                                         <li><strong>BBR to CDA IR:</strong> The normal generation pipeline selects templates and produces a normalized CDA IR.</li>
-                                        <li><strong>Mapping pack resolution:</strong> The FHIR conversion flow resolves either a built-in mapping preset or an uploaded StructureMap override.</li>
+                                        <li><strong>Mapping pack resolution:</strong> The FHIR conversion flow resolves either a built-in Observation mapping preset or an uploaded StructureMap override.</li>
                                         <li><strong>Semantic model loading:</strong> Built-in packs and uploaded StructureMaps are both transformed into the same internal semantic mapping model.</li>
-                                        <li><strong>FHIR-oriented projection:</strong> The Observation interpreter applies those rules to the CDA IR and computes parent, cardinalities, bindings, fixed values, and diagnostics.</li>
+                                        <li><strong>FHIR-oriented projection:</strong> The SPI-selected generator applies those rules to the CDA IR and computes parent, cardinalities, bindings, fixed values, and diagnostics. Observation has a dedicated generator; other roots fall back to generic or specialized generators when available.</li>
                                         <li><strong>FHIR FSH emission:</strong> The projection is rendered as FHIR Shorthand, then can optionally be compiled with SUSHI.</li>
                                     </ol>
                                 </div>
@@ -617,17 +617,17 @@ packs:
     label: Generic HL7 Observation
     family: hl7-core
     rootCdaType: Observation
-    resource: fhir-mappings/observation/observation-core-v1.yaml
+    resource: fhir-mappings/observation/observation-core-v2.yaml
 
   - id: observation-ehdsi-lab-v1
     label: eHDSI Laboratory Observation
     family: ehdsi-laboratory
     rootCdaType: Observation
-    resource: fhir-mappings/observation/observation-ehdsi-lab-v1.yaml`}
+    resource: fhir-mappings/observation/observation-ehdsi-lab-v2.yaml`}
                                     </pre>
                                 </div>
                                 <p className="!text-zinc-700 dark:!text-zinc-300">
-                                    The current implementation keeps those semantics in separate resources. <code>observation-core-v1.yaml</code> is now the HL7-core Observation mapping resource, while <code>observation-ehdsi-lab-v1.yaml</code> holds the dedicated eHDSI laboratory specialization. This keeps the file naming aligned with the actual semantics and makes future contributions easier to reason about.
+                                    The public preset ids remain stable, while the current runtime resources are versioned as <code>observation-core-v2.yaml</code> and <code>observation-ehdsi-lab-v2.yaml</code>. The catalog separates the generic HL7 Observation semantics from the eHDSI laboratory specialization, which keeps future contributions easier to review.
                                 </p>
 
                                 <h3 className="!text-[#18181b] dark:!text-zinc-100 text-xl font-semibold mt-8 mb-4">
@@ -672,7 +672,7 @@ packs:
                                     Current V1 scope
                                 </h3>
                                 <p className="!text-zinc-700 dark:!text-zinc-300">
-                                    In V1, this mechanism is intentionally prototyped on <strong>Observation</strong>. That gives us a realistic CDA to FHIR use case, a manageable validation surface, and a concrete place to test generic HL7 mapping, eHDSI specialization, StructureMap override compatibility, and SUSHI compilation. The long-term target is broader: make this mapping-library approach the foundation for community-maintained CDA to FHIR rule packs across additional CDA roots.
+                                    In V1, the built-in catalog is intentionally limited to <strong>Observation</strong>. That gives us a realistic CDA to FHIR use case, a manageable validation surface, and a concrete place to test generic HL7 mapping, eHDSI specialization, StructureMap override compatibility, and SUSHI compilation. Additional CDA roots can still be attempted through uploaded StructureMap JSON using the SPI-selected generic or specialized generator path, but they are not presented as shipped built-in packs.
                                 </p>
                             </div>
                         </section>
@@ -689,12 +689,12 @@ packs:
                                 <div className="space-y-4">
                                     <div className="bg-indigo-500/5 border border-indigo-500/20 rounded-lg p-4">
                                         <ol className="!text-zinc-700 dark:!text-zinc-300 space-y-2">
-                                            <li><strong>Upload BBR:</strong> Upload your ART-DECOR BBR XML file</li>
-                                            <li><strong>Configure Options:</strong> Select SUSHI layout, enable IR/logs output, and activate project ownership filtering when needed</li>
+                                            <li><strong>Provide BBR:</strong> Upload, paste, or enter a URL for the ART-DECOR BBR XML</li>
+                                            <li><strong>Configure Options:</strong> Select SUSHI layout, show generation diagnostics, and activate project ownership filtering when needed</li>
                                             <li><strong>Optional YAML:</strong> Provide custom generation configuration</li>
                                             <li><strong>Generate:</strong> Click &quot;Generate FSH Package&quot; button</li>
-                                            <li><strong>Review Outputs:</strong> Inspect the generated profiles, IR templates, and FHIR-convertible Observation candidates</li>
-                                            <li><strong>Download:</strong> Get your FSH profiles as a ZIP file</li>
+                                            <li><strong>Review Outputs:</strong> Inspect diagnostics, generated profiles, IR templates, and popup actions for copy, download, format, and FHIR conversion</li>
+                                            <li><strong>Download:</strong> Get the generated package as a ZIP file</li>
                                         </ol>
                                     </div>
                                 </div>
@@ -869,7 +869,7 @@ emitInvariants: true`}
                                 </h3>
                                 <div className="bg-zinc-50 dark:bg-zinc-900 border border-zinc-300 dark:border-zinc-700 rounded-lg p-4">
                                     <p className="!text-zinc-700 dark:!text-zinc-300 mb-4">
-                                        Generate FHIR FSH from a selected Observation IR template using a built-in mapping preset or a custom StructureMap JSON override.
+                                        Generate FHIR FSH from a selected profile and IR template. Built-in mapping presets are available for Observation roots; other roots require an uploaded StructureMap JSON override.
                                     </p>
                                     <pre className="text-sm !text-zinc-700 dark:!text-zinc-300 bg-zinc-100 dark:bg-zinc-800 rounded p-3 overflow-x-auto">
 {`{
@@ -886,7 +886,16 @@ emitInvariants: true`}
                                 </h3>
                                 <div className="bg-zinc-50 dark:bg-zinc-900 border border-zinc-300 dark:border-zinc-700 rounded-lg p-4">
                                     <p className="!text-zinc-700 dark:!text-zinc-300 mb-4">
-                                        List the built-in FHIR mapping presets currently shipped by the application, such as the generic HL7 R4 Observation preset and the eHDSI laboratory specialization.
+                                        List the built-in FHIR mapping presets currently shipped by the application. The current endpoint returns Observation presets only, such as the generic HL7 R4 Observation preset and the eHDSI laboratory specialization.
+                                    </p>
+                                </div>
+
+                                <h3 className="!text-[#18181b] dark:!text-zinc-100 text-xl font-semibold mt-8 mb-4">
+                                    GET /api/convert/fhir/package-presets
+                                </h3>
+                                <div className="bg-zinc-50 dark:bg-zinc-900 border border-zinc-300 dark:border-zinc-700 rounded-lg p-4">
+                                    <p className="!text-zinc-700 dark:!text-zinc-300 mb-4">
+                                        List package presets offered by the SUSHI compile panel. The service reads <code>fhirPackagePresets</code> from the configured app JSON file and always provides the HL7 FHIR R4 core package fallback.
                                     </p>
                                 </div>
 
@@ -895,9 +904,12 @@ emitInvariants: true`}
                                 </h3>
                                 <div className="bg-zinc-50 dark:bg-zinc-900 border border-zinc-300 dark:border-zinc-700 rounded-lg p-4">
                                     <p className="!text-zinc-700 dark:!text-zinc-300 mb-4">
-                                        Compile generated FHIR FSH with SUSHI, optionally against an official IG dependency when the parent profile is not the base Observation.
+                                        Compile generated FHIR FSH with SUSHI. The backend creates a temporary SUSHI project, always adds <code>hl7.fhir.r4.core#4.0.1</code>, and requires an official IG dependency id and version when the generated parent is not the base Observation profile.
                                     </p>
                                 </div>
+                                <p className="text-sm !text-zinc-700 dark:!text-zinc-300 mt-4">
+                                    The same API surface is also exposed under the deployed <code>/axiom-cda/api/...</code> prefix.
+                                </p>
                             </div>
                         </section>
                     </main>
